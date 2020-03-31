@@ -103,4 +103,118 @@
             <param-value>高手云集，真知灼见 手机WAP浏览:http://wap.feedsky.com/jdon</param-value>
         </init-param>
         <init-param>
-      
+            <param-name>item.link</param-name>
+            <param-value>/forum/messageList.shtml?thread=#(threadId)#&amp;message=#(messageId)#
+            </param-value>
+        </init-param>
+    </servlet>
+    <servlet>
+        <servlet-name>dwr-invoker</servlet-name>
+        <display-name>DWR Servlet</display-name>
+        <servlet-class>uk.ltd.getahead.dwr.DWRServlet</servlet-class>
+        <init-param>
+            <param-name>debug</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>logLevel</param-name>
+            <param-value>WARN</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>RSSGenServlet</servlet-name>
+        <url-pattern>/rss</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>action</servlet-name>
+        <url-pattern>*.shtml</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>jasslogin</servlet-name>
+        <url-pattern>/jasslogin</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>dwr-invoker</servlet-name>
+        <url-pattern>/dwr/*</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>15</session-timeout>
+    </session-config>
+    <error-page>
+        <error-code>400</error-code>
+        <location>/</location>
+    </error-page>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/login</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/login</location>
+    </error-page>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/common/permError.jsp?error=500</location>
+    </error-page>
+
+    <taglib>
+        <taglib-uri>struts-bean</taglib-uri>
+        <taglib-location>/WEB-INF/tld/struts-bean.tld</taglib-location>
+    </taglib>
+    <taglib>
+        <taglib-uri>struts-html</taglib-uri>
+        <taglib-location>/WEB-INF/tld/struts-html.tld</taglib-location>
+    </taglib>
+    <taglib>
+        <taglib-uri>struts-logic</taglib-uri>
+        <taglib-location>/WEB-INF/tld/struts-logic.tld</taglib-location>
+    </taglib>
+    <taglib>
+        <taglib-uri>/WEB-INF/MultiPages.tld</taglib-uri>
+        <taglib-location>/WEB-INF/tld/MultiPages.tld</taglib-location>
+    </taglib>
+    <security-constraint>
+        <display-name>admin security</display-name>
+        <web-resource-collection>
+            <web-resource-name>Admin input</web-resource-name>
+            <url-pattern>/admin/*</url-pattern>
+        </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>forum admin</web-resource-name>
+            <url-pattern>/forum/admin/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>Admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>User security</display-name>
+        <web-resource-collection>
+            <web-resource-name>User post message</web-resource-name>
+            <url-pattern>/message/*</url-pattern>
+        </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>User register</web-resource-name>
+            <url-pattern>/account/protected/*</url-pattern>
+        </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>User shotmessage</web-resource-name>
+            <url-pattern>/shortmessage/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>User</role-name>
+            <role-name>Admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <login-config>
+        <auth-method>FORM</auth-method>
+        <form-login-config>
+            <form-login-page>/jasslogin</form-login-page>
+            <form-error-page>/account/login_error.jsp</form-error-page>
+        </form-login-config>
+    </login-config>
+    <security-role>
+        <description>a
