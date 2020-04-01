@@ -217,4 +217,11 @@
         </form-login-config>
     </login-config>
     <security-role>
-        <description>a
+        <description>administrator</description>
+        <role-name>Admin</role-name>
+    </security-role>
+    <security-role>
+        <description>register user</description>
+        <role-name>User</role-name>
+    </security-role>
+</web-app>
