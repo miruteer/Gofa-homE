@@ -113,4 +113,31 @@
 	<action name="fromShortMessageForm" path="/account/protected/delAll" 
 		type="com.jdon.strutsutil.ServiceMethodSimpleAction" scope="request"
     	validate="false">    	  
-      <forward name="success" path="/s
+      <forward name="success" path="/shortmessage/result.jsp" />
+      <forward name="failure" path="/" />
+    </action>
+    
+    
+    <!--  /shortmessage/checknewmessage.shtml?method=checkReceiveShortMessages -->
+    <action path="/shortmessage/checknewmessage" type="com.jdon.jivejdon.presentation.action.NewMsgCheckerAction" 
+        scope="request"  validate="false">
+		 <forward name="checkshortmsg" path="/shortmessage/newmessage.jsp"/>
+		 <forward name="checklobbymsg" path="/forum/newLobbymessage.jsp"/>
+	</action>
+	<!-- shortmessage end -->
+	
+	<action path="/forum/checknewmessage" type="com.jdon.jivejdon.presentation.action.NewMsgCheckerAction" 
+        scope="request"  validate="false">		 
+         <forward name="checkshortmsg" path="/shortmessage/newmessage.jsp"/>
+		 <forward name="checklobbymsg" path="/forum/newLobbymessage.jsp"/>
+	</action>
+	
+	<!-- /mobile -->
+	<action path="/mobile/checknewmessage" type="com.jdon.jivejdon.presentation.action.NewMsgCheckerAction" 
+        scope="request"  validate="false">
+		 <forward name="checkshortmsg" path="/mobile/message/newmessage.jsp"/>
+		 <forward name="checklobbymsg" path="/forum/newLobbymessage.jsp"/>
+	</action>
+	
+  </action-mappings>
+</struts-config>
