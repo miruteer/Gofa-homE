@@ -9,4 +9,118 @@
          http://www.apache.org/licenses/LICENSE-2.0
    
     Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on a
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<!--
+     DTD for the Struts Application Configuration File
+
+     To support validation of your configuration file, include the following
+     DOCTYPE element at the beginning (after the "xml" declaration):
+
+     <!DOCTYPE struts-config PUBLIC
+       "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN"
+       "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+     $Id: struts-config_1_2.dtd 481833 2006-12-03 17:32:52Z niallp $
+-->
+
+
+<!-- ========== Defined Types ============================================= -->
+
+
+<!-- An "AttributeName" is the identifier of a page, request, session, or
+     application scope attribute.
+-->
+<!ENTITY % AttributeName "CDATA">
+
+
+<!-- A "BeanName" is the identifier of a JavaBean, such as a form bean,
+     and also serves as the name of the corresponding scripting variable
+     and the name of the JSP attribute under which the bean is accessed.
+     Therefore, it must conform to the rules for a Java identifier.
+-->
+<!ENTITY % BeanName "CDATA">
+
+
+<!-- A "Boolean" is the string representation of a boolean (true or false)
+     variable.
+-->
+<!ENTITY % Boolean "(true|false|yes|no)">
+
+
+<!-- A "ClassName" is the fully qualified name of a Java class that is
+     instantiated to provide the functionality of the enclosing element.
+-->
+<!ENTITY % ClassName "CDATA">
+
+
+<!-- An "Integer" is a character string consisting solely of numeric digits,
+     optionally preceeded by a minus sign, that can be converted to a
+     32-bit integer.
+-->
+<!ENTITY % Integer "CDATA">
+
+
+<!-- A "Location" is a relative path, delimited by "/" characters, that
+     defines the location of a resource relative to the location of the
+     Struts configuration file itself.
+-->
+<!ENTITY % Location "#PCDATA">
+
+
+<!-- A "PropName" is the name of a JavaBeans property, and must begin with
+     a lower case letter and contain only characters that are legal in a
+     Java identifier.
+-->
+<!ENTITY % PropName "CDATA">
+
+
+<!-- A "RequestPath" is an module-relative URI path, beginning with a
+     slash, that identifies a mapped resource (such as a JSP page or a servlet)
+     within this web application.
+-->
+<!ENTITY % RequestPath "CDATA">
+
+
+<!-- The name of a JSP bean scope within which such a form bean may be
+     accessed.
+-->
+<!ENTITY % RequestScope "(request|session)">
+
+
+<!-- ========== Top Level Elements ======================================== -->
+
+
+<!-- The "struts-config" element is the root of the configuration file
+     hierarchy, and contains nested elements for all of the other
+     configuration settings.
+-->
+<!ELEMENT struts-config (display-name?, description?, data-sources?, form-beans?, global-exceptions?, global-forwards?, action-mappings?, controller?, message-resources*, plug-in*)>
+<!ATTLIST struts-config  id             ID              #IMPLIED>
+
+
+<!-- The "data-sources" element describes a set of DataSource objects [JDBC 2.0
+     Standard Extension]. The individual DataSource objects are configured through
+     nested <data-source> elements.
+-->
+<!ELEMENT data-sources (data-source*)>
+<!ATTLIST data-sources   id             ID              #IMPLIED>
+
+
+<!-- The "data-source" element describes a DataSource object [JDBC 2.0 Standard
+     Extension] that will be instantiated, configured, and made available as a
+     servlet context attribute (or "application-scope bean"). Any object can be
+     specified so long as it implements [javax.sql.DataSource] and can be
+     configured entirely from JavaBean properties. The following attributes
+     are required:
+
+     className       The configuration bean for this DataSource object. If
+                     specified, the object must be a subclass of the default
+                     configuration bean.
+                     ["org.apache.struts.config.DataSourceConfig"]
+
+     key             Servlet context attribute key under which this data source
+             
