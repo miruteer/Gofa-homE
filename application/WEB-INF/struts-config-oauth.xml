@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE struts-config PUBLIC
+          "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN"
+          "struts-config_1_2.dtd">
+
+<struts-config>
+
+	<form-beans>
+    
+
+	</form-beans>
+
+
+	<action-mappings>
+    
+
+     <!-- sin weibo user login -->
+       <action  path="/account/oauth/sinaCallAction"
+			type="com.jdon.jivejdon.presentation.action.account.oauth.SinaUserCallAction" scope="request" validate="false">
+			<forward name="success" path="/account/oauth/sinaUserCallBack.shtml" />
+			<forward name="failure" path="/account/oauth/error.jsp" />
+		</action>
+
+        <action  path="/account/oauth/sinaUserCallBack"
+			type="com.jdon.jivejdon.presentation.action.account.oauth.SinaUserCallBackAction" scope="request" validate="false">
+			<forward name="success" path="/account/protected/oauthlogin.jsp" />
+			<forward name="success2" path="/account/protected/sub/subSaveAction.shtml" />
+			<forward name="failure" path="/account/oauth/error.jsp" />
+		</action>
+		
+
+		
+
+
+
+    </action-mappings>
+</struts-config>

@@ -47,4 +47,34 @@
       <forward name="success" path="/forum/admin/imageList.jsp" />
     </action>
     
-   <action name="imageListForm" path="/forum/imagesSlide" ty
+   <action name="imageListForm" path="/forum/imagesSlide" type="com.jdon.jivejdon.presentation.action.ImageSlideAction" 
+		scope="request"
+		validate="false">
+      <forward name="success" path="/imagesSlide.jsp" />
+    </action>
+    
+    <action name="imageInfoForm" path="/forum/admin/imageSaveAction" type="com.jdon.strutsutil.ModelSaveAction" scope="request"
+    	validate="true" input="/forum/admin/imageAction.shtml">
+      <forward name="success" path="/forum/admin/imageAction.shtml" />
+      <forward name="failure" path="/forum/admin/imageAction.shtml" />
+    </action>
+    
+   
+    <action path="/forum/forumListJSON" type="com.jdon.jivejdon.presentation.action.ForumListAction"
+      name="forumListForm" scope="request" 
+      validate="false">
+      <forward name="success" path="/forum/forumListJSON.jsp"/>
+    </action>	
+    
+    <!-- <action name="feedForm" path="/forum/feed/feedbackAction" type="com.jdon.strutsutil.ServiceMethodAction"
+	  scope="request" validate="true" input="/forum/feed/feedback.jsp" >
+      <forward name="send" path="/forum/feed/result.jsp"/>		
+    </action> -->
+    
+    
+    
+    
+   
+    
+  </action-mappings>
+</struts-config>
