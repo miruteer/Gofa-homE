@@ -28,4 +28,89 @@
 	<action name = "toShortMessageForm" path="/account/protected/shortmsgInReceiveBoxAction" 
 		type="com.jdon.strutsutil.ModelDispAction"
 		scope = "request" >
-		<forward name="s
+		<forward name="success" path="/shortmessage/receiveshortmessage.jsp"/>
+	</action>	
+	<!-- reply -->
+	<action  name = "toShortMessageForm" path="/account/protected/replyShortmessageAction"
+		type="com.jdon.strutsutil.ModelViewAction"
+		scope = "request">
+		<forward name="create" path="/shortmessage/replynewshortmessage.jsp"/>
+		<forward name="edit" path="/shortmessage/replynewshortmessage.jsp"/>
+	</action>
+	<action name = "toShortMessageForm" path="/account/protected/replyShortmessageSaveAction" 
+		type="com.jdon.strutsutil.ModelSaveAction"
+		scope = "request" 
+		validate="true" input="/shortmessage/result.jsp">
+		<forward name="success" path="/shortmessage/result.jsp"/>
+		<forward name="failure" path="/shortmessage/result.jsp"/>
+	</action>
+	<!-- in send box -->
+	<action name = "fromShortMessageForm" path="/account/protected/shortmsgInSendBoxAction" 
+		type="com.jdon.strutsutil.ModelDispAction"
+		scope = "request" >
+		<forward name="success" path="/shortmessage/sendshortmessage.jsp"/>
+	</action>
+	<!-- in draft box -->
+	<action name = "fromShortMessageForm" path="/account/protected/shortmsgInDraftBoxAction" 
+		type="com.jdon.strutsutil.ModelDispAction"
+		scope = "request" >
+		<forward name="success" path="/shortmessage/draftshortmessage.jsp"/>
+	</action>
+	
+	<!-- send  shortmessageSendAction.shtml?service=shortMessageService&method=sendShortMessage -->
+	<action path="/account/protected/shortmessageSendAction" 
+	type="com.jdon.strutsutil.ServiceMethodAction"
+     name="fromShortMessageForm" scope="request"  
+     validate="true" input="/shortmessage/result.jsp">
+     <forward name="sendShortMessage" path="/shortmessage/result.jsp"/>
+    </action>
+		
+	<action name = "fromShortMessageForm" path="/account/protected/drafSendAction" 
+		type="com.jdon.strutsutil.ServiceMethodAction"
+		scope = "request"
+		validate="true" input="/shortmessage/result.jsp">
+		<forward name="success" path="/shortmessage/result.jsp"/>
+		<forward name="failure" path="/shortmessage/result.jsp"/>
+	</action>
+	<!-- save -->
+	<action name = "fromShortMessageForm" path="/account/protected/shortmessageSaveAction" 
+		type="com.jdon.strutsutil.ModelSaveAction"
+		scope = "request" 
+		validate="true" input="/shortmessage/result.jsp">
+		<forward name="success" path="/shortmessage/result.jsp"/>
+		<forward name="failure" path="/shortmessage/result.jsp"/>
+	</action>
+	<!-- receive msg box -->
+	<action name="receiveListForm" path="/account/protected/receiveListAction" 
+		type="com.jdon.jivejdon.presentation.action.shortmessage.ReceiveBoxListAction"
+		scope="request">
+		<forward name="success" path="/shortmessage/receivebox.jsp"/>
+		<forward name="failure" path="/shortmessage/result.jsp"/>
+	</action>
+	<!-- send msg box -->
+	<action name="sendListForm" path="/account/protected/sendListAction" 
+		type="com.jdon.jivejdon.presentation.action.shortmessage.SendBoxListAction"
+		scope="request">
+		<forward name="success" path="/shortmessage/sendbox.jsp"/>
+		<forward name="failure" path="/shortmessage/result.jsp"/>
+	</action>
+	<!-- draft msg box -->
+	<action name="draftListForm" path="/account/protected/draftListAction" 
+		type="com.jdon.jivejdon.presentation.action.shortmessage.DraftBoxListAction"
+		scope="request">
+		<forward name="success" path="/shortmessage/draftbox.jsp"/>
+		<forward name="failure" path="/shortmessage/result.jsp"/>
+	</action>
+	<!-- delete -->
+	<action name="fromShortMessageForm" path="/account/protected/deletemsgAction" 
+		type="com.jdon.strutsutil.ModelSaveAction" scope="request"
+    	validate="true" input="/shortmessage/result.jsp">
+      <forward name="success" path="/shortmessage/result.jsp" />
+      <forward name="failure" path="/" />
+    </action>
+    
+    	<!-- delete user all  /account/protected/delAll.shtml?service=shortMessageService&method=deleteUserAllShortMessage -->
+	<action name="fromShortMessageForm" path="/account/protected/delAll" 
+		type="com.jdon.strutsutil.ServiceMethodSimpleAction" scope="request"
+    	validate="false">    	  
+      <forward name="success" path="/s
