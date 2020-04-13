@@ -123,4 +123,81 @@
                      ["org.apache.struts.config.DataSourceConfig"]
 
      key             Servlet context attribute key under which this data source
-             
+                     will be stored.  Default is the value specified by string
+                     constant defined by Globals.DATA_SOURCE_KEY. The application
+                     module prefix (if any) is appended to the key
+                     (${key}$prefix}).
+                     [org.apache.struts.Globals.DATA_SOURCE_KEY]
+
+                     NOTE: The application module prefix includes the leading
+                     slash, so the default datasource for a module named "foo" is
+                     stored under "org.apache.struts.action.DATA_SOURCE/foo".
+
+     type          Fully qualified Java class name for this data source object.
+                     The class must implement DataSource [javax.sql.DataSource],
+                     and the object must be configurable entirely from JavaBean
+                     properties.
+-->
+<!ELEMENT data-source (set-property*)>
+<!ATTLIST data-source    id             ID              #IMPLIED>
+<!ATTLIST data-source    className      %ClassName;     #IMPLIED>
+<!ATTLIST data-source    key            %AttributeName; #IMPLIED>
+<!ATTLIST data-source    type           %ClassName;     #REQUIRED>
+
+
+<!-- The "form-beans" element describes the set of form bean descriptors for this
+     module. The following attributes are defined:
+
+     type            Fully qualified Java class to use when instantiating
+                     ActionFormBean objects. If specified, the object must be a
+                     subclass of the default class type.
+
+                     WARNING:  For Struts 1.0, this value is ignored.  You
+                     can set the default implementation class name with the
+                     "formBean" initialization parameter to the Struts
+                     controller servlet.
+-->
+<!ELEMENT form-beans (form-bean*)>
+<!ATTLIST form-beans     id             ID              #IMPLIED>
+<!ATTLIST form-beans     type           %ClassName;     #IMPLIED>
+
+
+<!-- The "form-bean" element describes an ActionForm subclass
+     [org.apache.struts.action.ActionForm] that can be referenced by an "action"
+     element.
+
+
+The "form-bean" element describes a particular form bean, which is a
+     JavaBean that implements the org.apache.struts.action.ActionForm
+     class.  The following attributes are defined:
+
+     className       The configuration bean for this form bean object. If
+                     specified, the object must be a subclass of the default
+                     configuration bean.
+                     ["org.apache.struts.config.FormBeanConfig"]
+
+     name            The unique identifier for this form bean. Referenced by the
+                     <action> element to specify which form bean to use with its
+                     request.
+
+     type            Fully qualified Java class name of the ActionForm subclass
+                     to use with this form bean.
+-->
+<!ELEMENT form-bean (icon?, display-name?, description?, set-property*, form-property*)>
+<!ATTLIST form-bean      id             ID              #IMPLIED>
+<!ATTLIST form-bean      className      %ClassName;     #IMPLIED>
+<!ATTLIST form-bean      dynamic        %Boolean;       #IMPLIED>
+<!ATTLIST form-bean      name           %BeanName;      #REQUIRED>
+<!ATTLIST form-bean      type           %ClassName;     #REQUIRED>
+
+
+<!-- The "form-property" element describes a JavaBean property that can be used to
+     configure an instance of a DynaActionForm or a subclass thereof. This element
+     is only utilized when the "type" attribute of the enclosing "form-bean" element
+     is [org.apache.struts.action.DynaActionForm] or a subclass of DynaActionForm. If
+     a custom DynaActionForm subclass is used, then the "dynamic" attribute of the
+     enclosing <form-bean> element must be set to "true". Since Struts 1.1.
+
+     className       The configuration bean for this form property object. If
+                     specified, the object must be a subclass of the default
+                     confi
