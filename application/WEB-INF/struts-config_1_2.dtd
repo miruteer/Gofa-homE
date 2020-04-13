@@ -279,4 +279,76 @@ The "form-bean" element describes a particular form bean, which is a
 <!ATTLIST exception      type           %ClassName;     #REQUIRED>
 
 
-<!-- The "global-forwards" element describes a set of ActionForward 
+<!-- The "global-forwards" element describes a set of ActionForward objects
+     [org.apache.struts.action.ActionForward] that are available to all Action
+     objects as a return value. The individual ActionForwards are configured
+     through nested <forward> elements. An <action> element may override a global
+     forward by defining a local <forward> of the same name.
+
+     type            Fully qualified Java class to use when instantiating
+                     ActionForward objects.  If specified, the object must be a
+                     subclass of the default class type.
+
+                     WARNING:  For Struts 1.0, this value is ignored.  You
+                     can set the default implementation class name with the
+                     "forward" initialization parameter to the Struts
+                     controller servlet.
+-->
+<!ELEMENT global-forwards (forward*)>
+<!ATTLIST global-forwards id            ID              #IMPLIED>
+<!ATTLIST global-forwards type          %ClassName;     #IMPLIED>
+
+
+<!-- The "forward" element describes an ActionForward that is to be made
+     available to an Action as a return value. An ActionForward is referenced by
+     a logical name and encapsulates a URI. A "forward" element may be used to
+     describe both global and local ActionForwards. Global forwards are available
+     to all the Action objects in the module. Local forwards can be
+     nested within an <action> element and only available to an Action object
+     when it is invoked through that ActionMapping.
+
+     className       Fully qualified Java class name of ActionForward
+                     subclass to use for this object.
+                     ["org.apache.struts.action.ActionForward"]
+
+    contextRelative  Set this to "true" if, in a modular application, the path
+                     attribute starts with a slash "/" and should be considered
+                     relative to the entire web application rather than the module.
+                     Since Struts 1.1.
+                     DEPRECATED.
+                     [false]
+
+     module          The module prefix to use with this path. This value should
+                     begin with a slash ("/").
+
+     name            The unique identifier for this forward. Referenced by the
+                     Action object at runtime to select - by its logical name -
+                     the resource that should complete the request/response.
+
+     path            The module-relative or context-relative path to the resources
+                     that is encapsulated by the logical name of this ActionForward.
+                     If the path is to be considered context-relative when used in
+                     a modular application, then the contextRelative attribute
+                     should be set to "true". This value should begin with a slash
+                     ("/") character.
+
+     redirect        Set to "true" if a redirect instruction should be issued to
+                     the user-agent so that a new request is issued for this
+                     forward's resource. If true,  RequestDispatcher.Redirect is
+                     called. If "false", RequestDispatcher.forward is called instead.
+                     [false]
+-->
+<!ELEMENT forward (icon?, display-name?, description?, set-property*)>
+<!ATTLIST forward        id             ID              #IMPLIED>
+<!ATTLIST forward        className      %ClassName;     #IMPLIED>
+<!ATTLIST forward        contextRelative %Boolean;      #IMPLIED>
+<!ATTLIST forward        module         %RequestPath;   #IMPLIED>
+<!ATTLIST forward        name           CDATA           #REQUIRED>
+<!ATTLIST forward        path           %RequestPath;   #REQUIRED>
+<!ATTLIST forward        redirect       %Boolean;       #IMPLIED>
+
+
+<!-- The "action-mappings" element describes a set of ActionMapping objects
+     [org.apache.struts.action.ActionMapping] that are available to process
+     requests matching the url-pattern our ActionServlet registered with the
+     container. The 
