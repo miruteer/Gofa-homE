@@ -424,4 +424,77 @@ The "form-bean" element describes a particular form bean, which is a
 
      prefix          Prefix used to match request parameter names to ActionForm
                      property names, if any. Optional if "name" is specified,
-      
+                     else not allowed.
+
+     roles           Comma-delimited list of security role names that are allowed
+                     access to this ActionMapping object. Since Struts 1.1.
+
+     scope           The context ("request" or "session") that is used to
+                     access our ActionForm bean, if any.  Optional if "name" is
+                     specified, else not valid. [session]
+
+     suffix          Suffix used to match request parameter names to ActionForm
+                     bean property names, if any. Optional if "name" is
+                     specified, else not valid.
+
+     type            Fully qualified Java class name of the Action subclass
+                     [org.apache.struts.action.Action] that will process requests
+                     for this action mapping. Not valid if either the "forward"
+                     or "include" attribute is specified.  Exactly one of
+                     "forward", "include", or "type" must be specified.
+
+     unknown         Set to "true" if this object should be configured as the
+                     default action mapping for this module. If a request does not
+                     match another object, it will be passed to the ActionMapping
+                     object with unknown set to "true". Only one ActionMapping
+                     can be marked as "unknown" within a module.
+                     [false]
+
+     validate        Set to "true" if the validate method of the ActionForm bean
+                     should be called prior to calling the Action object for this
+                     action mapping, or set to "false" if you do not want the
+                     validate method called.
+                     [true]
+-->
+<!ELEMENT action (icon?, display-name?, description?, set-property*, exception*, forward*)>
+<!ATTLIST action         id             ID              #IMPLIED>
+<!ATTLIST action         attribute      %BeanName;      #IMPLIED>
+<!ATTLIST action         className      %ClassName;     #IMPLIED>
+<!ATTLIST action         forward        %RequestPath;   #IMPLIED>
+<!ATTLIST action         include        %RequestPath;   #IMPLIED>
+<!ATTLIST action         input          %RequestPath;   #IMPLIED>
+<!ATTLIST action         name           %BeanName;      #IMPLIED>
+<!ATTLIST action         parameter      CDATA           #IMPLIED>
+<!ATTLIST action         path           %RequestPath;   #REQUIRED>
+<!ATTLIST action         prefix         CDATA           #IMPLIED>
+<!ATTLIST action         roles          CDATA           #IMPLIED>
+<!ATTLIST action         scope          %RequestScope;  #IMPLIED>
+<!ATTLIST action         suffix         CDATA           #IMPLIED>
+<!ATTLIST action         type           %ClassName;     #IMPLIED>
+<!ATTLIST action         unknown        %Boolean;       #IMPLIED>
+<!ATTLIST action         validate       %Boolean;       #IMPLIED>
+
+
+<!-- The "controller" element describes the ControllerConfig bean
+     [org.apache.struts.config.ControllerConfig] that encapsulates
+     a module's runtime configuration. The following
+     attributes are defined:
+
+     bufferSize      The size of the input buffer used when processing
+                     file uploads.
+                     [4096]
+
+     className       Fully qualified Java class name of the
+                     ControllerConfig subclass for this controller object.
+                     If specified, the object must be a subclass of the
+                     default class.
+                     ["org.apache.struts.config.ControllerConfig"]
+
+     contentType     Default content type (and optional character encoding) to
+                     be set on each response. May be overridden by the Action,
+                     JSP, or other resource to which the request is forwarded.
+                     ["text/html"]
+
+     forwardPattern  Replacement pattern defining how the "path" attribute of a
+                     <forward> element is mapped to a context-relative URL when
+    
