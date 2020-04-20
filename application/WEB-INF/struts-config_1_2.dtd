@@ -351,4 +351,77 @@ The "form-bean" element describes a particular form bean, which is a
 <!-- The "action-mappings" element describes a set of ActionMapping objects
      [org.apache.struts.action.ActionMapping] that are available to process
      requests matching the url-pattern our ActionServlet registered with the
-     container. The 
+     container. The individual ActionMappings are configured through nested
+     <action> elements. The following attributes are defined:
+
+     type           Fully qualified Java class to use when instantiating
+                    ActionMapping objects. If specified, the object must be a
+                    subclass of the default class type.
+
+                    WARNING:  For Struts 1.0, this value is ignored.  You
+                    can set the default implementation class name with the
+                    "mapping" initialization parameter to the Struts
+                    controller servlet.
+-->
+<!ELEMENT action-mappings (action*)>
+<!ATTLIST action-mappings id             ID              #IMPLIED>
+<!ATTLIST action-mappings type           %ClassName;     #IMPLIED>
+
+
+<!-- The "action" element describes an ActionMapping object that is to be used
+     to process a request for a specific module-relative URI. The following
+     attributes are defined:
+
+     attribute       Name of the request-scope or session-scope attribute that
+                     is used to access our ActionForm bean, if it is other than
+                     the bean's specified "name". Optional if "name" is specified,
+                     else not valid.
+
+     className       The fully qualified Java class name of the ActionMapping
+                     subclass to use for this action mapping object. Defaults to
+                     the type specified by the enclosing <action-mappings>
+                     element or to "org.apache.struts.action.ActionMapping" if
+                     not specified.
+                     ["org.apache.struts.action.ActionMapping"]
+
+     forward         Module-relative path of the servlet or other resource that
+                     will process this request, instead of the Action class
+                     specified by "type".  The path WILL NOT be processed
+                     through the "forwardPattern" attribute that is configured
+                     on the "controller" element for this module.
+                     Exactly one of "forward", "include", or "type" must be
+                     specified.
+
+     include         Module-relative path of the servlet or other resource that
+                     will process this request, instead of the Action class
+                     specified by "type".  The path WILL NOT be processed
+                     through the "forwardPattern" attribute that is configured
+                     on the "controller" element for this module.
+                     Exactly one of "forward", "include", or "type" must be
+                     specified.
+
+     input           Module-relative path of the action or other resource to
+                     which control should be returned if a validation error is
+                     encountered. Valid only when "name" is specified. Required
+                     if "name" is specified and the input bean returns
+                     validation errors. Optional if "name" is specified and the
+                     input bean does not return validation errors.
+
+     name            Name of the form bean, if any, that is associated with this
+                     action mapping.
+
+     path            The module-relative path of the submitted request, starting
+                     with a "/" character, and without the filename extension if
+                     extension mapping is used.
+
+                     NOTE:  Do *not* include a period in your path name,
+                     because it will look like a filename extension and
+                     cause your Action to not be located.
+
+     parameter       General-purpose configuration parameter that can be used to
+                     pass extra information to the Action object selected by
+                     this action mapping.
+
+     prefix          Prefix used to match request parameter names to ActionForm
+                     property names, if any. Optional if "name" is specified,
+      
