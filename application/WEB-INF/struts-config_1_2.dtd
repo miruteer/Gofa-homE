@@ -497,4 +497,71 @@ The "form-bean" element describes a particular form bean, which is a
 
      forwardPattern  Replacement pattern defining how the "path" attribute of a
                      <forward> element is mapped to a context-relative URL when
-    
+                     it starts with a slash (and when the contextRelative
+                     property is false). This value may consist of any
+                     combination of the following:
+                     - "$M" - Replaced by the module prefix of this module
+                     - "$P" - Replaced by the "path" attribute of the  selected
+                     "forward" element
+                     - "$$" - Causes a literal dollar sign to be rendered
+                     - "$x" - (Where "x" is any character not defined above)
+                     Silently swallowed, reserved for future use
+                     If not specified, the default forwardPattern is "$M$P",
+                     which is consistent with the previous behavior of
+                     forwards.  Since Struts 1.1.  ["$M$P"]
+
+     inputForward    Set to "true" if you want the "input" attribute of
+                     <action> elements to be the name of a local or global
+                     ActionForward, which will then be used to calculate the
+                     ultimate URL. Set to "false" (the default) to treat the
+                     "input" parameter of <action> elements as a
+                     module-relative path to the resource
+                     to be used as the input form. Since Struts 1.1.
+                     [false]
+
+     locale          Set to "true" if you want a Locale object stored in the
+                     user's session if not already present.
+                     [true]
+
+     maxFileSize     The maximum size (in bytes) of a file to be accepted as a
+                     file upload.  Can be expressed as a number followed by a
+                     "K", "M", or "G", which are interpreted to mean kilobytes,
+                     megabytes, or gigabytes, respectively.
+                     ["250M"]
+
+     memFileSize     The maximum size (in bytes) of a file whose contents will
+                     be retained in memory after uploading. Files larger than
+                     this threshold will be written to some alternative storage
+                     medium, typically a hard disk. Can be expressed as a number
+                     followed by a "K", "M", or "G", which are interpreted to
+                     mean kilobytes, megabytes, or gigabytes, respectively.
+                     ["256K"]
+
+     multipartClass  The fully qualified Java class name of the multipart
+                     request handler class to be used with this module.
+                     ["org.apache.struts.upload.CommonsMultipartRequestHandler"]
+
+     nocache         Set to "true" if you want the controller to add HTTP
+                     headers for defeating caching to every response from
+                     this module.  [false]
+
+     pagePattern     Replacement pattern defining how the "page" attribute of
+                     custom tags using it is mapped to a context-relative URL
+                     of the corresponding resource.  This value may consist of
+                     any combination of the following:
+                     - "$M" - Replaced by the module prefix of this module
+                     - "$P" - Replaced by the value of the "page" attribute
+                     - "$$" - Causes a literal dollar sign to be rendered
+                     - "$x" - (Where "x" is any character not defined above)
+                              Silently swallowed, reserved for future use
+                     If not specified, the default forwardPattern is
+                     "$M$P", which is consistent with previous hard coded
+                     behavior of URL evaluation for "page" attributes.
+                     ["$M$P"]
+
+     processorClass  The fully qualified Java class name of the
+                     RequestProcessor subclass to be used with this module.
+                     ["org.apache.struts.action.RequestProcessor"]
+
+     tempDir         Temporary working directory to use when processing
+                     file uploads.
