@@ -565,3 +565,78 @@ The "form-bean" element describes a particular form bean, which is a
 
      tempDir         Temporary working directory to use when processing
                      file uploads.
+                     [{Directory provided by servlet container}]
+-->
+<!ELEMENT controller     (set-property*)>
+<!ATTLIST controller     id             ID              #IMPLIED>
+<!ATTLIST controller     bufferSize     %Integer;       #IMPLIED>
+<!ATTLIST controller     className      %ClassName;     #IMPLIED>
+<!ATTLIST controller     contentType    CDATA           #IMPLIED>
+<!ATTLIST controller     forwardPattern CDATA           #IMPLIED>
+<!ATTLIST controller     inputForward   %Boolean;       #IMPLIED>
+<!ATTLIST controller     locale         %Boolean;       #IMPLIED>
+<!ATTLIST controller     maxFileSize    CDATA           #IMPLIED>
+<!ATTLIST controller     memFileSize    CDATA           #IMPLIED>
+<!ATTLIST controller     multipartClass %ClassName;     #IMPLIED>
+<!ATTLIST controller     nocache        %Boolean;       #IMPLIED>
+<!ATTLIST controller     pagePattern    CDATA           #IMPLIED>
+<!ATTLIST controller     processorClass %ClassName;     #IMPLIED>
+<!ATTLIST controller     tempDir        CDATA           #IMPLIED>
+
+
+<!-- The "message-resources" element describes a MessageResources object with
+     message templates for this module. The following attributes are defined:
+
+     className       The configuration bean for this message resources object.
+                     If specified, the object must be a subclass of the default
+                     configuration bean.
+                     ["org.apache.struts.config.MessageResourcesConfig"]
+
+     factory         Fully qualified Java class name of the
+                     MessageResourcesFactory subclass to use for this message
+                     resources object.
+                     ["org.apache.struts.util.PropertyMessageResourcesFactory"]
+
+     key             Servlet context attribute under which this message
+                     resources bundle will be stored. The default attribute is
+                     the value specified by the string constant at
+                     [Globals.MESSAGES_KEY]. The module prefix (if
+                     any) is appended to the key (${key}${prefix}).
+                     [org.apache.struts.Globals.MESSAGES_KEY]
+
+                     NOTE: The module  prefix includes the leading
+                     slash, so the default message resource bundle for a module
+                     named "foo" is stored under
+                     "org.apache.struts.action.MESSAGE/foo".
+
+     null            Set to "true" if you want our message resources to return a
+                     null string for unknown message keys, or "false" to return a
+                     message with the bad key value.
+
+     parameter       Configuration parameter to be passed to the createResources
+                     method of our factory object.
+-->
+<!ELEMENT message-resources (set-property*)>
+<!ATTLIST message-resources id          ID              #IMPLIED>
+<!ATTLIST message-resources className   %ClassName;     #IMPLIED>
+<!ATTLIST message-resources factory     %ClassName;     #IMPLIED>
+<!ATTLIST message-resources key         %AttributeName; #IMPLIED>
+<!ATTLIST message-resources null        %Boolean;       #IMPLIED>
+<!ATTLIST message-resources parameter   CDATA           #REQUIRED>
+
+
+<!-- The "plug-in" element specifies the fully qualified class name of a
+     general-purpose application plug-in module that receives notification of
+     application startup and shutdown events. An instance of the specified class
+     is created for each element, and can be configured with nested <set-property>
+     elements. The following attributes are supported:
+
+     className       Fully qualified Java class name of the plug-in class; must
+                     implement [org.apache.struts.action.PlugIn].
+-->
+<!ELEMENT plug-in           (set-property*)>
+<!ATTLIST plug-in           id          ID              #IMPLIED>
+<!ATTLIST plug-in           className   %ClassName;     #REQUIRED>
+
+
+<!-- ===
