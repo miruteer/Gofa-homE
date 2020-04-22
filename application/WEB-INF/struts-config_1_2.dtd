@@ -639,4 +639,64 @@ The "form-bean" element describes a particular form bean, which is a
 <!ATTLIST plug-in           className   %ClassName;     #REQUIRED>
 
 
-<!-- ===
+<!-- ========== Subordinate Elements ====================================== -->
+
+
+<!-- The "description" element contains descriptive (paragraph length) text
+     about the surrounding element, suitable for use in GUI tools.
+-->
+<!ELEMENT description    (#PCDATA)>
+<!ATTLIST description    id             ID              #IMPLIED>
+
+
+<!-- The "display-name" element contains a short (one line) description of
+     the surrounding element, suitable for use in GUI tools.
+-->
+<!ELEMENT display-name (#PCDATA)>
+<!ATTLIST display-name   id             ID              #IMPLIED>
+
+
+<!-- The "icon" element contains a small-icon and large-icon element which
+     specify the location, relative to the Struts configuration file, for small
+     and large images used to represent the surrounding element in GUI tools.
+-->
+<!ELEMENT icon           (small-icon?, large-icon?)>
+<!ATTLIST icon           id             ID              #IMPLIED>
+
+
+<!-- The "large-icon" element specifies the location, relative to the Struts
+     configuration file, of a resource containing a large (32x32 pixel)
+     icon image.
+-->
+<!ELEMENT large-icon     (%Location;)>
+<!ATTLIST large-icon     id             ID              #IMPLIED>
+
+
+<!-- The "set-property" element specifies the method name and initial value of
+     an additional JavaBean configuration property. When the object representing
+     the surrounding element is instantiated, the accessor for the indicated
+     property is called and passed the indicated value. The "set-property"
+     element is especially useful when a custom subclass is used with
+     <data-source>, <forward>, <action>, or <plug-in> elements. The subclass
+     can be passed whatever other properties may be required to configure the
+     object without changing how the struts-config is parsed.
+
+     property        Name of the JavaBeans property whose setter method
+                     will be called.
+
+     value           String representation of the value to which this
+                     property will be set, after suitable type conversion
+-->
+<!ELEMENT set-property   EMPTY>
+<!ATTLIST set-property   id             ID              #IMPLIED>
+<!ATTLIST set-property   property       %PropName;      #REQUIRED>
+<!ATTLIST set-property   value          CDATA           #REQUIRED>
+
+
+<!-- The "small-icon" element specifies the location, relative to the Struts
+     configuration file, of a resource containing a small (16x16 pixel)
+     icon image.
+-->
+<!ELEMENT small-icon     (%Location;)>
+<!ATTLIST small-icon     id             ID              #IMPLIED>
+
