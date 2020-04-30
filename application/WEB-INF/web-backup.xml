@@ -73,4 +73,126 @@
              </init-param>	       
 	        <init-param>
 	                 <param-name>ExpiresByType image</param-name>
-	                 <param-value>access plus 10 days</pa
+	                 <param-value>access plus 10 days</param-value>
+	          </init-param>
+	         <init-param>
+	                <param-name>ExpiresByType text/css</param-name>
+	                <param-value>access plus 10 days</param-value>
+	         </init-param>
+	         <init-param>
+	                <param-name>ExpiresByType text/javascript</param-name>
+	                  <param-value>access plus 10 days</param-value>
+	         </init-param>
+	    </filter>
+	    <filter-mapping>
+			<filter-name>IPForwardingFilter</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>		
+	    <filter-mapping>
+			<filter-name>DisableUrlSessionFilter</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>
+		<filter-mapping>
+			<filter-name>Set Character Encoding</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>			
+		<filter-mapping>
+			<filter-name>SpamFilter</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>			
+		<!-- spamFilterRefer  -->
+		<filter-mapping>
+			<filter-name>spamFilterRefer</filter-name>
+			<url-pattern>*.shtml</url-pattern>
+		</filter-mapping>
+		<filter-mapping>
+			<filter-name>spamFilterRefer</filter-name>
+			<url-pattern>*.jsp</url-pattern>
+		</filter-mapping>		
+		<!--  spamFilterTooFreq -->
+		<filter-mapping>
+			<filter-name>spamFilterTooFreq</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>			
+        <!-- rewriteFilter -->
+		<filter-mapping>
+			<filter-name>rewriteFilter</filter-name>
+			<url-pattern>/*</url-pattern>
+		</filter-mapping>
+		 <filter-mapping>
+	      <filter-name>ExpiresFilter</filter-name>
+	      <url-pattern>/*</url-pattern>	      
+	   </filter-mapping>
+		<listener>
+			<listener-class>
+				com.jdon.jivejdon.presentation.listener.UserCounterListener
+			</listener-class>
+		</listener>
+		<servlet>
+			<servlet-name>action</servlet-name>
+			<servlet-class>
+				org.apache.struts.action.ActionServlet
+			</servlet-class>
+			<init-param>
+				<param-name>config</param-name>
+				<param-value>
+                    /WEB-INF/struts-config.xml,/WEB-INF/struts-config-account.xml,/WEB-INF/struts-config-forum.xml,/WEB-INF/struts-config-message.xml,/WEB-INF/struts-config-query.xml,/WEB-INF/struts-config-admin.xml,/WEB-INF/struts-config-upload.xml,/WEB-INF/struts-config-shortmessage.xml,/WEB-INF/struts-config-blog.xml,/WEB-INF/struts-config-subscription.xml,/WEB-INF/struts-config-oauth.xml
+				</param-value>
+			</init-param>
+			<init-param>
+				<param-name>debug</param-name>
+				<param-value>2</param-value>
+			</init-param>
+			<init-param>
+				<param-name>detail</param-name>
+				<param-value>2</param-value>
+			</init-param>
+			<load-on-startup>2</load-on-startup>
+		</servlet>
+		<servlet>
+			<servlet-name>jasslogin</servlet-name>
+			<servlet-class>
+				com.jdon.security.web.LoginServlet
+			</servlet-class>
+			<init-param>
+				<param-name>login</param-name>
+				<param-value>/account/login.jsp</param-value>
+			</init-param>
+			<init-param>
+				<param-name>logout</param-name>
+				<param-value>/account/logout.jsp</param-value>
+			</init-param>
+			<load-on-startup>2</load-on-startup>
+		</servlet>
+		<servlet>
+			<servlet-name>RandomcodeServlet</servlet-name>
+			<servlet-class>
+				com.jdon.jivejdon.presentation.servlet.RegisterCodeAction
+			</servlet-class>
+		    <init-param>
+				<param-name>referrer.domain.namePattern</param-name>
+				<param-value>.*(jdon|localhost|127.0.0.1|110.76.43.83).*</param-value>
+			</init-param>	
+			<init-param>
+				<param-name>referrer.robotCheck.userAgentPattern</param-name>			
+				 <param-value>.*(bot|spam|spider).*</param-value> 
+			</init-param>
+		</servlet>	
+		<servlet>
+			<servlet-name>verifySpammer</servlet-name>
+			<servlet-class>
+				com.jdon.jivejdon.presentation.servlet.VerifySpammerAction
+			</servlet-class>
+		  
+		</servlet>	
+		<servlet>
+			<servlet-name>RSSGenServlet</servlet-name>
+			<servlet-class>
+				com.jdon.jivejdon.presentation.servlet.RSSGenServlet
+			</servlet-class>
+			<init-param>
+				<param-name>title</param-name>
+				<param-value> 解道jdon.com </param-value>
+			</init-param>
+			<init-param>
+				<param-name>d
