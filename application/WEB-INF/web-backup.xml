@@ -320,4 +320,40 @@
 			
 			
 			<auth-constraint>
-				<role-name>User<
+				<role-name>User</role-name>
+                <role-name>SinaUser</role-name>
+                <role-name>OAuthUser</role-name>
+                                
+				<role-name>Admin</role-name>
+			</auth-constraint>
+		</security-constraint>
+		
+		<login-config>
+			<auth-method>FORM</auth-method>
+			<form-login-config>
+				<form-login-page>/jasslogin</form-login-page>
+				<form-error-page>/account/login_error.jsp</form-error-page>
+			</form-login-config>
+		</login-config>
+		<security-role>
+			<description>administrator</description>
+			<role-name>Admin</role-name>
+		</security-role>
+		<security-role>
+			<description>register user</description>
+			<role-name>User</role-name>			
+		</security-role>
+		<security-role>
+			<description>Sina weibo user</description>
+			<role-name>SinaUser</role-name>			
+		</security-role>
+			<security-role>
+			<description>OAuthUser user</description>
+			<role-name>OAuthUser</role-name>			
+		</security-role>
+		
+		
+		
+  
+</web-app>
+
