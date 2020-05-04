@@ -68,4 +68,91 @@
 
     <div class="box">
         <div class="row">
-            <html:fo
+            <html:form styleClass="form-horizontal col-md-offset-4 col-md-4" action="/account/newAccount.shtml" method="post" onsubmit="return Juge(this);">
+
+                <html:hidden name="accountForm" property="action" value="create" />
+                <input type="hidden" name="actionType" value="createSave"/>
+                <html:hidden property="userId" />
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">用户</label>
+                    <div class="col-sm-10">
+                        <input name="username" maxlength="15" placeholder="只能是英文字符或数字组合" value="" onblur="checkUsername()" id="username" class="form-control" type="text">
+                        <span id="usernameCheck" class="smallgray"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">密码</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="password" name="password" value="" maxlength="30"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">确认</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="password" name="password2" value="" maxlength="30"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">邮箱</label>
+                    <div class="col-sm-10">
+                        <input placeholder="请用QQ或163信箱" class="form-control" name="email" maxlength="30" value="" onblur="checkEmail()" id="email" type="text">
+                        <span id="emailCheck" class="smallgray"></span>
+                    </div>
+                </div>
+                <input name="emailVisible" value="" type="hidden">
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">手机</label>
+                    <div class="col-sm-5">
+                        <input class="form-control" type="text" id="phoneNumber" size="15">
+                    </div>
+                    <div class="col-sm-5">
+                        <input class="form-control" type="button" id="btn" value="发送验证码" onclick="sendSMS(this)" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">验证</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" id="registerCode" name="registerCode" size="8" >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-default login ">确认</button>
+                    </div>
+                </div>
+
+
+                <%--
+                        <tr>
+                        <th align="right">验证码:</th>
+                        <td align="left">
+                         <!--点击此元素会自动激活验证码-->
+   <!--id : 元素的id(必须)-->
+   <!--data-appid : AppID(必须)-->
+   <!--data-cbfn : 回调函数名(必须)-->
+   <!--data-biz-state : 业务自定义透传参数(可选)-->
+   <button type="button" id="TencentCaptcha"
+           data-appid="2050847547"
+           data-cbfn="callback"
+   >验证</button>
+                          <input type="hidden" id="registerCode" name="registerCode"  >
+                   <input type="hidden" id="randstr" name="randstr"   >
+
+                       </td>
+                    </tr>
+
+   <%@page import="com.jdon.jivejdon.presentation.form.SkinUtils"%>
+
+   <%
+   Map<String[], Integer> panswers = new HashMap();
+   String problem1[] = { "1.工场模式", "2.工厂模式", "3.仓储模式" };
+   panswers.put(problem1, 2);
+   String problem2[] = { "1.网关模式", "2.代替模式", "3.代理模式" };
+   panswers.put(problem2, 3);
+   String problem3[]
