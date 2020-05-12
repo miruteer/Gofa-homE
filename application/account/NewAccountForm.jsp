@@ -155,4 +155,149 @@
    panswers.put(problem1, 2);
    String problem2[] = { "1.网关模式", "2.代替模式", "3.代理模式" };
    panswers.put(problem2, 3);
-   String problem3[]
+   String problem3[] = { "1.组合模式", "2.组织模式", "3.结构模式" };
+   panswers.put(problem3, 1);
+   String problem4[] = { "1.路模式", "2.桥模式", "3.船模式" };
+   panswers.put(problem4, 2);
+   String problem5[] = { "1.状态模式", "2.状况模式", "3.装束模式" };
+   panswers.put(problem5, 1);
+   String problem6[] = { "1.提取模式", "2.提问模式", "3.访问模式" };
+   panswers.put(problem6, 3);
+
+   int j = (int) (Math.random() * panswers.size());
+   int num = 0;
+   String[] prob = null;
+   int ans = 0;
+   for (String[] p : panswers.keySet()) {
+       if (num == j) {
+           prob = p;
+           ans = panswers.get(p);
+           break;
+       }
+       num++;
+   }
+   boolean isTrue = SkinUtils.saveProblemAnswer(ans, request);
+   %>
+   <tr>
+       <td colspan="2">请问下面哪个属于设计模式？</td>
+     </tr>
+                    <tr>
+                        <th align="right">
+                        <%
+                        if (isTrue){
+                         for (int i = 0; i < prob.length; i++) {
+                               out.print( prob[i] + "</br>");
+                          }
+                        }
+                        %>
+
+                        </th>
+                         <td align="left">
+                        <% if (isTrue){%>
+                            请输入答案数字：<br><input name="ans" maxlength="5"  />
+                        <%}else{%>
+                              注册问题只能出现一次，欢迎下次再来注册
+                             <%}%>
+                        </td>
+   </tr>
+
+
+
+                       <% if (isTrue){ %>
+                        <tr>
+                       <td align="center" colspan="2">
+                         <html:submit property="submit" value="确定"/>
+                         <html:reset value ="Reset"/>
+                        </td>
+                      </tr>
+                        <%} %>
+
+
+
+      </table>
+
+
+    </td>
+   </tr></table>
+   </td></tr>
+   </table>
+
+    --%>
+
+            </html:form>
+        </div>
+
+    </div>
+
+
+    <%--
+    <%@include file="IncludeAccountFields.jsp"%>
+    --%>
+
+
+    <script>
+        <!--
+
+        function Juge(theForm)
+        {
+            var myRegExp = /\S+\w+\@[.\w]+/;
+            if (!myRegExp.test(theForm.email.value)) {
+                alert("请输入正确的Email");
+                theForm.email.focus();
+                return false;
+            }
+            myRegExp = /\S+[a-z0-9.]*$/gi;
+            if (!myRegExp.test(theForm.username.value)) {
+                alert("用户名必须为英文与数字组合");
+                theForm.username.focus();
+                return false;
+            }
+            myRegExp = /\S+[a-z0-9.]*$/gi;
+            if (!myRegExp.test(theForm.password.value)) {
+                alert("密码必须为英文与数字组合");
+                theForm.password.focus();
+                return false;
+            }
+
+            if (theForm.password.value != theForm.password2.value)
+            {
+                alert("两次密码不一致！");
+                theForm.password.focus();
+                return (false);
+            }
+
+            myRegExp = /\S+[0-9.]*$/gi;
+            if (!myRegExp.test(theForm.registerCode.value)) {
+
+                alert("验证码必须填入数字");
+                theForm.registerCode.focus();
+                return false;
+            }
+
+            myRegExp = /\S+[0-9.]*$/gi;
+            if (!myRegExp.test(theForm.ans.value)) {
+                alert("答案数字必须填入数字");
+                theForm.ans.focus();
+                return false;
+            }
+
+
+
+        }
+
+        function checkUsername(){
+            myRegExp = /\S+[a-z0-9.]*$/gi;
+            if (!myRegExp.test(document.getElementById("username").value)) {
+                alert("用户名必须为英文与数字组合");
+                return;
+            }
+
+            var pars = "username=" +  document.getElementById("username").value + "&sessionId=<%=request.getSession().getId()%>";
+            load('<%=request.getContextPath()%>/account/checkUser.jsp?'+ pars, function(xhr) {
+                document.getElementById('usernameCheck').innerHTML = xhr.responseText;
+            });
+
+        }
+
+        function checkEmail(){
+            var pars = "email=" +
