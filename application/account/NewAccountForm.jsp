@@ -300,4 +300,64 @@
         }
 
         function checkEmail(){
-            var pars = "email=" +
+            var pars = "email=" +  document.getElementById("email").value + "&sessionId=<%=request.getSession().getId()%>";
+            load('<%=request.getContextPath()%>/account/checkUser.jsp?'+ pars, function(xhr) {
+                document.getElementById('emailCheck').innerHTML = xhr.responseText;
+            });
+        }
+
+        <%
+        HttpSession session1 = request.getSession();
+        String SMSCODE = UUID.randomUUID().toString().substring(0,6);
+        session1.setAttribute("SMSCODE",SMSCODE);
+        %>
+        var countdown=60;
+        function sendSMS(val) {
+            var pn = document.getElementById("phoneNumber").value ;
+            myRegExp = /\S+[0-9.]*$/gi;
+            if(!myRegExp.test(pn) ){
+                alert("请输入手机号码！");
+                return;
+            }
+            var pars = "phoneNumber=" + pn + "&sessionId=<%=request.getSession().getId()%>";
+            load('<%=request.getContextPath()%>/account/smsVRAction.shtml?' + pars, function (xhr) {
+                document.getElementById('smsStatus').innerHTML = xhr.responseText;
+            });
+
+            settime(val)
+        }
+
+        function settime(val) {
+            if (countdown == 0) {
+                val.removeAttribute("disabled");
+                val.value="获取验证码";
+                countdown = 60;
+                return;
+            } else {
+                val.setAttribute("disabled", true);
+                val.value="等待(" + countdown + ")";
+                countdown--;
+            }
+            setTimeout(function() {
+                settime(val)
+            },1000)
+        }
+
+
+        window.callback = function(res){
+            console.log(res)
+            // res（未通过验证）= {ret: 1, ticket: null}
+            // res（验证成功） = {ret: 0, ticket: "String", randstr: "String"}
+            if(res.ret === 0){
+
+                document.getElementById("registerCode").value=res.ticket;
+                document.getElementById("randstr").value=res.randstr;
+                //alert(document.getElementById("registerCode").value)   // 票据
+                //alert(document.getElementById("randstr").value)   // 票据
+                verified = true;
+            }
+        }
+        -->
+    </script>
+
+<%@include file="../common/IncludeBottom.jsp"%>
