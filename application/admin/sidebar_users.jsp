@@ -25,4 +25,29 @@ onload="parent.frames['header'].location.href='tabs.jsp?method=users';">
     <tr><td width="1%">&nbsp;</td>
         <td width="1%">&#149;</td>
         <td width="97%"><font size="-1">
-        <html:link page="/admin/user/userListAction.shtml"  target="main">用户概览<
+        <html:link page="/admin/user/userListAction.shtml"  target="main">用户概览</html:link>
+        </font></td>
+    </tr>
+    <tr><td>&nbsp;</td>
+        <td>&#149;</td>
+        <td><font size="-1">
+        <html:link page="/admin/user/userMessageList.shtml"  target="main">管理用户帖子</html:link>
+        </font></td>
+    </tr>
+    <tr><td>&nbsp;</td>
+        <td>&#149;</td>
+        <td><font size="-1">
+        <html:link page="/admin/user/banIPAction.shtml"  target="main">IP查封</html:link>
+        </font></td>
+    </tr>
+    
+     <tr><td>&nbsp;</td>
+        <td>&#149;</td>
+        <td><font size="-1">
+        用户授权
+        </font></td>
+    </tr>
+    </table>
+
+</body>
+</html>
