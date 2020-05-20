@@ -26,4 +26,12 @@
 <html:hidden name="accountForm" property="userId" />
 <input type="hidden" name="actionType" value="editSave"/>           
 
-<%@include file=".
+<%@include file="../IncludeAccountFields.jsp"%>
+
+</html:form>
+
+<p>
+</p>
+</div>
+</body></html>
+
