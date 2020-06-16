@@ -69,4 +69,81 @@
 <tr bgcolor="#ffffff">
     <td align="center" width="2%"><bean:write name="forumMessage" property="messageId"/></td>
     <td width="30%">
-      <a href='<%=request.getContextPath()%>/<bean:write name="forumThread" property="threadId" />?message=<bean:write name="forumMessage" property="messageId" />#<bean:write name="forumMessage" property=
+      <a href='<%=request.getContextPath()%>/<bean:write name="forumThread" property="threadId" />?message=<bean:write name="forumMessage" property="messageId" />#<bean:write name="forumMessage" property="messageId" />'       
+        title="<bean:write name="forumMessage" property="messageVO.body"/>"
+        target="_blank" >
+        <bean:write name="forumMessage" property="messageVO.subject"/></a>
+    </td>   
+     <td align="center"><bean:write name="forumMessage" property="postip" />
+        <form action="<%=request.getContextPath()%>/admin/user/banIPAction.shtml" method="post" target="_blank">
+          <input name="ip" type="hidden" value="<bean:write name="forumMessage" property="postip" />"/>
+          <input type="submit" value="屏蔽IP"/>
+        </form>    
+    </td>   
+     <td align="center" width="4%"
+        ><bean:write name="forumMessage" property="modifiedDate3" /></td>
+    <td align="center"  width="4%"
+        > <html:link page="/message/messageAction.shtml?action=edit" paramId="messageId" paramName="forumMessage" paramProperty="messageId"
+            ><img src="../images/button_edit.gif" width="17" height="17" alt="编辑该贴..." border="0"
+        ></html:link></td>
+        
+    <logic:equal name="forumMessage" property="masked" value="true">
+      <td align="center" width="4%"
+        > <html:link page="/message/messageMaskAction.shtml?method=maskMessage&masked=false" paramId="messageId" paramName="forumMessage" paramProperty="messageId" >
+        <img src="../images/button_approve.gif" width="17" height="17" alt="取消屏蔽" border="0"
+        ></html:link></td>   
+     </logic:equal>           
+        
+    <logic:notEqual name="forumMessage" property="masked" value="true">
+      <td align="center" width="4%"
+        > <html:link page="/message/messageMaskAction.shtml?method=maskMessage&masked=true" paramId="messageId" paramName="forumMessage" paramProperty="messageId" >
+        <img src="../images/button_mask.gif" width="17" height="17" alt="屏蔽该贴..." border="0"
+        ></html:link></td>    
+     </logic:notEqual>                
+       
+    <td align="center" width="4%"
+        > <html:link page="/message/messageDeleAction.shtml?" paramId="messageId" paramName="forumMessage" paramProperty="messageId" onclick="return delConfirm()">
+        <img src="../images/button_delete.gif" width="17" height="17" alt="删除该贴..." border="0"
+        ></html:link></td>
+</tr>
+
+</logic:iterate>
+</table>
+
+</td></tr>
+</table>
+
+<table  cellpadding="3" cellspacing="0" border="0" width="100%">
+<tr>
+    <td>
+     符合查询结果共有<b><bean:write name="messageListForm" property="allCount"/></b>贴 [ 
+<MultiPages:pager actionFormName="messageListForm" page="/admin/user/userMessageList.shtml"  paramId="username" paramName="username">
+<MultiPages:prev><html:img  page="/images/prev.gif" width="10" height="10" hspace="2" border="0" alt="上页"/></MultiPages:prev>
+<MultiPages:index />
+<MultiPages:next><html:img  page="/images/next.gif" width="10" height="10" hspace="2" border="0" alt="下页"/></MultiPages:next>
+</MultiPages:pager>     
+      ]
+    </td>
+</tr>
+</table>
+
+</logic:greaterThan>
+</logic:present>
+
+
+<script type="text/JavaScript">
+function delConfirm(){
+  if (confirm( '删除这些帖子 ! \n\n 不能再恢复 确定吗?  '))
+  {
+    document.forms[0].method.value="delete";
+    document.forms[0].submit();
+    return true;
+  }else{
+    return false;
+  }
+}
+</script>
+
+<%@include file="../footer.jsp"%>
+
+
