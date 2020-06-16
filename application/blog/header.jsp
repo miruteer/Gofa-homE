@@ -124,4 +124,96 @@ var openPopUpBlogW = function(){
          欢迎<a href="<%=request.getContextPath()%>/blog/<bean:write name="principal" />"></a><bean:write name="principal" /></a> 
          <a href="<%=request.getContextPath()%>/account/protected/editAccountForm.shtml?action=edit&username=<bean:write name="principal" />"> 注册资料修改 </a> |
          <logic:notPresent name="isOwner" >
-           <a hr
+           <a href="<%=request.getContextPath() %>/blog/<bean:write name="principal" />"><bean:write name="principal" />的博客</a> | 
+         </logic:notPresent>
+         <html:link page="/jasslogin?logout"> 退出 </html:link>
+    </logic:present>
+    </div> 
+   </div> 
+</div> 
+<div class="headbar"> 
+   <div class="headbar_list1"><bean:write name="accountProfileForm" property="account.username"/></div>
+</div>
+<div class="menubar">
+  <div class="menubar_left">
+    <ul class="menuitem">
+      <li></li>
+      <li>博客空间</li>
+      <li></li>
+    </ul>
+  </div>
+  <html:form action="/query/searchAction.shtml" method="post" styleId="searchform">
+    <div class="menubar_right">
+    <input name="count" type="hidden" value="1"/>
+   <input name="userId" type="hidden" value="<bean:write name="accountProfileForm" property="account.userId"/>"/>
+    <input name="query" value="请输入搜索关键字" type="text" style="width:140px;" class="inputstyle" onFocus="if (searchform.query.value=='请输入搜索关键字'){searchform.query.value=''}"/>
+   <img src="<html:rewrite page="/blog/themes/default/images/search.gif" />" align="absmiddle" style="cursor:pointer" onClick="if((searchform.query.value=='') || (searchform.query.value=='请输入搜索关键字')){alert('请输入搜索关键字！');searchform.query.focus();}else{searchform.submit();}"></div>
+</html:form> 
+</div> 
+<div class="secondbar"></div> 
+ <script language="JavaScript" type="text/javascript">
+ var uploadW;
+ ////loadWLJSWithP(url, openUploadWindow)
+var openUploadWindow = function(url){                
+    if (uploadW == null) {
+       uploadW = new Window({className: "mac_os_x", width:450, height:300, title: " Upload "}); 
+       uploadW.setURL(url);
+       uploadW.showCenter();
+	
+	    
+	   var myObserver = {
+        onClose: function(eventName, myuploadW) {    	  
+          if (myuploadW == uploadW){        	
+            appendUploadUrl();
+            uploadW = null;
+            Windows.removeObserver(this);
+          }
+         }
+        }
+        Windows.addObserver(myObserver);
+    } else
+	  uploadW.showCenter();
+   }     
+   
+   function killUploadWindow(){
+      if (uploadW != null){  
+           uploadW.close();                           
+     }
+     
+     window.location.reload();
+   }
+   
+     function myalert(errorM){
+        if (errorM == null) return;
+        infoDiagClose();
+        Dialog.alert(errorM, 
+                {windowParameters: {className: "mac_os_x", width:250, height:200}, okLabel: "   确定  "});
+  }
+ </script>
+<div class="mainarea"> 
+   <div class="mainarea_left">      
+    <div class="box_mode_1"> 
+	     <div class="title"> 
+	        <div class="title_left"><a href="<%=request.getContextPath()%>/blog/<bean:write name="accountProfileForm" property="account.username"/>">博主首页</a></div> 
+	        <div class="title_right"><a href="/">首页</a></div> 
+	     </div> 
+	     
+		 <div class="content"> 
+              <div class="b_photo">
+                <logic:notEmpty name="accountProfileForm" property="account.uploadFile">
+                  <logic:equal name="accountProfileForm" property="account.roleName" value="User">
+     				  <img src="/img/account/<bean:write name="accountProfileForm" property="account.userId"/>"  border='0' class="post_author_pic"/>
+				  </logic:equal>
+                  <logic:equal name="accountProfileForm" property="account.roleName" value="SinaUser">                 
+                     <img  src="<bean:write name="accountProfileForm" property="account.uploadFile.description"/>"  border='0' class="post_author_pic"/>
+                  </logic:equal>
+				  				  
+				</logic:notEmpty>
+				
+			    <logic:empty name="accountProfileForm" property="account.uploadFile">
+				  <img src="<html:rewrite page="/blog/themes/default/images/nouserface_1.gif"/>" width="85" height="85" border="0" >
+				</logic:empty>
+				
+				<logic:present name="isOwner" >
+				    <br>
+					<a href="javascript:loadWLJSWithP('<%=request.getContextPath()%>/account/protected/upload/uploadUserFaceAction.shtml?parentId=<bean:write name="accountProfileForm" property="account.
