@@ -216,4 +216,65 @@ var openUploadWindow = function(url){
 				
 				<logic:present name="isOwner" >
 				    <br>
-					<a href="javascript:loadWLJSWithP('<%=request.getContextPath()%>/account/protected/upload/uploadUserFaceAction.shtml?parentId=<bean:write name="accountProfileForm" property="account.
+					<a href="javascript:loadWLJSWithP('<%=request.getContextPath()%>/account/protected/upload/uploadUserFaceAction.shtml?parentId=<bean:write name="accountProfileForm" property="account.userId"/>', openUploadWindow)"
+               				tabindex="4">上传头像</a>	
+                </logic:present>                    				
+               </div>
+              <div class="b_name">
+              <span  class='Users ajax_userId=<bean:write name="accountProfileForm" property="account.userId"/>' ><bean:write name="accountProfileForm" property="account.username"/>
+              	
+              <br/>              	
+              <logic:notPresent name="principal" >
+               <a href="<%=request.getContextPath()%>/account/protected/sub/subAction.shtml?subscribeType=3&subscribeId=<bean:write name="accountProfileForm" property="account.userId"/>"
+                  target="_blank" title="加关注"  rel="nofollow">            
+                 <img src="<%=request.getContextPath() %>/images/user_add.gif " width="18" height="18" alt="关注本主题" border="0" /><span class="blackgray">+关注</span>
+                </a>                
+              </logic:notPresent>
+              <logic:present name="principal" >
+                     <div id="isFollowing"></div>                        
+                    <script>
+                    var pars = 'id=' +<bean:write name="accountProfileForm" property="account.userId"/> ;
+                    new Ajax.Updater(isFollowing, '<%=request.getContextPath() %>/account/protected/sub/checkSub.shtml?service=subscriptionService&method=checkSubscription', { method: 'get', parameters: pars });                    
+                    </script>
+              
+              </logic:present>
+              
+              
+              <table align="center"  cellpadding="5" cellspacing="5" border="0">
+              <tr><td>
+              <logic:notEmpty name="accountProfileForm" property="account.subscriptionCount">
+                <logic:greaterThan name="accountProfileForm" property="account.subscriptionCount" value="0">
+                <a href="<%=request.getContextPath()%>/social/following.shtml?subscribeType=3&userId=<bean:write name="accountProfileForm" property="account.userId"/>"  target="_blank"  rel="nofollow">
+                 <bean:write name="accountProfileForm" property="account.subscriptionCount"/>
+                 </a>
+                </logic:greaterThan>
+              </logic:notEmpty>  
+              <br>关注
+              </td><td>
+              <logic:notEmpty name="accountProfileForm" property="account.subscribedCount">
+                <logic:greaterThan name="accountProfileForm" property="account.subscribedCount" value="0">
+                <a href="<%=request.getContextPath()%>/social/follower.shtml?subscribeType=3&userId=<bean:write name="accountProfileForm" property="account.userId"/>"  target="_blank"  rel="nofollow">
+                 <bean:write name="accountProfileForm" property="account.subscribedCount"/>
+                 </a>
+                </logic:greaterThan>
+              </logic:notEmpty>  
+              <br>粉丝
+              </td><td>
+              <logic:notEmpty name="accountProfileForm" property="account.messageCount">
+                <logic:greaterThan name="accountProfileForm" property="account.messageCount" value="0">
+                <a href="<%=request.getContextPath()%>/blog/messages/<bean:write name="accountProfileForm" property="account.username"/>"  target="_blank"  rel="nofollow">
+                 <bean:write name="accountProfileForm" property="account.messageCount"/>
+                 </a>
+                </logic:greaterThan>
+              </logic:notEmpty>  
+              <br>帖数
+              </td></tr>              
+              </table>
+                         
+                              
+              </span></div>
+              <div class="b_op">
+                  <logic:present name="principal" >
+              <span onMouseOver="loadWLJS(nof)">
+               <logic:notPresent name="isOwner" >
+                    <a href="javascript:void(0);" onClick="openShortmessageWindow('发消息','<html:rewrite page="/account/protected/shortmessageAction.shtml" paramId="messageTo"  paramName="accountProfileForm"  paramP
