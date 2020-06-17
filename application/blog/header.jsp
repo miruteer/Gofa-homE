@@ -277,4 +277,76 @@ var openUploadWindow = function(url){
                   <logic:present name="principal" >
               <span onMouseOver="loadWLJS(nof)">
                <logic:notPresent name="isOwner" >
-                    <a href="javascript:void(0);" onClick="openShortmessageWindow('发消息','<html:rewrite page="/account/protected/shortmessageAction.shtml" paramId="messageTo"  paramName="accountProfileForm"  paramP
+                    <a href="javascript:void(0);" onClick="openShortmessageWindow('发消息','<html:rewrite page="/account/protected/shortmessageAction.shtml" paramId="messageTo"  paramName="accountProfileForm"  paramProperty="account.username" />');"
+                   >发消息</a>
+               </logic:notPresent>
+               <logic:present name="isOwner" >
+                  
+                   <a href="javascript:openPopUpWindow('写消息','<%=request.getContextPath()%>/account/protected/shortmessageAction.shtml')"
+               				tabindex="1">写信息</a>
+                   <a href="javascript:openPopUpWindow('收件箱','<%=request.getContextPath()%>/account/protected/receiveListAction.shtml?count=10')"
+               				tabindex="2">收件箱</a>		
+               	<a href="javascript:openPopUpWindow('发信箱','<%=request.getContextPath()%>/account/protected/sendListAction.shtml?count=10')"
+               				tabindex="3">发送箱</a>
+               	<a href="javascript:openPopUpWindow('草稿箱','<%=request.getContextPath()%>/account/protected/draftListAction.shtml?count=10')"
+               				tabindex="4">草稿箱</a>	
+              
+               </logic:present>
+                   </span>
+                  </logic:present>
+               </div>	
+	  </div> 
+	  </div> 
+      <div class="box_mode_1"> 
+	     <div class="title"> 
+	       <div class="title_left">个人资料</div> 
+	        <div class="title_right">
+	        <logic:present name="isOwner" >
+	          <a href="javascript:void(0);" onClick="openPopUpWindow('编辑个人公开资料','<html:rewrite page="/account/protected/accountProfileForm.shtml?action=edit" paramId="userId" paramName="accountProfileForm"  paramProperty="account.userId" />')">[编辑]</a>     	       
+	        </logic:present>  
+	        </div> 
+	     </div> 
+		 <div class="content"> 
+            <div class="list_div">
+<logic:iterate id="property" name="accountProfileForm" property="propertys" indexId="i">
+<logic:notEmpty name="property"  property="name" >
+<ul><li>
+   <bean:write name="property"  property="name" />:
+   <bean:write name="accountProfileForm"  property='<%= "property[" + i + "].value" %>'   filter="false" />
+</li></ul>
+</logic:notEmpty>
+</logic:iterate>  
+              </div>	
+           </div> 
+	  </div> 
+      <div class="box_mode_1">
+	     <div class="title">
+	     <div class="title_left">
+	         我的关注
+	     </div>
+	     <div class="title_right">
+	     <logic:present name="isOwner" >
+	          <html:link page="/account/protected/sub/default.jsp" >[编辑]</html:link>    	       
+	        </logic:present>  
+	     </div>
+	     </div>
+		 <div class="content">
+ 	 <div class="list_div">
+		 	  <ul><li>
+		 <a href="/social/interest.shtml?userId=<bean:write name="accountProfileForm" property="account.userId"/>" rel="nofollow">
+	               近期关注情况
+	      </a>
+		 </li></ul>
+		</div>		 
+		 </div>
+	  </div>
+      <div class="box_mode_1"> 
+	     <div class="title"> 
+	     <div class="title_left"></div> 
+	     <div class="title_right"></div> 
+	     </div> 
+		 <div class="content"> 
+		 </div> 
+	  </div> 
+      
+</div> 
