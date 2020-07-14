@@ -8,4 +8,8 @@ com.jdon.jivejdon.spi.component.throttle.hitkey.CustomizedThrottle,com.jdon.jive
 	CustomizedThrottle customizedThrottle = (CustomizedThrottle) WebAppUtil.getComponentInstance("customizedThrottle", this.getServletContext());
 	HitKeyIF hitKey = new HitKeySame(request.getRemoteAddr(), "503");
 	if (customizedThrottle.processHit(hitKey)){
-		customizedThrottle.addBanned(reque
+		customizedThrottle.addBanned(request.getRemoteAddr());	
+	}
+}catch(Exception e){
+}
+%>
