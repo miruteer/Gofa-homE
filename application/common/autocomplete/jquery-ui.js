@@ -1438,4 +1438,92 @@ $.ui.plugin.add("draggable", "scroll", {
 			if(!o.axis || o.axis != 'y') {
 				if((i.overflowOffset.left + i.scrollParent[0].offsetWidth) - event.pageX < o.scrollSensitivity)
 					i.scrollParent[0].scrollLeft = scrolled = i.scrollParent[0].scrollLeft + o.scrollSpeed;
-			
+				else if(event.pageX - i.overflowOffset.left < o.scrollSensitivity)
+					i.scrollParent[0].scrollLeft = scrolled = i.scrollParent[0].scrollLeft - o.scrollSpeed;
+			}
+
+		} else {
+
+			if(!o.axis || o.axis != 'x') {
+				if(event.pageY - $(document).scrollTop() < o.scrollSensitivity)
+					scrolled = $(document).scrollTop($(document).scrollTop() - o.scrollSpeed);
+				else if($(window).height() - (event.pageY - $(document).scrollTop()) < o.scrollSensitivity)
+					scrolled = $(document).scrollTop($(document).scrollTop() + o.scrollSpeed);
+			}
+
+			if(!o.axis || o.axis != 'y') {
+				if(event.pageX - $(document).scrollLeft() < o.scrollSensitivity)
+					scrolled = $(document).scrollLeft($(document).scrollLeft() - o.scrollSpeed);
+				else if($(window).width() - (event.pageX - $(document).scrollLeft()) < o.scrollSensitivity)
+					scrolled = $(document).scrollLeft($(document).scrollLeft() + o.scrollSpeed);
+			}
+
+		}
+
+		if(scrolled !== false && $.ui.ddmanager && !o.dropBehaviour)
+			$.ui.ddmanager.prepareOffsets(i, event);
+
+	}
+});
+
+$.ui.plugin.add("draggable", "snap", {
+	start: function(event, ui) {
+
+		var i = $(this).data("draggable"), o = i.options;
+		i.snapElements = [];
+
+		$(o.snap.constructor != String ? ( o.snap.items || ':data(draggable)' ) : o.snap).each(function() {
+			var $t = $(this); var $o = $t.offset();
+			if(this != i.element[0]) i.snapElements.push({
+				item: this,
+				width: $t.outerWidth(), height: $t.outerHeight(),
+				top: $o.top, left: $o.left
+			});
+		});
+
+	},
+	drag: function(event, ui) {
+
+		var inst = $(this).data("draggable"), o = inst.options;
+		var d = o.snapTolerance;
+
+		var x1 = ui.offset.left, x2 = x1 + inst.helperProportions.width,
+			y1 = ui.offset.top, y2 = y1 + inst.helperProportions.height;
+
+		for (var i = inst.snapElements.length - 1; i >= 0; i--){
+
+			var l = inst.snapElements[i].left, r = l + inst.snapElements[i].width,
+				t = inst.snapElements[i].top, b = t + inst.snapElements[i].height;
+
+			//Yes, I know, this is insane ;)
+			if(!((l-d < x1 && x1 < r+d && t-d < y1 && y1 < b+d) || (l-d < x1 && x1 < r+d && t-d < y2 && y2 < b+d) || (l-d < x2 && x2 < r+d && t-d < y1 && y1 < b+d) || (l-d < x2 && x2 < r+d && t-d < y2 && y2 < b+d))) {
+				if(inst.snapElements[i].snapping) (inst.options.snap.release && inst.options.snap.release.call(inst.element, event, $.extend(inst._uiHash(), { snapItem: inst.snapElements[i].item })));
+				inst.snapElements[i].snapping = false;
+				continue;
+			}
+
+			if(o.snapMode != 'inner') {
+				var ts = Math.abs(t - y2) <= d;
+				var bs = Math.abs(b - y1) <= d;
+				var ls = Math.abs(l - x2) <= d;
+				var rs = Math.abs(r - x1) <= d;
+				if(ts) ui.position.top = inst._convertPositionTo("relative", { top: t - inst.helperProportions.height, left: 0 }).top - inst.margins.top;
+				if(bs) ui.position.top = inst._convertPositionTo("relative", { top: b, left: 0 }).top - inst.margins.top;
+				if(ls) ui.position.left = inst._convertPositionTo("relative", { top: 0, left: l - inst.helperProportions.width }).left - inst.margins.left;
+				if(rs) ui.position.left = inst._convertPositionTo("relative", { top: 0, left: r }).left - inst.margins.left;
+			}
+
+			var first = (ts || bs || ls || rs);
+
+			if(o.snapMode != 'outer') {
+				var ts = Math.abs(t - y1) <= d;
+				var bs = Math.abs(b - y2) <= d;
+				var ls = Math.abs(l - x1) <= d;
+				var rs = Math.abs(r - x2) <= d;
+				if(ts) ui.position.top = inst._convertPositionTo("relative", { top: t, left: 0 }).top - inst.margins.top;
+				if(bs) ui.position.top = inst._convertPositionTo("relative", { top: b - inst.helperProportions.height, left: 0 }).top - inst.margins.top;
+				if(ls) ui.position.left = inst._convertPositionTo("relative", { top: 0, left: l }).left - inst.margins.left;
+				if(rs) ui.position.left = inst._convertPositionTo("relative", { top: 0, left: r - inst.helperProportions.width }).left - inst.margins.left;
+			}
+
+			if(!inst.snapElements[i].snapping 
