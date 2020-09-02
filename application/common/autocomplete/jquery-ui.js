@@ -1526,4 +1526,143 @@ $.ui.plugin.add("draggable", "snap", {
 				if(rs) ui.position.left = inst._convertPositionTo("relative", { top: 0, left: r - inst.helperProportions.width }).left - inst.margins.left;
 			}
 
-			if(!inst.snapElements[i].snapping 
+			if(!inst.snapElements[i].snapping && (ts || bs || ls || rs || first))
+				(inst.options.snap.snap && inst.options.snap.snap.call(inst.element, event, $.extend(inst._uiHash(), { snapItem: inst.snapElements[i].item })));
+			inst.snapElements[i].snapping = (ts || bs || ls || rs || first);
+
+		};
+
+	}
+});
+
+$.ui.plugin.add("draggable", "stack", {
+	start: function(event, ui) {
+
+		var o = $(this).data("draggable").options;
+
+		var group = $.makeArray($(o.stack)).sort(function(a,b) {
+			return (parseInt($(a).css("zIndex"),10) || 0) - (parseInt($(b).css("zIndex"),10) || 0);
+		});
+		if (!group.length) { return; }
+		
+		var min = parseInt(group[0].style.zIndex) || 0;
+		$(group).each(function(i) {
+			this.style.zIndex = min + i;
+		});
+
+		this[0].style.zIndex = min + group.length;
+
+	}
+});
+
+$.ui.plugin.add("draggable", "zIndex", {
+	start: function(event, ui) {
+		var t = $(ui.helper), o = $(this).data("draggable").options;
+		if(t.css("zIndex")) o._zIndex = t.css("zIndex");
+		t.css('zIndex', o.zIndex);
+	},
+	stop: function(event, ui) {
+		var o = $(this).data("draggable").options;
+		if(o._zIndex) $(ui.helper).css('zIndex', o._zIndex);
+	}
+});
+
+})(jQuery);
+
+(function( $, undefined ) {
+
+$.widget("ui.droppable", {
+	widgetEventPrefix: "drop",
+	options: {
+		accept: '*',
+		activeClass: false,
+		addClasses: true,
+		greedy: false,
+		hoverClass: false,
+		scope: 'default',
+		tolerance: 'intersect'
+	},
+	_create: function() {
+
+		var o = this.options, accept = o.accept;
+		this.isover = 0; this.isout = 1;
+
+		this.accept = $.isFunction(accept) ? accept : function(d) {
+			return d.is(accept);
+		};
+
+		//Store the droppable's proportions
+		this.proportions = { width: this.element[0].offsetWidth, height: this.element[0].offsetHeight };
+
+		// Add the reference and positions to the component
+		$.ui.ddmanager.droppables[o.scope] = $.ui.ddmanager.droppables[o.scope] || [];
+		$.ui.ddmanager.droppables[o.scope].push(this);
+
+		(o.addClasses && this.element.addClass("ui-droppable"));
+
+	},
+
+	destroy: function() {
+		var drop = $.ui.ddmanager.droppables[this.options.scope];
+		for ( var i = 0; i < drop.length; i++ )
+			if ( drop[i] == this )
+				drop.splice(i, 1);
+
+		this.element
+			.removeClass("ui-droppable ui-droppable-disabled")
+			.removeData("droppable")
+			.unbind(".droppable");
+
+		return this;
+	},
+
+	_setOption: function(key, value) {
+
+		if(key == 'accept') {
+			this.accept = $.isFunction(value) ? value : function(d) {
+				return d.is(value);
+			};
+		}
+		$.Widget.prototype._setOption.apply(this, arguments);
+	},
+
+	_activate: function(event) {
+		var draggable = $.ui.ddmanager.current;
+		if(this.options.activeClass) this.element.addClass(this.options.activeClass);
+		(draggable && this._trigger('activate', event, this.ui(draggable)));
+	},
+
+	_deactivate: function(event) {
+		var draggable = $.ui.ddmanager.current;
+		if(this.options.activeClass) this.element.removeClass(this.options.activeClass);
+		(draggable && this._trigger('deactivate', event, this.ui(draggable)));
+	},
+
+	_over: function(event) {
+
+		var draggable = $.ui.ddmanager.current;
+		if (!draggable || (draggable.currentItem || draggable.element)[0] == this.element[0]) return; // Bail if draggable and droppable are same element
+
+		if (this.accept.call(this.element[0],(draggable.currentItem || draggable.element))) {
+			if(this.options.hoverClass) this.element.addClass(this.options.hoverClass);
+			this._trigger('over', event, this.ui(draggable));
+		}
+
+	},
+
+	_out: function(event) {
+
+		var draggable = $.ui.ddmanager.current;
+		if (!draggable || (draggable.currentItem || draggable.element)[0] == this.element[0]) return; // Bail if draggable and droppable are same element
+
+		if (this.accept.call(this.element[0],(draggable.currentItem || draggable.element))) {
+			if(this.options.hoverClass) this.element.removeClass(this.options.hoverClass);
+			this._trigger('out', event, this.ui(draggable));
+		}
+
+	},
+
+	_drop: function(event,custom) {
+
+		var draggable = custom || $.ui.ddmanager.current;
+		if (!draggable || 
