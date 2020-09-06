@@ -2130,4 +2130,115 @@ $.widget("ui.resizable", $.ui.mouse, {
 
 		data = this._respectSize(data, event);
 
-		// plugins callback
+		// plugins callbacks need to be called first
+		this._propagate("resize", event);
+
+		el.css({
+			top: this.position.top + "px", left: this.position.left + "px",
+			width: this.size.width + "px", height: this.size.height + "px"
+		});
+
+		if (!this._helper && this._proportionallyResizeElements.length)
+			this._proportionallyResize();
+
+		this._updateCache(data);
+
+		// calling the user callback at the end
+		this._trigger('resize', event, this.ui());
+
+		return false;
+	},
+
+	_mouseStop: function(event) {
+
+		this.resizing = false;
+		var o = this.options, self = this;
+
+		if(this._helper) {
+			var pr = this._proportionallyResizeElements, ista = pr.length && (/textarea/i).test(pr[0].nodeName),
+				soffseth = ista && $.ui.hasScroll(pr[0], 'left') /* TODO - jump height */ ? 0 : self.sizeDiff.height,
+				soffsetw = ista ? 0 : self.sizeDiff.width;
+
+			var s = { width: (self.helper.width()  - soffsetw), height: (self.helper.height() - soffseth) },
+				left = (parseInt(self.element.css('left'), 10) + (self.position.left - self.originalPosition.left)) || null,
+				top = (parseInt(self.element.css('top'), 10) + (self.position.top - self.originalPosition.top)) || null;
+
+			if (!o.animate)
+				this.element.css($.extend(s, { top: top, left: left }));
+
+			self.helper.height(self.size.height);
+			self.helper.width(self.size.width);
+
+			if (this._helper && !o.animate) this._proportionallyResize();
+		}
+
+		$('body').css('cursor', 'auto');
+
+		this.element.removeClass("ui-resizable-resizing");
+
+		this._propagate("stop", event);
+
+		if (this._helper) this.helper.remove();
+		return false;
+
+	},
+
+    _updateVirtualBoundaries: function(forceAspectRatio) {
+        var o = this.options, pMinWidth, pMaxWidth, pMinHeight, pMaxHeight, b;
+
+        b = {
+            minWidth: isNumber(o.minWidth) ? o.minWidth : 0,
+            maxWidth: isNumber(o.maxWidth) ? o.maxWidth : Infinity,
+            minHeight: isNumber(o.minHeight) ? o.minHeight : 0,
+            maxHeight: isNumber(o.maxHeight) ? o.maxHeight : Infinity
+        };
+
+        if(this._aspectRatio || forceAspectRatio) {
+            // We want to create an enclosing box whose aspect ration is the requested one
+            // First, compute the "projected" size for each dimension based on the aspect ratio and other dimension
+            pMinWidth = b.minHeight * this.aspectRatio;
+            pMinHeight = b.minWidth / this.aspectRatio;
+            pMaxWidth = b.maxHeight * this.aspectRatio;
+            pMaxHeight = b.maxWidth / this.aspectRatio;
+
+            if(pMinWidth > b.minWidth) b.minWidth = pMinWidth;
+            if(pMinHeight > b.minHeight) b.minHeight = pMinHeight;
+            if(pMaxWidth < b.maxWidth) b.maxWidth = pMaxWidth;
+            if(pMaxHeight < b.maxHeight) b.maxHeight = pMaxHeight;
+        }
+        this._vBoundaries = b;
+    },
+
+	_updateCache: function(data) {
+		var o = this.options;
+		this.offset = this.helper.offset();
+		if (isNumber(data.left)) this.position.left = data.left;
+		if (isNumber(data.top)) this.position.top = data.top;
+		if (isNumber(data.height)) this.size.height = data.height;
+		if (isNumber(data.width)) this.size.width = data.width;
+	},
+
+	_updateRatio: function(data, event) {
+
+		var o = this.options, cpos = this.position, csize = this.size, a = this.axis;
+
+		if (isNumber(data.height)) data.width = (data.height * this.aspectRatio);
+		else if (isNumber(data.width)) data.height = (data.width / this.aspectRatio);
+
+		if (a == 'sw') {
+			data.left = cpos.left + (csize.width - data.width);
+			data.top = null;
+		}
+		if (a == 'nw') {
+			data.top = cpos.top + (csize.height - data.height);
+			data.left = cpos.left + (csize.width - data.width);
+		}
+
+		return data;
+	},
+
+	_respectSize: function(data, event) {
+
+		var el = this.helper, o = this._vBoundaries, pRatio = this._aspectRatio || event.shiftKey, a = this.axis,
+				ismaxw = isNumber(data.width) && o.maxWidth && (o.maxWidth < data.width), ismaxh = isNumber(data.height) && o.maxHeight && (o.maxHeight < data.height),
+					isminw = isNumber(data.width) && o.minWidth && (o.minWidth > data.width), i
