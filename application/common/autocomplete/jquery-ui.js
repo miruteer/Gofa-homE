@@ -2241,4 +2241,134 @@ $.widget("ui.resizable", $.ui.mouse, {
 
 		var el = this.helper, o = this._vBoundaries, pRatio = this._aspectRatio || event.shiftKey, a = this.axis,
 				ismaxw = isNumber(data.width) && o.maxWidth && (o.maxWidth < data.width), ismaxh = isNumber(data.height) && o.maxHeight && (o.maxHeight < data.height),
-					isminw = isNumber(data.width) && o.minWidth && (o.minWidth > data.width), i
+					isminw = isNumber(data.width) && o.minWidth && (o.minWidth > data.width), isminh = isNumber(data.height) && o.minHeight && (o.minHeight > data.height);
+
+		if (isminw) data.width = o.minWidth;
+		if (isminh) data.height = o.minHeight;
+		if (ismaxw) data.width = o.maxWidth;
+		if (ismaxh) data.height = o.maxHeight;
+
+		var dw = this.originalPosition.left + this.originalSize.width, dh = this.position.top + this.size.height;
+		var cw = /sw|nw|w/.test(a), ch = /nw|ne|n/.test(a);
+
+		if (isminw && cw) data.left = dw - o.minWidth;
+		if (ismaxw && cw) data.left = dw - o.maxWidth;
+		if (isminh && ch)	data.top = dh - o.minHeight;
+		if (ismaxh && ch)	data.top = dh - o.maxHeight;
+
+		// fixing jump error on top/left - bug #2330
+		var isNotwh = !data.width && !data.height;
+		if (isNotwh && !data.left && data.top) data.top = null;
+		else if (isNotwh && !data.top && data.left) data.left = null;
+
+		return data;
+	},
+
+	_proportionallyResize: function() {
+
+		var o = this.options;
+		if (!this._proportionallyResizeElements.length) return;
+		var element = this.helper || this.element;
+
+		for (var i=0; i < this._proportionallyResizeElements.length; i++) {
+
+			var prel = this._proportionallyResizeElements[i];
+
+			if (!this.borderDif) {
+				var b = [prel.css('borderTopWidth'), prel.css('borderRightWidth'), prel.css('borderBottomWidth'), prel.css('borderLeftWidth')],
+					p = [prel.css('paddingTop'), prel.css('paddingRight'), prel.css('paddingBottom'), prel.css('paddingLeft')];
+
+				this.borderDif = $.map(b, function(v, i) {
+					var border = parseInt(v,10)||0, padding = parseInt(p[i],10)||0;
+					return border + padding;
+				});
+			}
+
+			if ($.browser.msie && !(!($(element).is(':hidden') || $(element).parents(':hidden').length)))
+				continue;
+
+			prel.css({
+				height: (element.height() - this.borderDif[0] - this.borderDif[2]) || 0,
+				width: (element.width() - this.borderDif[1] - this.borderDif[3]) || 0
+			});
+
+		};
+
+	},
+
+	_renderProxy: function() {
+
+		var el = this.element, o = this.options;
+		this.elementOffset = el.offset();
+
+		if(this._helper) {
+
+			this.helper = this.helper || $('<div style="overflow:hidden;"></div>');
+
+			// fix ie6 offset TODO: This seems broken
+			var ie6 = $.browser.msie && $.browser.version < 7, ie6offset = (ie6 ? 1 : 0),
+			pxyoffset = ( ie6 ? 2 : -1 );
+
+			this.helper.addClass(this._helper).css({
+				width: this.element.outerWidth() + pxyoffset,
+				height: this.element.outerHeight() + pxyoffset,
+				position: 'absolute',
+				left: this.elementOffset.left - ie6offset +'px',
+				top: this.elementOffset.top - ie6offset +'px',
+				zIndex: ++o.zIndex //TODO: Don't modify option
+			});
+
+			this.helper
+				.appendTo("body")
+				.disableSelection();
+
+		} else {
+			this.helper = this.element;
+		}
+
+	},
+
+	_change: {
+		e: function(event, dx, dy) {
+			return { width: this.originalSize.width + dx };
+		},
+		w: function(event, dx, dy) {
+			var o = this.options, cs = this.originalSize, sp = this.originalPosition;
+			return { left: sp.left + dx, width: cs.width - dx };
+		},
+		n: function(event, dx, dy) {
+			var o = this.options, cs = this.originalSize, sp = this.originalPosition;
+			return { top: sp.top + dy, height: cs.height - dy };
+		},
+		s: function(event, dx, dy) {
+			return { height: this.originalSize.height + dy };
+		},
+		se: function(event, dx, dy) {
+			return $.extend(this._change.s.apply(this, arguments), this._change.e.apply(this, [event, dx, dy]));
+		},
+		sw: function(event, dx, dy) {
+			return $.extend(this._change.s.apply(this, arguments), this._change.w.apply(this, [event, dx, dy]));
+		},
+		ne: function(event, dx, dy) {
+			return $.extend(this._change.n.apply(this, arguments), this._change.e.apply(this, [event, dx, dy]));
+		},
+		nw: function(event, dx, dy) {
+			return $.extend(this._change.n.apply(this, arguments), this._change.w.apply(this, [event, dx, dy]));
+		}
+	},
+
+	_propagate: function(n, event) {
+		$.ui.plugin.call(this, n, [event, this.ui()]);
+		(n != "resize" && this._trigger(n, event, this.ui()));
+	},
+
+	plugins: {},
+
+	ui: function() {
+		return {
+			originalElement: this.originalElement,
+			element: this.element,
+			helper: this.helper,
+			position: this.position,
+			size: this.size,
+			originalSize: th
