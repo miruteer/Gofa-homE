@@ -3397,4 +3397,135 @@ $.widget("ui.sortable", $.ui.mouse, {
 
 	refresh: function(event) {
 		this._refreshItems(event);
-		this.refreshPos
+		this.refreshPositions();
+		return this;
+	},
+
+	_connectWith: function() {
+		var options = this.options;
+		return options.connectWith.constructor == String
+			? [options.connectWith]
+			: options.connectWith;
+	},
+	
+	_getItemsAsjQuery: function(connected) {
+
+		var self = this;
+		var items = [];
+		var queries = [];
+		var connectWith = this._connectWith();
+
+		if(connectWith && connected) {
+			for (var i = connectWith.length - 1; i >= 0; i--){
+				var cur = $(connectWith[i]);
+				for (var j = cur.length - 1; j >= 0; j--){
+					var inst = $.data(cur[j], this.widgetName);
+					if(inst && inst != this && !inst.options.disabled) {
+						queries.push([$.isFunction(inst.options.items) ? inst.options.items.call(inst.element) : $(inst.options.items, inst.element).not(".ui-sortable-helper").not('.ui-sortable-placeholder'), inst]);
+					}
+				};
+			};
+		}
+
+		queries.push([$.isFunction(this.options.items) ? this.options.items.call(this.element, null, { options: this.options, item: this.currentItem }) : $(this.options.items, this.element).not(".ui-sortable-helper").not('.ui-sortable-placeholder'), this]);
+
+		for (var i = queries.length - 1; i >= 0; i--){
+			queries[i][0].each(function() {
+				items.push(this);
+			});
+		};
+
+		return $(items);
+
+	},
+
+	_removeCurrentsFromItems: function() {
+
+		var list = this.currentItem.find(":data(" + this.widgetName + "-item)");
+
+		for (var i=0; i < this.items.length; i++) {
+
+			for (var j=0; j < list.length; j++) {
+				if(list[j] == this.items[i].item[0])
+					this.items.splice(i,1);
+			};
+
+		};
+
+	},
+
+	_refreshItems: function(event) {
+
+		this.items = [];
+		this.containers = [this];
+		var items = this.items;
+		var self = this;
+		var queries = [[$.isFunction(this.options.items) ? this.options.items.call(this.element[0], event, { item: this.currentItem }) : $(this.options.items, this.element), this]];
+		var connectWith = this._connectWith();
+
+		if(connectWith && this.ready) { //Shouldn't be run the first time through due to massive slow-down
+			for (var i = connectWith.length - 1; i >= 0; i--){
+				var cur = $(connectWith[i]);
+				for (var j = cur.length - 1; j >= 0; j--){
+					var inst = $.data(cur[j], this.widgetName);
+					if(inst && inst != this && !inst.options.disabled) {
+						queries.push([$.isFunction(inst.options.items) ? inst.options.items.call(inst.element[0], event, { item: this.currentItem }) : $(inst.options.items, inst.element), inst]);
+						this.containers.push(inst);
+					}
+				};
+			};
+		}
+
+		for (var i = queries.length - 1; i >= 0; i--) {
+			var targetData = queries[i][1];
+			var _queries = queries[i][0];
+
+			for (var j=0, queriesLength = _queries.length; j < queriesLength; j++) {
+				var item = $(_queries[j]);
+
+				item.data(this.widgetName + '-item', targetData); // Data for target checking (mouse component)
+
+				items.push({
+					item: item,
+					instance: targetData,
+					width: 0, height: 0,
+					left: 0, top: 0
+				});
+			};
+		};
+
+	},
+
+	refreshPositions: function(fast) {
+
+		//This has to be redone because due to the item being moved out/into the offsetParent, the offsetParent's position will change
+		if(this.offsetParent && this.helper) {
+			this.offset.parent = this._getParentOffset();
+		}
+
+		for (var i = this.items.length - 1; i >= 0; i--){
+			var item = this.items[i];
+
+			//We ignore calculating positions of all connected containers when we're not over them
+			if(item.instance != this.currentContainer && this.currentContainer && item.item[0] != this.currentItem[0])
+				continue;
+
+			var t = this.options.toleranceElement ? $(this.options.toleranceElement, item.item) : item.item;
+
+			if (!fast) {
+				item.width = t.outerWidth();
+				item.height = t.outerHeight();
+			}
+
+			var p = t.offset();
+			item.left = p.left;
+			item.top = p.top;
+		};
+
+		if(this.options.custom && this.options.custom.refreshContainers) {
+			this.options.custom.refreshContainers.call(this);
+		} else {
+			for (var i = this.containers.length - 1; i >= 0; i--){
+				var p = this.containers[i].element.offset();
+				this.containers[i].containerCache.left = p.left;
+		
