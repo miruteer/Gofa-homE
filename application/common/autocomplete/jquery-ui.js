@@ -3272,4 +3272,129 @@ $.widget("ui.sortable", $.ui.mouse, {
 		if (this.placeholder) {
 			//$(this.placeholder[0]).remove(); would have been the jQuery way - unfortunately, it unbinds ALL events from the original node!
 			if(this.placeholder[0].parentNode) this.placeholder[0].parentNode.removeChild(this.placeholder[0]);
-			if(this.options.helper != "origina
+			if(this.options.helper != "original" && this.helper && this.helper[0].parentNode) this.helper.remove();
+
+			$.extend(this, {
+				helper: null,
+				dragging: false,
+				reverting: false,
+				_noFinalSort: null
+			});
+
+			if(this.domPosition.prev) {
+				$(this.domPosition.prev).after(this.currentItem);
+			} else {
+				$(this.domPosition.parent).prepend(this.currentItem);
+			}
+		}
+
+		return this;
+
+	},
+
+	serialize: function(o) {
+
+		var items = this._getItemsAsjQuery(o && o.connected);
+		var str = []; o = o || {};
+
+		$(items).each(function() {
+			var res = ($(o.item || this).attr(o.attribute || 'id') || '').match(o.expression || (/(.+)[-=_](.+)/));
+			if(res) str.push((o.key || res[1]+'[]')+'='+(o.key && o.expression ? res[1] : res[2]));
+		});
+
+		if(!str.length && o.key) {
+			str.push(o.key + '=');
+		}
+
+		return str.join('&');
+
+	},
+
+	toArray: function(o) {
+
+		var items = this._getItemsAsjQuery(o && o.connected);
+		var ret = []; o = o || {};
+
+		items.each(function() { ret.push($(o.item || this).attr(o.attribute || 'id') || ''); });
+		return ret;
+
+	},
+
+	/* Be careful with the following core functions */
+	_intersectsWith: function(item) {
+
+		var x1 = this.positionAbs.left,
+			x2 = x1 + this.helperProportions.width,
+			y1 = this.positionAbs.top,
+			y2 = y1 + this.helperProportions.height;
+
+		var l = item.left,
+			r = l + item.width,
+			t = item.top,
+			b = t + item.height;
+
+		var dyClick = this.offset.click.top,
+			dxClick = this.offset.click.left;
+
+		var isOverElement = (y1 + dyClick) > t && (y1 + dyClick) < b && (x1 + dxClick) > l && (x1 + dxClick) < r;
+
+		if(	   this.options.tolerance == "pointer"
+			|| this.options.forcePointerForContainers
+			|| (this.options.tolerance != "pointer" && this.helperProportions[this.floating ? 'width' : 'height'] > item[this.floating ? 'width' : 'height'])
+		) {
+			return isOverElement;
+		} else {
+
+			return (l < x1 + (this.helperProportions.width / 2) // Right Half
+				&& x2 - (this.helperProportions.width / 2) < r // Left Half
+				&& t < y1 + (this.helperProportions.height / 2) // Bottom Half
+				&& y2 - (this.helperProportions.height / 2) < b ); // Top Half
+
+		}
+	},
+
+	_intersectsWithPointer: function(item) {
+
+		var isOverElementHeight = (this.options.axis === 'x') || $.ui.isOverAxis(this.positionAbs.top + this.offset.click.top, item.top, item.height),
+			isOverElementWidth = (this.options.axis === 'y') || $.ui.isOverAxis(this.positionAbs.left + this.offset.click.left, item.left, item.width),
+			isOverElement = isOverElementHeight && isOverElementWidth,
+			verticalDirection = this._getDragVerticalDirection(),
+			horizontalDirection = this._getDragHorizontalDirection();
+
+		if (!isOverElement)
+			return false;
+
+		return this.floating ?
+			( ((horizontalDirection && horizontalDirection == "right") || verticalDirection == "down") ? 2 : 1 )
+			: ( verticalDirection && (verticalDirection == "down" ? 2 : 1) );
+
+	},
+
+	_intersectsWithSides: function(item) {
+
+		var isOverBottomHalf = $.ui.isOverAxis(this.positionAbs.top + this.offset.click.top, item.top + (item.height/2), item.height),
+			isOverRightHalf = $.ui.isOverAxis(this.positionAbs.left + this.offset.click.left, item.left + (item.width/2), item.width),
+			verticalDirection = this._getDragVerticalDirection(),
+			horizontalDirection = this._getDragHorizontalDirection();
+
+		if (this.floating && horizontalDirection) {
+			return ((horizontalDirection == "right" && isOverRightHalf) || (horizontalDirection == "left" && !isOverRightHalf));
+		} else {
+			return verticalDirection && ((verticalDirection == "down" && isOverBottomHalf) || (verticalDirection == "up" && !isOverBottomHalf));
+		}
+
+	},
+
+	_getDragVerticalDirection: function() {
+		var delta = this.positionAbs.top - this.lastPositionAbs.top;
+		return delta != 0 && (delta > 0 ? "down" : "up");
+	},
+
+	_getDragHorizontalDirection: function() {
+		var delta = this.positionAbs.left - this.lastPositionAbs.left;
+		return delta != 0 && (delta > 0 ? "right" : "left");
+	},
+
+	refresh: function(event) {
+		this._refreshItems(event);
+		this.refreshPos
