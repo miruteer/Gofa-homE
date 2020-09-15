@@ -3528,4 +3528,102 @@ $.widget("ui.sortable", $.ui.mouse, {
 			for (var i = this.containers.length - 1; i >= 0; i--){
 				var p = this.containers[i].element.offset();
 				this.containers[i].containerCache.left = p.left;
+				this.containers[i].containerCache.top = p.top;
+				this.containers[i].containerCache.width	= this.containers[i].element.outerWidth();
+				this.containers[i].containerCache.height = this.containers[i].element.outerHeight();
+			};
+		}
+
+		return this;
+	},
+
+	_createPlaceholder: function(that) {
+
+		var self = that || this, o = self.options;
+
+		if(!o.placeholder || o.placeholder.constructor == String) {
+			var className = o.placeholder;
+			o.placeholder = {
+				element: function() {
+
+					var el = $(document.createElement(self.currentItem[0].nodeName))
+						.addClass(className || self.currentItem[0].className+" ui-sortable-placeholder")
+						.removeClass("ui-sortable-helper")[0];
+
+					if(!className)
+						el.style.visibility = "hidden";
+
+					return el;
+				},
+				update: function(container, p) {
+
+					// 1. If a className is set as 'placeholder option, we don't force sizes - the class is responsible for that
+					// 2. The option 'forcePlaceholderSize can be enabled to force it even if a class name is specified
+					if(className && !o.forcePlaceholderSize) return;
+
+					//If the element doesn't have a actual height by itself (without styles coming from a stylesheet), it receives the inline height from the dragged item
+					if(!p.height()) { p.height(self.currentItem.innerHeight() - parseInt(self.currentItem.css('paddingTop')||0, 10) - parseInt(self.currentItem.css('paddingBottom')||0, 10)); };
+					if(!p.width()) { p.width(self.currentItem.innerWidth() - parseInt(self.currentItem.css('paddingLeft')||0, 10) - parseInt(self.currentItem.css('paddingRight')||0, 10)); };
+				}
+			};
+		}
+
+		//Create the placeholder
+		self.placeholder = $(o.placeholder.element.call(self.element, self.currentItem));
+
+		//Append it after the actual current item
+		self.currentItem.after(self.placeholder);
+
+		//Update the size of the placeholder (TODO: Logic to fuzzy, see line 316/317)
+		o.placeholder.update(self, self.placeholder);
+
+	},
+
+	_contactContainers: function(event) {
 		
+		// get innermost container that intersects with item 
+		var innermostContainer = null, innermostIndex = null;		
+		
+		
+		for (var i = this.containers.length - 1; i >= 0; i--){
+
+			// never consider a container that's located within the item itself 
+			if($.ui.contains(this.currentItem[0], this.containers[i].element[0]))
+				continue;
+
+			if(this._intersectsWith(this.containers[i].containerCache)) {
+
+				// if we've already found a container and it's more "inner" than this, then continue 
+				if(innermostContainer && $.ui.contains(this.containers[i].element[0], innermostContainer.element[0]))
+					continue;
+
+				innermostContainer = this.containers[i]; 
+				innermostIndex = i;
+					
+			} else {
+				// container doesn't intersect. trigger "out" event if necessary 
+				if(this.containers[i].containerCache.over) {
+					this.containers[i]._trigger("out", event, this._uiHash(this));
+					this.containers[i].containerCache.over = 0;
+				}
+			}
+
+		}
+		
+		// if no intersecting containers found, return 
+		if(!innermostContainer) return; 
+
+		// move the item into the container if it's not there already
+		if(this.containers.length === 1) {
+			this.containers[innermostIndex]._trigger("over", event, this._uiHash(this));
+			this.containers[innermostIndex].containerCache.over = 1;
+		} else if(this.currentContainer != this.containers[innermostIndex]) {
+
+			//When entering a new container, we will find the item with the least distance and append our item near it
+			var dist = 10000; var itemWithLeastDistance = null; var base = this.positionAbs[this.containers[innermostIndex].floating ? 'left' : 'top'];
+			for (var j = this.items.length - 1; j >= 0; j--) {
+				if(!$.ui.contains(this.containers[innermostIndex].element[0], this.items[j].item[0])) continue;
+				var cur = this.containers[innermostIndex].floating ? this.items[j].item.offset().left : this.items[j].item.offset().top;
+				if(Math.abs(cur - base) < dist) {
+					dist = Math.abs(cur - base); itemWithLeastDistance = this.items[j];
+					this.direct
