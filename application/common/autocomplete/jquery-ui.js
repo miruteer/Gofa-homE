@@ -3874,4 +3874,87 @@ $.widget("ui.sortable", $.ui.mouse, {
 		// everything else normalized again
 		var delayedTriggers = [], self = this;
 
-		// We first have to
+		// We first have to update the dom position of the actual currentItem
+		// Note: don't do it if the current item is already removed (by a user), or it gets reappended (see #4088)
+		if(!this._noFinalSort && this.currentItem.parent().length) this.placeholder.before(this.currentItem);
+		this._noFinalSort = null;
+
+		if(this.helper[0] == this.currentItem[0]) {
+			for(var i in this._storedCSS) {
+				if(this._storedCSS[i] == 'auto' || this._storedCSS[i] == 'static') this._storedCSS[i] = '';
+			}
+			this.currentItem.css(this._storedCSS).removeClass("ui-sortable-helper");
+		} else {
+			this.currentItem.show();
+		}
+
+		if(this.fromOutside && !noPropagation) delayedTriggers.push(function(event) { this._trigger("receive", event, this._uiHash(this.fromOutside)); });
+		if((this.fromOutside || this.domPosition.prev != this.currentItem.prev().not(".ui-sortable-helper")[0] || this.domPosition.parent != this.currentItem.parent()[0]) && !noPropagation) delayedTriggers.push(function(event) { this._trigger("update", event, this._uiHash()); }); //Trigger update callback if the DOM position has changed
+		if(!$.ui.contains(this.element[0], this.currentItem[0])) { //Node was moved out of the current element
+			if(!noPropagation) delayedTriggers.push(function(event) { this._trigger("remove", event, this._uiHash()); });
+			for (var i = this.containers.length - 1; i >= 0; i--){
+				if($.ui.contains(this.containers[i].element[0], this.currentItem[0]) && !noPropagation) {
+					delayedTriggers.push((function(c) { return function(event) { c._trigger("receive", event, this._uiHash(this)); };  }).call(this, this.containers[i]));
+					delayedTriggers.push((function(c) { return function(event) { c._trigger("update", event, this._uiHash(this));  }; }).call(this, this.containers[i]));
+				}
+			};
+		};
+
+		//Post events to containers
+		for (var i = this.containers.length - 1; i >= 0; i--){
+			if(!noPropagation) delayedTriggers.push((function(c) { return function(event) { c._trigger("deactivate", event, this._uiHash(this)); };  }).call(this, this.containers[i]));
+			if(this.containers[i].containerCache.over) {
+				delayedTriggers.push((function(c) { return function(event) { c._trigger("out", event, this._uiHash(this)); };  }).call(this, this.containers[i]));
+				this.containers[i].containerCache.over = 0;
+			}
+		}
+
+		//Do what was originally in plugins
+		if(this._storedCursor) $('body').css("cursor", this._storedCursor); //Reset cursor
+		if(this._storedOpacity) this.helper.css("opacity", this._storedOpacity); //Reset opacity
+		if(this._storedZIndex) this.helper.css("zIndex", this._storedZIndex == 'auto' ? '' : this._storedZIndex); //Reset z-index
+
+		this.dragging = false;
+		if(this.cancelHelperRemoval) {
+			if(!noPropagation) {
+				this._trigger("beforeStop", event, this._uiHash());
+				for (var i=0; i < delayedTriggers.length; i++) { delayedTriggers[i].call(this, event); }; //Trigger all delayed events
+				this._trigger("stop", event, this._uiHash());
+			}
+
+			this.fromOutside = false;
+			return false;
+		}
+
+		if(!noPropagation) this._trigger("beforeStop", event, this._uiHash());
+
+		//$(this.placeholder[0]).remove(); would have been the jQuery way - unfortunately, it unbinds ALL events from the original node!
+		this.placeholder[0].parentNode.removeChild(this.placeholder[0]);
+
+		if(this.helper[0] != this.currentItem[0]) this.helper.remove(); this.helper = null;
+
+		if(!noPropagation) {
+			for (var i=0; i < delayedTriggers.length; i++) { delayedTriggers[i].call(this, event); }; //Trigger all delayed events
+			this._trigger("stop", event, this._uiHash());
+		}
+
+		this.fromOutside = false;
+		return true;
+
+	},
+
+	_trigger: function() {
+		if ($.Widget.prototype._trigger.apply(this, arguments) === false) {
+			this.cancel();
+		}
+	},
+
+	_uiHash: function(inst) {
+		var self = inst || this;
+		return {
+			helper: self.helper,
+			placeholder: self.placeholder || $([]),
+			position: self.position,
+			originalPosition: self.originalPosition,
+			offset: self.positionAbs,
+			item: self.c
