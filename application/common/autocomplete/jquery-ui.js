@@ -4088,4 +4088,161 @@ var colors = {
 	lightyellow:[255,255,224],
 	lime:[0,255,0],
 	magenta:[255,0,255],
-	ma
+	maroon:[128,0,0],
+	navy:[0,0,128],
+	olive:[128,128,0],
+	orange:[255,165,0],
+	pink:[255,192,203],
+	purple:[128,0,128],
+	violet:[128,0,128],
+	red:[255,0,0],
+	silver:[192,192,192],
+	white:[255,255,255],
+	yellow:[255,255,0],
+	transparent: [255,255,255]
+};
+
+
+
+/******************************************************************************/
+/****************************** CLASS ANIMATIONS ******************************/
+/******************************************************************************/
+
+var classAnimationActions = ['add', 'remove', 'toggle'],
+	shorthandStyles = {
+		border: 1,
+		borderBottom: 1,
+		borderColor: 1,
+		borderLeft: 1,
+		borderRight: 1,
+		borderTop: 1,
+		borderWidth: 1,
+		margin: 1,
+		padding: 1
+	};
+
+function getElementStyles() {
+	var style = document.defaultView
+			? document.defaultView.getComputedStyle(this, null)
+			: this.currentStyle,
+		newStyle = {},
+		key,
+		camelCase;
+
+	// webkit enumerates style porperties
+	if (style && style.length && style[0] && style[style[0]]) {
+		var len = style.length;
+		while (len--) {
+			key = style[len];
+			if (typeof style[key] == 'string') {
+				camelCase = key.replace(/\-(\w)/g, function(all, letter){
+					return letter.toUpperCase();
+				});
+				newStyle[camelCase] = style[key];
+			}
+		}
+	} else {
+		for (key in style) {
+			if (typeof style[key] === 'string') {
+				newStyle[key] = style[key];
+			}
+		}
+	}
+	
+	return newStyle;
+}
+
+function filterStyles(styles) {
+	var name, value;
+	for (name in styles) {
+		value = styles[name];
+		if (
+			// ignore null and undefined values
+			value == null ||
+			// ignore functions (when does this occur?)
+			$.isFunction(value) ||
+			// shorthand styles that need to be expanded
+			name in shorthandStyles ||
+			// ignore scrollbars (break in IE)
+			(/scrollbar/).test(name) ||
+
+			// only colors or values that can be converted to numbers
+			(!(/color/i).test(name) && isNaN(parseFloat(value)))
+		) {
+			delete styles[name];
+		}
+	}
+	
+	return styles;
+}
+
+function styleDifference(oldStyle, newStyle) {
+	var diff = { _: 0 }, // http://dev.jquery.com/ticket/5459
+		name;
+
+	for (name in newStyle) {
+		if (oldStyle[name] != newStyle[name]) {
+			diff[name] = newStyle[name];
+		}
+	}
+
+	return diff;
+}
+
+$.effects.animateClass = function(value, duration, easing, callback) {
+	if ($.isFunction(easing)) {
+		callback = easing;
+		easing = null;
+	}
+
+	return this.queue(function() {
+		var that = $(this),
+			originalStyleAttr = that.attr('style') || ' ',
+			originalStyle = filterStyles(getElementStyles.call(this)),
+			newStyle,
+			className = that.attr('class') || "";
+
+		$.each(classAnimationActions, function(i, action) {
+			if (value[action]) {
+				that[action + 'Class'](value[action]);
+			}
+		});
+		newStyle = filterStyles(getElementStyles.call(this));
+		that.attr('class', className);
+
+		that.animate(styleDifference(originalStyle, newStyle), {
+			queue: false,
+			duration: duration,
+			easing: easing,
+			complete: function() {
+				$.each(classAnimationActions, function(i, action) {
+					if (value[action]) { that[action + 'Class'](value[action]); }
+				});
+				// work around bug in IE by clearing the cssText before setting it
+				if (typeof that.attr('style') == 'object') {
+					that.attr('style').cssText = '';
+					that.attr('style').cssText = originalStyleAttr;
+				} else {
+					that.attr('style', originalStyleAttr);
+				}
+				if (callback) { callback.apply(this, arguments); }
+				$.dequeue( this );
+			}
+		});
+	});
+};
+
+$.fn.extend({
+	_addClass: $.fn.addClass,
+	addClass: function(classNames, speed, easing, callback) {
+		return speed ? $.effects.animateClass.apply(this, [{ add: classNames },speed,easing,callback]) : this._addClass(classNames);
+	},
+
+	_removeClass: $.fn.removeClass,
+	removeClass: function(classNames,speed,easing,callback) {
+		return speed ? $.effects.animateClass.apply(this, [{ remove: classNames },speed,easing,callback]) : this._removeClass(classNames);
+	},
+
+	_toggleClass: $.fn.toggleClass,
+	toggleClass: function(classNames, force, speed, easing, callback) {
+		if ( typeof force == "boolean" || force === undefined
