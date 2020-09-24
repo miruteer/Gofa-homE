@@ -4245,4 +4245,138 @@ $.fn.extend({
 
 	_toggleClass: $.fn.toggleClass,
 	toggleClass: function(classNames, force, speed, easing, callback) {
-		if ( typeof force == "boolean" || force === undefined
+		if ( typeof force == "boolean" || force === undefined ) {
+			if ( !speed ) {
+				// without speed parameter;
+				return this._toggleClass(classNames, force);
+			} else {
+				return $.effects.animateClass.apply(this, [(force?{add:classNames}:{remove:classNames}),speed,easing,callback]);
+			}
+		} else {
+			// without switch parameter;
+			return $.effects.animateClass.apply(this, [{ toggle: classNames },force,speed,easing]);
+		}
+	},
+
+	switchClass: function(remove,add,speed,easing,callback) {
+		return $.effects.animateClass.apply(this, [{ add: add, remove: remove },speed,easing,callback]);
+	}
+});
+
+
+
+/******************************************************************************/
+/*********************************** EFFECTS **********************************/
+/******************************************************************************/
+
+$.extend($.effects, {
+	version: "1.8.23",
+
+	// Saves a set of properties in a data storage
+	save: function(element, set) {
+		for(var i=0; i < set.length; i++) {
+			if(set[i] !== null) element.data("ec.storage."+set[i], element[0].style[set[i]]);
+		}
+	},
+
+	// Restores a set of previously saved properties from a data storage
+	restore: function(element, set) {
+		for(var i=0; i < set.length; i++) {
+			if(set[i] !== null) element.css(set[i], element.data("ec.storage."+set[i]));
+		}
+	},
+
+	setMode: function(el, mode) {
+		if (mode == 'toggle') mode = el.is(':hidden') ? 'show' : 'hide'; // Set for toggle
+		return mode;
+	},
+
+	getBaseline: function(origin, original) { // Translates a [top,left] array into a baseline value
+		// this should be a little more flexible in the future to handle a string & hash
+		var y, x;
+		switch (origin[0]) {
+			case 'top': y = 0; break;
+			case 'middle': y = 0.5; break;
+			case 'bottom': y = 1; break;
+			default: y = origin[0] / original.height;
+		};
+		switch (origin[1]) {
+			case 'left': x = 0; break;
+			case 'center': x = 0.5; break;
+			case 'right': x = 1; break;
+			default: x = origin[1] / original.width;
+		};
+		return {x: x, y: y};
+	},
+
+	// Wraps the element around a wrapper that copies position properties
+	createWrapper: function(element) {
+
+		// if the element is already wrapped, return it
+		if (element.parent().is('.ui-effects-wrapper')) {
+			return element.parent();
+		}
+
+		// wrap the element
+		var props = {
+				width: element.outerWidth(true),
+				height: element.outerHeight(true),
+				'float': element.css('float')
+			},
+			wrapper = $('<div></div>')
+				.addClass('ui-effects-wrapper')
+				.css({
+					fontSize: '100%',
+					background: 'transparent',
+					border: 'none',
+					margin: 0,
+					padding: 0
+				}),
+			active = document.activeElement;
+
+		// support: Firefox
+		// Firefox incorrectly exposes anonymous content
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=561664
+		try {
+			active.id;
+		} catch( e ) {
+			active = document.body;
+		}
+
+		element.wrap( wrapper );
+
+		// Fixes #7595 - Elements lose focus when wrapped.
+		if ( element[ 0 ] === active || $.contains( element[ 0 ], active ) ) {
+			$( active ).focus();
+		}
+		
+		wrapper = element.parent(); //Hotfix for jQuery 1.4 since some change in wrap() seems to actually loose the reference to the wrapped element
+
+		// transfer positioning properties to the wrapper
+		if (element.css('position') == 'static') {
+			wrapper.css({ position: 'relative' });
+			element.css({ position: 'relative' });
+		} else {
+			$.extend(props, {
+				position: element.css('position'),
+				zIndex: element.css('z-index')
+			});
+			$.each(['top', 'left', 'bottom', 'right'], function(i, pos) {
+				props[pos] = element.css(pos);
+				if (isNaN(parseInt(props[pos], 10))) {
+					props[pos] = 'auto';
+				}
+			});
+			element.css({position: 'relative', top: 0, left: 0, right: 'auto', bottom: 'auto' });
+		}
+
+		return wrapper.css(props).show();
+	},
+
+	removeWrapper: function(element) {
+		var parent,
+			active = document.activeElement;
+		
+		if (element.parent().is('.ui-effects-wrapper')) {
+			parent = element.parent().replaceWith(element);
+		
