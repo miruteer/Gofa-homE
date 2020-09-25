@@ -4542,4 +4542,121 @@ $.extend( baseEasings, {
 		return 1 - Math.cos( p * Math.PI / 2 );
 	},
 	Circ: function ( p ) {
-		return 1 - Math.
+		return 1 - Math.sqrt( 1 - p * p );
+	},
+	Elastic: function( p ) {
+		return p === 0 || p === 1 ? p :
+			-Math.pow( 2, 8 * (p - 1) ) * Math.sin( ( (p - 1) * 80 - 7.5 ) * Math.PI / 15 );
+	},
+	Back: function( p ) {
+		return p * p * ( 3 * p - 2 );
+	},
+	Bounce: function ( p ) {
+		var pow2,
+			bounce = 4;
+
+		while ( p < ( ( pow2 = Math.pow( 2, --bounce ) ) - 1 ) / 11 ) {}
+		return 1 / Math.pow( 4, 3 - bounce ) - 7.5625 * Math.pow( ( pow2 * 3 - 2 ) / 22 - p, 2 );
+	}
+});
+
+$.each( baseEasings, function( name, easeIn ) {
+	$.easing[ "easeIn" + name ] = easeIn;
+	$.easing[ "easeOut" + name ] = function( p ) {
+		return 1 - easeIn( 1 - p );
+	};
+	$.easing[ "easeInOut" + name ] = function( p ) {
+		return p < .5 ?
+			easeIn( p * 2 ) / 2 :
+			easeIn( p * -2 + 2 ) / -2 + 1;
+	};
+});
+
+})(jQuery);
+
+(function( $, undefined ) {
+
+$.effects.blind = function(o) {
+
+	return this.queue(function() {
+
+		// Create element
+		var el = $(this), props = ['position','top','bottom','left','right'];
+
+		// Set options
+		var mode = $.effects.setMode(el, o.options.mode || 'hide'); // Set Mode
+		var direction = o.options.direction || 'vertical'; // Default direction
+
+		// Adjust
+		$.effects.save(el, props); el.show(); // Save & Show
+		var wrapper = $.effects.createWrapper(el).css({overflow:'hidden'}); // Create Wrapper
+		var ref = (direction == 'vertical') ? 'height' : 'width';
+		var distance = (direction == 'vertical') ? wrapper.height() : wrapper.width();
+		if(mode == 'show') wrapper.css(ref, 0); // Shift
+
+		// Animation
+		var animation = {};
+		animation[ref] = mode == 'show' ? distance : 0;
+
+		// Animate
+		wrapper.animate(animation, o.duration, o.options.easing, function() {
+			if(mode == 'hide') el.hide(); // Hide
+			$.effects.restore(el, props); $.effects.removeWrapper(el); // Restore
+			if(o.callback) o.callback.apply(el[0], arguments); // Callback
+			el.dequeue();
+		});
+
+	});
+
+};
+
+})(jQuery);
+
+(function( $, undefined ) {
+
+$.effects.bounce = function(o) {
+
+	return this.queue(function() {
+
+		// Create element
+		var el = $(this), props = ['position','top','bottom','left','right'];
+
+		// Set options
+		var mode = $.effects.setMode(el, o.options.mode || 'effect'); // Set Mode
+		var direction = o.options.direction || 'up'; // Default direction
+		var distance = o.options.distance || 20; // Default distance
+		var times = o.options.times || 5; // Default # of times
+		var speed = o.duration || 250; // Default speed per bounce
+		if (/show|hide/.test(mode)) props.push('opacity'); // Avoid touching opacity to prevent clearType and PNG issues in IE
+
+		// Adjust
+		$.effects.save(el, props); el.show(); // Save & Show
+		$.effects.createWrapper(el); // Create Wrapper
+		var ref = (direction == 'up' || direction == 'down') ? 'top' : 'left';
+		var motion = (direction == 'up' || direction == 'left') ? 'pos' : 'neg';
+		var distance = o.options.distance || (ref == 'top' ? el.outerHeight(true) / 3 : el.outerWidth(true) / 3);
+		if (mode == 'show') el.css('opacity', 0).css(ref, motion == 'pos' ? -distance : distance); // Shift
+		if (mode == 'hide') distance = distance / (times * 2);
+		if (mode != 'hide') times--;
+
+		// Animate
+		if (mode == 'show') { // Show Bounce
+			var animation = {opacity: 1};
+			animation[ref] = (motion == 'pos' ? '+=' : '-=') + distance;
+			el.animate(animation, speed / 2, o.options.easing);
+			distance = distance / 2;
+			times--;
+		};
+		for (var i = 0; i < times; i++) { // Bounces
+			var animation1 = {}, animation2 = {};
+			animation1[ref] = (motion == 'pos' ? '-=' : '+=') + distance;
+			animation2[ref] = (motion == 'pos' ? '+=' : '-=') + distance;
+			el.animate(animation1, speed / 2, o.options.easing).animate(animation2, speed / 2, o.options.easing);
+			distance = (mode == 'hide') ? distance * 2 : distance / 2;
+		};
+		if (mode == 'hide') { // Last Bounce
+			var animation = {opacity: 0};
+			animation[ref] = (motion == 'pos' ? '-=' : '+=')  + distance;
+			el.animate(animation, speed / 2, o.options.easing, function(){
+				el.hide(); // Hide
+				$.effects.restore(el, props); $.effects.removeWra
