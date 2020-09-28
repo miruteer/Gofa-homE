@@ -4915,4 +4915,141 @@ $.effects.highlight = function(o) {
 			.show()
 			.css({
 				backgroundImage: 'none',
-	
+				backgroundColor: o.options.color || '#ffff99'
+			})
+			.animate(animation, {
+				queue: false,
+				duration: o.duration,
+				easing: o.options.easing,
+				complete: function() {
+					(mode == 'hide' && elem.hide());
+					$.effects.restore(elem, props);
+					(mode == 'show' && !$.support.opacity && this.style.removeAttribute('filter'));
+					(o.callback && o.callback.apply(this, arguments));
+					elem.dequeue();
+				}
+			});
+	});
+};
+
+})(jQuery);
+
+(function( $, undefined ) {
+
+$.effects.pulsate = function(o) {
+	return this.queue(function() {
+		var elem = $(this),
+			mode = $.effects.setMode(elem, o.options.mode || 'show'),
+			times = ((o.options.times || 5) * 2) - 1,
+			duration = o.duration ? o.duration / 2 : $.fx.speeds._default / 2,
+			isVisible = elem.is(':visible'),
+			animateTo = 0;
+
+		if (!isVisible) {
+			elem.css('opacity', 0).show();
+			animateTo = 1;
+		}
+
+		if ((mode == 'hide' && isVisible) || (mode == 'show' && !isVisible)) {
+			times--;
+		}
+
+		for (var i = 0; i < times; i++) {
+			elem.animate({ opacity: animateTo }, duration, o.options.easing);
+			animateTo = (animateTo + 1) % 2;
+		}
+
+		elem.animate({ opacity: animateTo }, duration, o.options.easing, function() {
+			if (animateTo == 0) {
+				elem.hide();
+			}
+			(o.callback && o.callback.apply(this, arguments));
+		});
+
+		elem
+			.queue('fx', function() { elem.dequeue(); })
+			.dequeue();
+	});
+};
+
+})(jQuery);
+
+(function( $, undefined ) {
+
+$.effects.puff = function(o) {
+	return this.queue(function() {
+		var elem = $(this),
+			mode = $.effects.setMode(elem, o.options.mode || 'hide'),
+			percent = parseInt(o.options.percent, 10) || 150,
+			factor = percent / 100,
+			original = { height: elem.height(), width: elem.width() };
+
+		$.extend(o.options, {
+			fade: true,
+			mode: mode,
+			percent: mode == 'hide' ? percent : 100,
+			from: mode == 'hide'
+				? original
+				: {
+					height: original.height * factor,
+					width: original.width * factor
+				}
+		});
+
+		elem.effect('scale', o.options, o.duration, o.callback);
+		elem.dequeue();
+	});
+};
+
+$.effects.scale = function(o) {
+
+	return this.queue(function() {
+
+		// Create element
+		var el = $(this);
+
+		// Set options
+		var options = $.extend(true, {}, o.options);
+		var mode = $.effects.setMode(el, o.options.mode || 'effect'); // Set Mode
+		var percent = parseInt(o.options.percent,10) || (parseInt(o.options.percent,10) == 0 ? 0 : (mode == 'hide' ? 0 : 100)); // Set default scaling percent
+		var direction = o.options.direction || 'both'; // Set default axis
+		var origin = o.options.origin; // The origin of the scaling
+		if (mode != 'effect') { // Set default origin and restore for show/hide
+			options.origin = origin || ['middle','center'];
+			options.restore = true;
+		}
+		var original = {height: el.height(), width: el.width()}; // Save original
+		el.from = o.options.from || (mode == 'show' ? {height: 0, width: 0} : original); // Default from state
+
+		// Adjust
+		var factor = { // Set scaling factor
+			y: direction != 'horizontal' ? (percent / 100) : 1,
+			x: direction != 'vertical' ? (percent / 100) : 1
+		};
+		el.to = {height: original.height * factor.y, width: original.width * factor.x}; // Set to state
+
+		if (o.options.fade) { // Fade option to support puff
+			if (mode == 'show') {el.from.opacity = 0; el.to.opacity = 1;};
+			if (mode == 'hide') {el.from.opacity = 1; el.to.opacity = 0;};
+		};
+
+		// Animation
+		options.from = el.from; options.to = el.to; options.mode = mode;
+
+		// Animate
+		el.effect('size', options, o.duration, o.callback);
+		el.dequeue();
+	});
+
+};
+
+$.effects.size = function(o) {
+
+	return this.queue(function() {
+
+		// Create element
+		var el = $(this), props = ['position','top','bottom','left','right','width','height','overflow','opacity'];
+		var props1 = ['position','top','bottom','left','right','overflow','opacity']; // Always restore
+		var props2 = ['width','height','overflow']; // Copy for children
+		var cProps = ['fontSize'];
+		var vProps = ['borderTopWidth', 'bor
