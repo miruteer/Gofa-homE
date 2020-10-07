@@ -5421,4 +5421,146 @@ $.widget( "ui.accordion", {
 
 		this.headers
 			.unbind( ".accordion" )
-			.
+			.removeClass( "ui-accordion-header ui-accordion-disabled ui-helper-reset ui-state-default ui-corner-all ui-state-active ui-state-disabled ui-corner-top" )
+			.removeAttr( "role" )
+			.removeAttr( "aria-expanded" )
+			.removeAttr( "aria-selected" )
+			.removeAttr( "tabIndex" );
+
+		this.headers.find( "a" ).removeAttr( "tabIndex" );
+		this._destroyIcons();
+		var contents = this.headers.next()
+			.css( "display", "" )
+			.removeAttr( "role" )
+			.removeClass( "ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content ui-accordion-content-active ui-accordion-disabled ui-state-disabled" );
+		if ( options.autoHeight || options.fillHeight ) {
+			contents.css( "height", "" );
+		}
+
+		return $.Widget.prototype.destroy.call( this );
+	},
+
+	_setOption: function( key, value ) {
+		$.Widget.prototype._setOption.apply( this, arguments );
+			
+		if ( key == "active" ) {
+			this.activate( value );
+		}
+		if ( key == "icons" ) {
+			this._destroyIcons();
+			if ( value ) {
+				this._createIcons();
+			}
+		}
+		// #5332 - opacity doesn't cascade to positioned elements in IE
+		// so we need to add the disabled class to the headers and panels
+		if ( key == "disabled" ) {
+			this.headers.add(this.headers.next())
+				[ value ? "addClass" : "removeClass" ](
+					"ui-accordion-disabled ui-state-disabled" );
+		}
+	},
+
+	_keydown: function( event ) {
+		if ( this.options.disabled || event.altKey || event.ctrlKey ) {
+			return;
+		}
+
+		var keyCode = $.ui.keyCode,
+			length = this.headers.length,
+			currentIndex = this.headers.index( event.target ),
+			toFocus = false;
+
+		switch ( event.keyCode ) {
+			case keyCode.RIGHT:
+			case keyCode.DOWN:
+				toFocus = this.headers[ ( currentIndex + 1 ) % length ];
+				break;
+			case keyCode.LEFT:
+			case keyCode.UP:
+				toFocus = this.headers[ ( currentIndex - 1 + length ) % length ];
+				break;
+			case keyCode.SPACE:
+			case keyCode.ENTER:
+				this._clickHandler( { target: event.target }, event.target );
+				event.preventDefault();
+		}
+
+		if ( toFocus ) {
+			$( event.target ).attr( "tabIndex", -1 );
+			$( toFocus ).attr( "tabIndex", 0 );
+			toFocus.focus();
+			return false;
+		}
+
+		return true;
+	},
+
+	resize: function() {
+		var options = this.options,
+			maxHeight;
+
+		if ( options.fillSpace ) {
+			if ( $.browser.msie ) {
+				var defOverflow = this.element.parent().css( "overflow" );
+				this.element.parent().css( "overflow", "hidden");
+			}
+			maxHeight = this.element.parent().height();
+			if ($.browser.msie) {
+				this.element.parent().css( "overflow", defOverflow );
+			}
+
+			this.headers.each(function() {
+				maxHeight -= $( this ).outerHeight( true );
+			});
+
+			this.headers.next()
+				.each(function() {
+					$( this ).height( Math.max( 0, maxHeight -
+						$( this ).innerHeight() + $( this ).height() ) );
+				})
+				.css( "overflow", "auto" );
+		} else if ( options.autoHeight ) {
+			maxHeight = 0;
+			this.headers.next()
+				.each(function() {
+					maxHeight = Math.max( maxHeight, $( this ).height( "" ).height() );
+				})
+				.height( maxHeight );
+		}
+
+		return this;
+	},
+
+	activate: function( index ) {
+		// TODO this gets called on init, changing the option without an explicit call for that
+		this.options.active = index;
+		// call clickHandler with custom event
+		var active = this._findActive( index )[ 0 ];
+		this._clickHandler( { target: active }, active );
+
+		return this;
+	},
+
+	_findActive: function( selector ) {
+		return selector
+			? typeof selector === "number"
+				? this.headers.filter( ":eq(" + selector + ")" )
+				: this.headers.not( this.headers.not( selector ) )
+			: selector === false
+				? $( [] )
+				: this.headers.filter( ":eq(0)" );
+	},
+
+	// TODO isn't event.target enough? why the separate target argument?
+	_clickHandler: function( event, target ) {
+		var options = this.options;
+		if ( options.disabled ) {
+			return;
+		}
+
+		// called only when using activate(false) to close all parts programmatically
+		if ( !event.target ) {
+			if ( !options.collapsible ) {
+				return;
+			}
