@@ -5264,3 +5264,161 @@ $.effects.transfer = function(o) {
 
 $.widget( "ui.accordion", {
 	options: {
+		active: 0,
+		animated: "slide",
+		autoHeight: true,
+		clearStyle: false,
+		collapsible: false,
+		event: "click",
+		fillSpace: false,
+		header: "> li > :first-child,> :not(li):even",
+		icons: {
+			header: "ui-icon-triangle-1-e",
+			headerSelected: "ui-icon-triangle-1-s"
+		},
+		navigation: false,
+		navigationFilter: function() {
+			return this.href.toLowerCase() === location.href.toLowerCase();
+		}
+	},
+
+	_create: function() {
+		var self = this,
+			options = self.options;
+
+		self.running = 0;
+
+		self.element
+			.addClass( "ui-accordion ui-widget ui-helper-reset" )
+			// in lack of child-selectors in CSS
+			// we need to mark top-LIs in a UL-accordion for some IE-fix
+			.children( "li" )
+				.addClass( "ui-accordion-li-fix" );
+
+		self.headers = self.element.find( options.header )
+			.addClass( "ui-accordion-header ui-helper-reset ui-state-default ui-corner-all" )
+			.bind( "mouseenter.accordion", function() {
+				if ( options.disabled ) {
+					return;
+				}
+				$( this ).addClass( "ui-state-hover" );
+			})
+			.bind( "mouseleave.accordion", function() {
+				if ( options.disabled ) {
+					return;
+				}
+				$( this ).removeClass( "ui-state-hover" );
+			})
+			.bind( "focus.accordion", function() {
+				if ( options.disabled ) {
+					return;
+				}
+				$( this ).addClass( "ui-state-focus" );
+			})
+			.bind( "blur.accordion", function() {
+				if ( options.disabled ) {
+					return;
+				}
+				$( this ).removeClass( "ui-state-focus" );
+			});
+
+		self.headers.next()
+			.addClass( "ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom" );
+
+		if ( options.navigation ) {
+			var current = self.element.find( "a" ).filter( options.navigationFilter ).eq( 0 );
+			if ( current.length ) {
+				var header = current.closest( ".ui-accordion-header" );
+				if ( header.length ) {
+					// anchor within header
+					self.active = header;
+				} else {
+					// anchor within content
+					self.active = current.closest( ".ui-accordion-content" ).prev();
+				}
+			}
+		}
+
+		self.active = self._findActive( self.active || options.active )
+			.addClass( "ui-state-default ui-state-active" )
+			.toggleClass( "ui-corner-all" )
+			.toggleClass( "ui-corner-top" );
+		self.active.next().addClass( "ui-accordion-content-active" );
+
+		self._createIcons();
+		self.resize();
+		
+		// ARIA
+		self.element.attr( "role", "tablist" );
+
+		self.headers
+			.attr( "role", "tab" )
+			.bind( "keydown.accordion", function( event ) {
+				return self._keydown( event );
+			})
+			.next()
+				.attr( "role", "tabpanel" );
+
+		self.headers
+			.not( self.active || "" )
+			.attr({
+				"aria-expanded": "false",
+				"aria-selected": "false",
+				tabIndex: -1
+			})
+			.next()
+				.hide();
+
+		// make sure at least one header is in the tab order
+		if ( !self.active.length ) {
+			self.headers.eq( 0 ).attr( "tabIndex", 0 );
+		} else {
+			self.active
+				.attr({
+					"aria-expanded": "true",
+					"aria-selected": "true",
+					tabIndex: 0
+				});
+		}
+
+		// only need links in tab order for Safari
+		if ( !$.browser.safari ) {
+			self.headers.find( "a" ).attr( "tabIndex", -1 );
+		}
+
+		if ( options.event ) {
+			self.headers.bind( options.event.split(" ").join(".accordion ") + ".accordion", function(event) {
+				self._clickHandler.call( self, event, this );
+				event.preventDefault();
+			});
+		}
+	},
+
+	_createIcons: function() {
+		var options = this.options;
+		if ( options.icons ) {
+			$( "<span></span>" )
+				.addClass( "ui-icon " + options.icons.header )
+				.prependTo( this.headers );
+			this.active.children( ".ui-icon" )
+				.toggleClass(options.icons.header)
+				.toggleClass(options.icons.headerSelected);
+			this.element.addClass( "ui-accordion-icons" );
+		}
+	},
+
+	_destroyIcons: function() {
+		this.headers.children( ".ui-icon" ).remove();
+		this.element.removeClass( "ui-accordion-icons" );
+	},
+
+	destroy: function() {
+		var options = this.options;
+
+		this.element
+			.removeClass( "ui-accordion ui-widget ui-helper-reset" )
+			.removeAttr( "role" );
+
+		this.headers
+			.unbind( ".accordion" )
+			.
