@@ -5564,3 +5564,144 @@ $.widget( "ui.accordion", {
 			if ( !options.collapsible ) {
 				return;
 			}
+			this.active
+				.removeClass( "ui-state-active ui-corner-top" )
+				.addClass( "ui-state-default ui-corner-all" )
+				.children( ".ui-icon" )
+					.removeClass( options.icons.headerSelected )
+					.addClass( options.icons.header );
+			this.active.next().addClass( "ui-accordion-content-active" );
+			var toHide = this.active.next(),
+				data = {
+					options: options,
+					newHeader: $( [] ),
+					oldHeader: options.active,
+					newContent: $( [] ),
+					oldContent: toHide
+				},
+				toShow = ( this.active = $( [] ) );
+			this._toggle( toShow, toHide, data );
+			return;
+		}
+
+		// get the click target
+		var clicked = $( event.currentTarget || target ),
+			clickedIsActive = clicked[0] === this.active[0];
+
+		// TODO the option is changed, is that correct?
+		// TODO if it is correct, shouldn't that happen after determining that the click is valid?
+		options.active = options.collapsible && clickedIsActive ?
+			false :
+			this.headers.index( clicked );
+
+		// if animations are still active, or the active header is the target, ignore click
+		if ( this.running || ( !options.collapsible && clickedIsActive ) ) {
+			return;
+		}
+
+		// find elements to show and hide
+		var active = this.active,
+			toShow = clicked.next(),
+			toHide = this.active.next(),
+			data = {
+				options: options,
+				newHeader: clickedIsActive && options.collapsible ? $([]) : clicked,
+				oldHeader: this.active,
+				newContent: clickedIsActive && options.collapsible ? $([]) : toShow,
+				oldContent: toHide
+			},
+			down = this.headers.index( this.active[0] ) > this.headers.index( clicked[0] );
+
+		// when the call to ._toggle() comes after the class changes
+		// it causes a very odd bug in IE 8 (see #6720)
+		this.active = clickedIsActive ? $([]) : clicked;
+		this._toggle( toShow, toHide, data, clickedIsActive, down );
+
+		// switch classes
+		active
+			.removeClass( "ui-state-active ui-corner-top" )
+			.addClass( "ui-state-default ui-corner-all" )
+			.children( ".ui-icon" )
+				.removeClass( options.icons.headerSelected )
+				.addClass( options.icons.header );
+		if ( !clickedIsActive ) {
+			clicked
+				.removeClass( "ui-state-default ui-corner-all" )
+				.addClass( "ui-state-active ui-corner-top" )
+				.children( ".ui-icon" )
+					.removeClass( options.icons.header )
+					.addClass( options.icons.headerSelected );
+			clicked
+				.next()
+				.addClass( "ui-accordion-content-active" );
+		}
+
+		return;
+	},
+
+	_toggle: function( toShow, toHide, data, clickedIsActive, down ) {
+		var self = this,
+			options = self.options;
+
+		self.toShow = toShow;
+		self.toHide = toHide;
+		self.data = data;
+
+		var complete = function() {
+			if ( !self ) {
+				return;
+			}
+			return self._completed.apply( self, arguments );
+		};
+
+		// trigger changestart event
+		self._trigger( "changestart", null, self.data );
+
+		// count elements to animate
+		self.running = toHide.size() === 0 ? toShow.size() : toHide.size();
+
+		if ( options.animated ) {
+			var animOptions = {};
+
+			if ( options.collapsible && clickedIsActive ) {
+				animOptions = {
+					toShow: $( [] ),
+					toHide: toHide,
+					complete: complete,
+					down: down,
+					autoHeight: options.autoHeight || options.fillSpace
+				};
+			} else {
+				animOptions = {
+					toShow: toShow,
+					toHide: toHide,
+					complete: complete,
+					down: down,
+					autoHeight: options.autoHeight || options.fillSpace
+				};
+			}
+
+			if ( !options.proxied ) {
+				options.proxied = options.animated;
+			}
+
+			if ( !options.proxiedDuration ) {
+				options.proxiedDuration = options.duration;
+			}
+
+			options.animated = $.isFunction( options.proxied ) ?
+				options.proxied( animOptions ) :
+				options.proxied;
+
+			options.duration = $.isFunction( options.proxiedDuration ) ?
+				options.proxiedDuration( animOptions ) :
+				options.proxiedDuration;
+
+			var animations = $.ui.accordion.animations,
+				duration = options.duration,
+				easing = options.animated;
+
+			if ( easing && !animations[ easing ] && !$.easing[ easing ] ) {
+				easing = "slide";
+			}
+			if ( !a
