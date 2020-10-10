@@ -5997,4 +5997,136 @@ $.widget( "ui.autocomplete", {
 					}, 1 );
 				}
 
-				// use anot
+				// use another timeout to make sure the blur-event-handler on the input was already triggered
+				setTimeout(function() {
+					clearTimeout( self.closing );
+				}, 13);
+			})
+			.menu({
+				focus: function( event, ui ) {
+					var item = ui.item.data( "item.autocomplete" );
+					if ( false !== self._trigger( "focus", event, { item: item } ) ) {
+						// use value to match what will end up in the input, if it was a key event
+						if ( /^key/.test(event.originalEvent.type) ) {
+							self.element.val( item.value );
+						}
+					}
+				},
+				selected: function( event, ui ) {
+					var item = ui.item.data( "item.autocomplete" ),
+						previous = self.previous;
+
+					// only trigger when focus was lost (click on menu)
+					if ( self.element[0] !== doc.activeElement ) {
+						self.element.focus();
+						self.previous = previous;
+						// #6109 - IE triggers two focus events and the second
+						// is asynchronous, so we need to reset the previous
+						// term synchronously and asynchronously :-(
+						setTimeout(function() {
+							self.previous = previous;
+							self.selectedItem = item;
+						}, 1);
+					}
+
+					if ( false !== self._trigger( "select", event, { item: item } ) ) {
+						self.element.val( item.value );
+					}
+					// reset the term after the select event
+					// this allows custom select handling to work properly
+					self.term = self.element.val();
+
+					self.close( event );
+					self.selectedItem = item;
+				},
+				blur: function( event, ui ) {
+					// don't set the value of the text field if it's already correct
+					// this prevents moving the cursor unnecessarily
+					if ( self.menu.element.is(":visible") &&
+						( self.element.val() !== self.term ) ) {
+						self.element.val( self.term );
+					}
+				}
+			})
+			.zIndex( this.element.zIndex() + 1 )
+			// workaround for jQuery bug #5781 http://dev.jquery.com/ticket/5781
+			.css({ top: 0, left: 0 })
+			.hide()
+			.data( "menu" );
+		if ( $.fn.bgiframe ) {
+			 this.menu.element.bgiframe();
+		}
+		// turning off autocomplete prevents the browser from remembering the
+		// value when navigating through history, so we re-enable autocomplete
+		// if the page is unloaded before the widget is destroyed. #7790
+		self.beforeunloadHandler = function() {
+			self.element.removeAttr( "autocomplete" );
+		};
+		$( window ).bind( "beforeunload", self.beforeunloadHandler );
+	},
+
+	destroy: function() {
+		this.element
+			.removeClass( "ui-autocomplete-input" )
+			.removeAttr( "autocomplete" )
+			.removeAttr( "role" )
+			.removeAttr( "aria-autocomplete" )
+			.removeAttr( "aria-haspopup" );
+		this.menu.element.remove();
+		$( window ).unbind( "beforeunload", this.beforeunloadHandler );
+		$.Widget.prototype.destroy.call( this );
+	},
+
+	_setOption: function( key, value ) {
+		$.Widget.prototype._setOption.apply( this, arguments );
+		if ( key === "source" ) {
+			this._initSource();
+		}
+		if ( key === "appendTo" ) {
+			this.menu.element.appendTo( $( value || "body", this.element[0].ownerDocument )[0] )
+		}
+		if ( key === "disabled" && value && this.xhr ) {
+			this.xhr.abort();
+		}
+	},
+
+	_initSource: function() {
+		var self = this,
+			array,
+			url;
+		if ( $.isArray(this.options.source) ) {
+			array = this.options.source;
+			this.source = function( request, response ) {
+				response( $.ui.autocomplete.filter(array, request.term) );
+			};
+		} else if ( typeof this.options.source === "string" ) {
+			url = this.options.source;
+			this.source = function( request, response ) {
+				if ( self.xhr ) {
+					self.xhr.abort();
+				}
+				self.xhr = $.ajax({
+					url: url,
+					data: request,
+					dataType: "json",
+					success: function( data, status ) {
+						response( data );
+					},
+					error: function() {
+						response( [] );
+					}
+				});
+			};
+		} else {
+			this.source = this.options.source;
+		}
+	},
+
+	search: function( value, event ) {
+		value = value != null ? value : this.element.val();
+
+		// always save the actual value, not the one passed as an argument
+		this.term = this.element.val();
+
+		if ( value.length < this.options.minLength ) {
+			return this.c
