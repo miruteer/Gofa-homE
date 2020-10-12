@@ -6129,4 +6129,172 @@ $.widget( "ui.autocomplete", {
 		this.term = this.element.val();
 
 		if ( value.length < this.options.minLength ) {
-			return this.c
+			return this.close( event );
+		}
+
+		clearTimeout( this.closing );
+		if ( this._trigger( "search", event ) === false ) {
+			return;
+		}
+
+		return this._search( value );
+	},
+
+	_search: function( value ) {
+		this.pending++;
+		this.element.addClass( "ui-autocomplete-loading" );
+
+		this.source( { term: value }, this._response() );
+	},
+
+	_response: function() {
+		var that = this,
+			index = ++requestIndex;
+
+		return function( content ) {
+			if ( index === requestIndex ) {
+				that.__response( content );
+			}
+
+			that.pending--;
+			if ( !that.pending ) {
+				that.element.removeClass( "ui-autocomplete-loading" );
+			}
+		};
+	},
+
+	__response: function( content ) {
+		if ( !this.options.disabled && content && content.length ) {
+			content = this._normalize( content );
+			this._suggest( content );
+			this._trigger( "open" );
+		} else {
+			this.close();
+		}
+	},
+
+	close: function( event ) {
+		clearTimeout( this.closing );
+		if ( this.menu.element.is(":visible") ) {
+			this.menu.element.hide();
+			this.menu.deactivate();
+			this._trigger( "close", event );
+		}
+	},
+	
+	_change: function( event ) {
+		if ( this.previous !== this.element.val() ) {
+			this._trigger( "change", event, { item: this.selectedItem } );
+		}
+	},
+
+	_normalize: function( items ) {
+		// assume all items have the right format when the first item is complete
+		if ( items.length && items[0].label && items[0].value ) {
+			return items;
+		}
+		return $.map( items, function(item) {
+			if ( typeof item === "string" ) {
+				return {
+					label: item,
+					value: item
+				};
+			}
+			return $.extend({
+				label: item.label || item.value,
+				value: item.value || item.label
+			}, item );
+		});
+	},
+
+	_suggest: function( items ) {
+		var ul = this.menu.element
+			.empty()
+			.zIndex( this.element.zIndex() + 1 );
+		this._renderMenu( ul, items );
+		// TODO refresh should check if the active item is still in the dom, removing the need for a manual deactivate
+		this.menu.deactivate();
+		this.menu.refresh();
+
+		// size and position menu
+		ul.show();
+		this._resizeMenu();
+		ul.position( $.extend({
+			of: this.element
+		}, this.options.position ));
+
+		if ( this.options.autoFocus ) {
+			this.menu.next( new $.Event("mouseover") );
+		}
+	},
+
+	_resizeMenu: function() {
+		var ul = this.menu.element;
+		ul.outerWidth( Math.max(
+			// Firefox wraps long text (possibly a rounding bug)
+			// so we add 1px to avoid the wrapping (#7513)
+			ul.width( "" ).outerWidth() + 1,
+			this.element.outerWidth()
+		) );
+	},
+
+	_renderMenu: function( ul, items ) {
+		var self = this;
+		$.each( items, function( index, item ) {
+			self._renderItem( ul, item );
+		});
+	},
+
+	_renderItem: function( ul, item) {
+		return $( "<li></li>" )
+			.data( "item.autocomplete", item )
+			.append( $( "<a></a>" ).text( item.label ) )
+			.appendTo( ul );
+	},
+
+	_move: function( direction, event ) {
+		if ( !this.menu.element.is(":visible") ) {
+			this.search( null, event );
+			return;
+		}
+		if ( this.menu.first() && /^previous/.test(direction) ||
+				this.menu.last() && /^next/.test(direction) ) {
+			this.element.val( this.term );
+			this.menu.deactivate();
+			return;
+		}
+		this.menu[ direction ]( event );
+	},
+
+	widget: function() {
+		return this.menu.element;
+	},
+	_keyEvent: function( keyEvent, event ) {
+		if ( !this.isMultiLine || this.menu.element.is( ":visible" ) ) {
+			this._move( keyEvent, event );
+
+			// prevents moving cursor to beginning/end of the text field in some browsers
+			event.preventDefault();
+		}
+	}
+});
+
+$.extend( $.ui.autocomplete, {
+	escapeRegex: function( value ) {
+		return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+	},
+	filter: function(array, term) {
+		var matcher = new RegExp( $.ui.autocomplete.escapeRegex(term), "i" );
+		return $.grep( array, function(value) {
+			return matcher.test( value.label || value.value || value );
+		});
+	}
+});
+
+}( jQuery ));
+
+/*
+ * jQuery UI Menu (not officially released)
+ * 
+ * This widget isn't yet finished and the API is subject to change. We plan to finish
+ * it for the next release. You're welcome to g
