@@ -6729,4 +6729,160 @@ $.widget( "ui.button", {
 			this.buttonElement.removeAttr( "title" );
 		}
 
-		$.Wi
+		$.Widget.prototype.destroy.call( this );
+	},
+
+	_setOption: function( key, value ) {
+		$.Widget.prototype._setOption.apply( this, arguments );
+		if ( key === "disabled" ) {
+			if ( value ) {
+				this.element.propAttr( "disabled", true );
+			} else {
+				this.element.propAttr( "disabled", false );
+			}
+			return;
+		}
+		this._resetButton();
+	},
+
+	refresh: function() {
+		var isDisabled = this.element.is( ":disabled" );
+		if ( isDisabled !== this.options.disabled ) {
+			this._setOption( "disabled", isDisabled );
+		}
+		if ( this.type === "radio" ) {
+			radioGroup( this.element[0] ).each(function() {
+				if ( $( this ).is( ":checked" ) ) {
+					$( this ).button( "widget" )
+						.addClass( "ui-state-active" )
+						.attr( "aria-pressed", "true" );
+				} else {
+					$( this ).button( "widget" )
+						.removeClass( "ui-state-active" )
+						.attr( "aria-pressed", "false" );
+				}
+			});
+		} else if ( this.type === "checkbox" ) {
+			if ( this.element.is( ":checked" ) ) {
+				this.buttonElement
+					.addClass( "ui-state-active" )
+					.attr( "aria-pressed", "true" );
+			} else {
+				this.buttonElement
+					.removeClass( "ui-state-active" )
+					.attr( "aria-pressed", "false" );
+			}
+		}
+	},
+
+	_resetButton: function() {
+		if ( this.type === "input" ) {
+			if ( this.options.label ) {
+				this.element.val( this.options.label );
+			}
+			return;
+		}
+		var buttonElement = this.buttonElement.removeClass( typeClasses ),
+			buttonText = $( "<span></span>", this.element[0].ownerDocument )
+				.addClass( "ui-button-text" )
+				.html( this.options.label )
+				.appendTo( buttonElement.empty() )
+				.text(),
+			icons = this.options.icons,
+			multipleIcons = icons.primary && icons.secondary,
+			buttonClasses = [];  
+
+		if ( icons.primary || icons.secondary ) {
+			if ( this.options.text ) {
+				buttonClasses.push( "ui-button-text-icon" + ( multipleIcons ? "s" : ( icons.primary ? "-primary" : "-secondary" ) ) );
+			}
+
+			if ( icons.primary ) {
+				buttonElement.prepend( "<span class='ui-button-icon-primary ui-icon " + icons.primary + "'></span>" );
+			}
+
+			if ( icons.secondary ) {
+				buttonElement.append( "<span class='ui-button-icon-secondary ui-icon " + icons.secondary + "'></span>" );
+			}
+
+			if ( !this.options.text ) {
+				buttonClasses.push( multipleIcons ? "ui-button-icons-only" : "ui-button-icon-only" );
+
+				if ( !this.hasTitle ) {
+					buttonElement.attr( "title", buttonText );
+				}
+			}
+		} else {
+			buttonClasses.push( "ui-button-text-only" );
+		}
+		buttonElement.addClass( buttonClasses.join( " " ) );
+	}
+});
+
+$.widget( "ui.buttonset", {
+	options: {
+		items: ":button, :submit, :reset, :checkbox, :radio, a, :data(button)"
+	},
+
+	_create: function() {
+		this.element.addClass( "ui-buttonset" );
+	},
+	
+	_init: function() {
+		this.refresh();
+	},
+
+	_setOption: function( key, value ) {
+		if ( key === "disabled" ) {
+			this.buttons.button( "option", key, value );
+		}
+
+		$.Widget.prototype._setOption.apply( this, arguments );
+	},
+	
+	refresh: function() {
+		var rtl = this.element.css( "direction" ) === "rtl";
+		
+		this.buttons = this.element.find( this.options.items )
+			.filter( ":ui-button" )
+				.button( "refresh" )
+			.end()
+			.not( ":ui-button" )
+				.button()
+			.end()
+			.map(function() {
+				return $( this ).button( "widget" )[ 0 ];
+			})
+				.removeClass( "ui-corner-all ui-corner-left ui-corner-right" )
+				.filter( ":first" )
+					.addClass( rtl ? "ui-corner-right" : "ui-corner-left" )
+				.end()
+				.filter( ":last" )
+					.addClass( rtl ? "ui-corner-left" : "ui-corner-right" )
+				.end()
+			.end();
+	},
+
+	destroy: function() {
+		this.element.removeClass( "ui-buttonset" );
+		this.buttons
+			.map(function() {
+				return $( this ).button( "widget" )[ 0 ];
+			})
+				.removeClass( "ui-corner-left ui-corner-right" )
+			.end()
+			.button( "destroy" );
+
+		$.Widget.prototype.destroy.call( this );
+	}
+});
+
+}( jQuery ) );
+
+(function( $, undefined ) {
+
+$.extend($.ui, { datepicker: { version: "1.8.23" } });
+
+var PROP_NAME = 'datepicker';
+var dpuuid = new Date().getTime();
+var instActive;
