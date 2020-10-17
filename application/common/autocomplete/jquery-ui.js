@@ -7020,4 +7020,113 @@ $.extend(Datepicker.prototype, {
 				try {
 					inlineSettings[attrName] = eval(attrValue);
 				} catch (err) {
-					inlineSetting
+					inlineSettings[attrName] = attrValue;
+				}
+			}
+		}
+		var nodeName = target.nodeName.toLowerCase();
+		var inline = (nodeName == 'div' || nodeName == 'span');
+		if (!target.id) {
+			this.uuid += 1;
+			target.id = 'dp' + this.uuid;
+		}
+		var inst = this._newInst($(target), inline);
+		inst.settings = $.extend({}, settings || {}, inlineSettings || {});
+		if (nodeName == 'input') {
+			this._connectDatepicker(target, inst);
+		} else if (inline) {
+			this._inlineDatepicker(target, inst);
+		}
+	},
+
+	/* Create a new instance object. */
+	_newInst: function(target, inline) {
+		var id = target[0].id.replace(/([^A-Za-z0-9_-])/g, '\\\\$1'); // escape jQuery meta chars
+		return {id: id, input: target, // associated target
+			selectedDay: 0, selectedMonth: 0, selectedYear: 0, // current selection
+			drawMonth: 0, drawYear: 0, // month being drawn
+			inline: inline, // is datepicker inline or not
+			dpDiv: (!inline ? this.dpDiv : // presentation div
+			bindHover($('<div class="' + this._inlineClass + ' ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all"></div>')))};
+	},
+
+	/* Attach the date picker to an input field. */
+	_connectDatepicker: function(target, inst) {
+		var input = $(target);
+		inst.append = $([]);
+		inst.trigger = $([]);
+		if (input.hasClass(this.markerClassName))
+			return;
+		this._attachments(input, inst);
+		input.addClass(this.markerClassName).keydown(this._doKeyDown).
+			keypress(this._doKeyPress).keyup(this._doKeyUp).
+			bind("setData.datepicker", function(event, key, value) {
+				inst.settings[key] = value;
+			}).bind("getData.datepicker", function(event, key) {
+				return this._get(inst, key);
+			});
+		this._autoSize(inst);
+		$.data(target, PROP_NAME, inst);
+		//If disabled option is true, disable the datepicker once it has been attached to the input (see ticket #5665)
+		if( inst.settings.disabled ) {
+			this._disableDatepicker( target );
+		}
+	},
+
+	/* Make attachments based on settings. */
+	_attachments: function(input, inst) {
+		var appendText = this._get(inst, 'appendText');
+		var isRTL = this._get(inst, 'isRTL');
+		if (inst.append)
+			inst.append.remove();
+		if (appendText) {
+			inst.append = $('<span class="' + this._appendClass + '">' + appendText + '</span>');
+			input[isRTL ? 'before' : 'after'](inst.append);
+		}
+		input.unbind('focus', this._showDatepicker);
+		if (inst.trigger)
+			inst.trigger.remove();
+		var showOn = this._get(inst, 'showOn');
+		if (showOn == 'focus' || showOn == 'both') // pop-up date picker when in the marked field
+			input.focus(this._showDatepicker);
+		if (showOn == 'button' || showOn == 'both') { // pop-up date picker when button clicked
+			var buttonText = this._get(inst, 'buttonText');
+			var buttonImage = this._get(inst, 'buttonImage');
+			inst.trigger = $(this._get(inst, 'buttonImageOnly') ?
+				$('<img/>').addClass(this._triggerClass).
+					attr({ src: buttonImage, alt: buttonText, title: buttonText }) :
+				$('<button type="button"></button>').addClass(this._triggerClass).
+					html(buttonImage == '' ? buttonText : $('<img/>').attr(
+					{ src:buttonImage, alt:buttonText, title:buttonText })));
+			input[isRTL ? 'before' : 'after'](inst.trigger);
+			inst.trigger.click(function() {
+				if ($.datepicker._datepickerShowing && $.datepicker._lastInput == input[0])
+					$.datepicker._hideDatepicker();
+				else if ($.datepicker._datepickerShowing && $.datepicker._lastInput != input[0]) {
+					$.datepicker._hideDatepicker(); 
+					$.datepicker._showDatepicker(input[0]);
+				} else
+					$.datepicker._showDatepicker(input[0]);
+				return false;
+			});
+		}
+	},
+
+	/* Apply the maximum length for the date format. */
+	_autoSize: function(inst) {
+		if (this._get(inst, 'autoSize') && !inst.inline) {
+			var date = new Date(2009, 12 - 1, 20); // Ensure double digits
+			var dateFormat = this._get(inst, 'dateFormat');
+			if (dateFormat.match(/[DM]/)) {
+				var findMax = function(names) {
+					var max = 0;
+					var maxI = 0;
+					for (var i = 0; i < names.length; i++) {
+						if (names[i].length > max) {
+							max = names[i].length;
+							maxI = i;
+						}
+					}
+					return maxI;
+				};
+				date.setMonth(f
