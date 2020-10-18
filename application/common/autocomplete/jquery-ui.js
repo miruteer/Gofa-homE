@@ -7325,4 +7325,106 @@ $.extend(Datepicker.prototype, {
 				(inst ? (name == 'all' ? $.extend({}, inst.settings) :
 				this._get(inst, name)) : null));
 		}
-		var settin
+		var settings = name || {};
+		if (typeof name == 'string') {
+			settings = {};
+			settings[name] = value;
+		}
+		if (inst) {
+			if (this._curInst == inst) {
+				this._hideDatepicker();
+			}
+			var date = this._getDateDatepicker(target, true);
+			var minDate = this._getMinMaxDate(inst, 'min');
+			var maxDate = this._getMinMaxDate(inst, 'max');
+			extendRemove(inst.settings, settings);
+			// reformat the old minDate/maxDate values if dateFormat changes and a new minDate/maxDate isn't provided
+			if (minDate !== null && settings['dateFormat'] !== undefined && settings['minDate'] === undefined)
+				inst.settings.minDate = this._formatDate(inst, minDate);
+			if (maxDate !== null && settings['dateFormat'] !== undefined && settings['maxDate'] === undefined)
+				inst.settings.maxDate = this._formatDate(inst, maxDate);
+			this._attachments($(target), inst);
+			this._autoSize(inst);
+			this._setDate(inst, date);
+			this._updateAlternate(inst);
+			this._updateDatepicker(inst);
+		}
+	},
+
+	// change method deprecated
+	_changeDatepicker: function(target, name, value) {
+		this._optionDatepicker(target, name, value);
+	},
+
+	/* Redraw the date picker attached to an input field or division.
+	   @param  target  element - the target input field or division or span */
+	_refreshDatepicker: function(target) {
+		var inst = this._getInst(target);
+		if (inst) {
+			this._updateDatepicker(inst);
+		}
+	},
+
+	/* Set the dates for a jQuery selection.
+	   @param  target   element - the target input field or division or span
+	   @param  date     Date - the new date */
+	_setDateDatepicker: function(target, date) {
+		var inst = this._getInst(target);
+		if (inst) {
+			this._setDate(inst, date);
+			this._updateDatepicker(inst);
+			this._updateAlternate(inst);
+		}
+	},
+
+	/* Get the date(s) for the first entry in a jQuery selection.
+	   @param  target     element - the target input field or division or span
+	   @param  noDefault  boolean - true if no default date is to be used
+	   @return Date - the current date */
+	_getDateDatepicker: function(target, noDefault) {
+		var inst = this._getInst(target);
+		if (inst && !inst.inline)
+			this._setDateFromField(inst, noDefault);
+		return (inst ? this._getDate(inst) : null);
+	},
+
+	/* Handle keystrokes. */
+	_doKeyDown: function(event) {
+		var inst = $.datepicker._getInst(event.target);
+		var handled = true;
+		var isRTL = inst.dpDiv.is('.ui-datepicker-rtl');
+		inst._keyEvent = true;
+		if ($.datepicker._datepickerShowing)
+			switch (event.keyCode) {
+				case 9: $.datepicker._hideDatepicker();
+						handled = false;
+						break; // hide on tab out
+				case 13: var sel = $('td.' + $.datepicker._dayOverClass + ':not(.' + 
+									$.datepicker._currentClass + ')', inst.dpDiv);
+						if (sel[0])
+							$.datepicker._selectDay(event.target, inst.selectedMonth, inst.selectedYear, sel[0]);
+							var onSelect = $.datepicker._get(inst, 'onSelect');
+							if (onSelect) {
+								var dateStr = $.datepicker._formatDate(inst);
+
+								// trigger custom callback
+								onSelect.apply((inst.input ? inst.input[0] : null), [dateStr, inst]);
+							}
+						else
+							$.datepicker._hideDatepicker();
+						return false; // don't submit the form
+						break; // select the value on enter
+				case 27: $.datepicker._hideDatepicker();
+						break; // hide on escape
+				case 33: $.datepicker._adjustDate(event.target, (event.ctrlKey ?
+							-$.datepicker._get(inst, 'stepBigMonths') :
+							-$.datepicker._get(inst, 'stepMonths')), 'M');
+						break; // previous month/year on page up/+ ctrl
+				case 34: $.datepicker._adjustDate(event.target, (event.ctrlKey ?
+							+$.datepicker._get(inst, 'stepBigMonths') :
+							+$.datepicker._get(inst, 'stepMonths')), 'M');
+						break; // next month/year on page down/+ ctrl
+				case 35: if (event.ctrlKey || event.metaKey) $.datepicker._clearDate(event.target);
+						handled = event.ctrlKey || event.metaKey;
+						break; // clear on ctrl or command +end
+				case 36: if (event.c
