@@ -7516,4 +7516,92 @@ $.extend(Datepicker.prototype, {
 		var beforeShow = $.datepicker._get(inst, 'beforeShow');
 		var beforeShowSettings = beforeShow ? beforeShow.apply(input, [input, inst]) : {};
 		if(beforeShowSettings === false){
-          
+            //false
+			return;
+		}
+		extendRemove(inst.settings, beforeShowSettings);
+		inst.lastVal = null;
+		$.datepicker._lastInput = input;
+		$.datepicker._setDateFromField(inst);
+		if ($.datepicker._inDialog) // hide cursor
+			input.value = '';
+		if (!$.datepicker._pos) { // position below input
+			$.datepicker._pos = $.datepicker._findPos(input);
+			$.datepicker._pos[1] += input.offsetHeight; // add the height
+		}
+		var isFixed = false;
+		$(input).parents().each(function() {
+			isFixed |= $(this).css('position') == 'fixed';
+			return !isFixed;
+		});
+		if (isFixed && $.browser.opera) { // correction for Opera when fixed and scrolled
+			$.datepicker._pos[0] -= document.documentElement.scrollLeft;
+			$.datepicker._pos[1] -= document.documentElement.scrollTop;
+		}
+		var offset = {left: $.datepicker._pos[0], top: $.datepicker._pos[1]};
+		$.datepicker._pos = null;
+		//to avoid flashes on Firefox
+		inst.dpDiv.empty();
+		// determine sizing offscreen
+		inst.dpDiv.css({position: 'absolute', display: 'block', top: '-1000px'});
+		$.datepicker._updateDatepicker(inst);
+		// fix width for dynamic number of date pickers
+		// and adjust position before showing
+		offset = $.datepicker._checkOffset(inst, offset, isFixed);
+		inst.dpDiv.css({position: ($.datepicker._inDialog && $.blockUI ?
+			'static' : (isFixed ? 'fixed' : 'absolute')), display: 'none',
+			left: offset.left + 'px', top: offset.top + 'px'});
+		if (!inst.inline) {
+			var showAnim = $.datepicker._get(inst, 'showAnim');
+			var duration = $.datepicker._get(inst, 'duration');
+			var postProcess = function() {
+				var cover = inst.dpDiv.find('iframe.ui-datepicker-cover'); // IE6- only
+				if( !! cover.length ){
+					var borders = $.datepicker._getBorders(inst.dpDiv);
+					cover.css({left: -borders[0], top: -borders[1],
+						width: inst.dpDiv.outerWidth(), height: inst.dpDiv.outerHeight()});
+				}
+			};
+			inst.dpDiv.zIndex($(input).zIndex()+1);
+			$.datepicker._datepickerShowing = true;
+			if ($.effects && $.effects[showAnim])
+				inst.dpDiv.show(showAnim, $.datepicker._get(inst, 'showOptions'), duration, postProcess);
+			else
+				inst.dpDiv[showAnim || 'show']((showAnim ? duration : null), postProcess);
+			if (!showAnim || !duration)
+				postProcess();
+			if (inst.input.is(':visible') && !inst.input.is(':disabled'))
+				inst.input.focus();
+			$.datepicker._curInst = inst;
+		}
+	},
+
+	/* Generate the date picker content. */
+	_updateDatepicker: function(inst) {
+		var self = this;
+		self.maxRows = 4; //Reset the max number of rows being displayed (see #7043)
+		var borders = $.datepicker._getBorders(inst.dpDiv);
+		instActive = inst; // for delegate hover events
+		inst.dpDiv.empty().append(this._generateHTML(inst));
+		this._attachHandlers(inst);
+		var cover = inst.dpDiv.find('iframe.ui-datepicker-cover'); // IE6- only
+		if( !!cover.length ){ //avoid call to outerXXXX() when not in IE6
+			cover.css({left: -borders[0], top: -borders[1], width: inst.dpDiv.outerWidth(), height: inst.dpDiv.outerHeight()})
+		}
+		inst.dpDiv.find('.' + this._dayOverClass + ' a').mouseover();
+		var numMonths = this._getNumberOfMonths(inst);
+		var cols = numMonths[1];
+		var width = 17;
+		inst.dpDiv.removeClass('ui-datepicker-multi-2 ui-datepicker-multi-3 ui-datepicker-multi-4').width('');
+		if (cols > 1)
+			inst.dpDiv.addClass('ui-datepicker-multi-' + cols).css('width', (width * cols) + 'em');
+		inst.dpDiv[(numMonths[0] != 1 || numMonths[1] != 1 ? 'add' : 'remove') +
+			'Class']('ui-datepicker-multi');
+		inst.dpDiv[(this._get(inst, 'isRTL') ? 'add' : 'remove') +
+			'Class']('ui-datepicker-rtl');
+		if (inst == $.datepicker._curInst && $.datepicker._datepickerShowing && inst.input &&
+				// #6694 - don't focus the input if it's already focused
+				// this breaks the change event in IE
+				inst.input.is(':visible') && !inst.input.is(':disabled') && inst.input[0] != document.activeElement)
+			inst.input.focus();
+		// deffered render of th
