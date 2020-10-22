@@ -7821,4 +7821,95 @@ $.extend(Datepicker.prototype, {
 	/* Set as beforeShowDay function to prevent selection of weekends.
 	   @param  date  Date - the date to customise
 	   @return [boolean, string] - is this date selectable?, what is its CSS class? */
-	noWeekend
+	noWeekends: function(date) {
+		var day = date.getDay();
+		return [(day > 0 && day < 6), ''];
+	},
+
+	/* Set as calculateWeek to determine the week of the year based on the ISO 8601 definition.
+	   @param  date  Date - the date to get the week for
+	   @return  number - the number of the week within the year that contains this date */
+	iso8601Week: function(date) {
+		var checkDate = new Date(date.getTime());
+		// Find Thursday of this week starting on Monday
+		checkDate.setDate(checkDate.getDate() + 4 - (checkDate.getDay() || 7));
+		var time = checkDate.getTime();
+		checkDate.setMonth(0); // Compare with Jan 1
+		checkDate.setDate(1);
+		return Math.floor(Math.round((time - checkDate) / 86400000) / 7) + 1;
+	},
+
+	/* Parse a string value into a date object.
+	   See formatDate below for the possible formats.
+
+	   @param  format    string - the expected format of the date
+	   @param  value     string - the date in the above format
+	   @param  settings  Object - attributes include:
+	                     shortYearCutoff  number - the cutoff year for determining the century (optional)
+	                     dayNamesShort    string[7] - abbreviated names of the days from Sunday (optional)
+	                     dayNames         string[7] - names of the days from Sunday (optional)
+	                     monthNamesShort  string[12] - abbreviated names of the months (optional)
+	                     monthNames       string[12] - names of the months (optional)
+	   @return  Date - the extracted date value or null if value is blank */
+	parseDate: function (format, value, settings) {
+		if (format == null || value == null)
+			throw 'Invalid arguments';
+		value = (typeof value == 'object' ? value.toString() : value + '');
+		if (value == '')
+			return null;
+		var shortYearCutoff = (settings ? settings.shortYearCutoff : null) || this._defaults.shortYearCutoff;
+		shortYearCutoff = (typeof shortYearCutoff != 'string' ? shortYearCutoff :
+				new Date().getFullYear() % 100 + parseInt(shortYearCutoff, 10));
+		var dayNamesShort = (settings ? settings.dayNamesShort : null) || this._defaults.dayNamesShort;
+		var dayNames = (settings ? settings.dayNames : null) || this._defaults.dayNames;
+		var monthNamesShort = (settings ? settings.monthNamesShort : null) || this._defaults.monthNamesShort;
+		var monthNames = (settings ? settings.monthNames : null) || this._defaults.monthNames;
+		var year = -1;
+		var month = -1;
+		var day = -1;
+		var doy = -1;
+		var literal = false;
+		// Check whether a format character is doubled
+		var lookAhead = function(match) {
+			var matches = (iFormat + 1 < format.length && format.charAt(iFormat + 1) == match);
+			if (matches)
+				iFormat++;
+			return matches;
+		};
+		// Extract a number from the string value
+		var getNumber = function(match) {
+			var isDoubled = lookAhead(match);
+			var size = (match == '@' ? 14 : (match == '!' ? 20 :
+				(match == 'y' && isDoubled ? 4 : (match == 'o' ? 3 : 2))));
+			var digits = new RegExp('^\\d{1,' + size + '}');
+			var num = value.substring(iValue).match(digits);
+			if (!num)
+				throw 'Missing number at position ' + iValue;
+			iValue += num[0].length;
+			return parseInt(num[0], 10);
+		};
+		// Extract a name from the string value and convert to an index
+		var getName = function(match, shortNames, longNames) {
+			var names = $.map(lookAhead(match) ? longNames : shortNames, function (v, k) {
+				return [ [k, v] ];
+			}).sort(function (a, b) {
+				return -(a[1].length - b[1].length);
+			});
+			var index = -1;
+			$.each(names, function (i, pair) {
+				var name = pair[1];
+				if (value.substr(iValue, name.length).toLowerCase() == name.toLowerCase()) {
+					index = pair[0];
+					iValue += name.length;
+					return false;
+				}
+			});
+			if (index != -1)
+				return index + 1;
+			else
+				throw 'Unknown name at position ' + iValue;
+		};
+		// Confirm that a literal character matches the string value
+		var checkLiteral = function() {
+			if (value.charAt(iValue) != format.charAt(iFormat))
+				thr
