@@ -8038,4 +8038,133 @@ $.extend(Datepicker.prototype, {
 			return '';
 		var dayNamesShort = (settings ? settings.dayNamesShort : null) || this._defaults.dayNamesShort;
 		var dayNames = (settings ? settings.dayNames : null) || this._defaults.dayNames;
-		var monthNamesShort = (settings ? settings.monthNa
+		var monthNamesShort = (settings ? settings.monthNamesShort : null) || this._defaults.monthNamesShort;
+		var monthNames = (settings ? settings.monthNames : null) || this._defaults.monthNames;
+		// Check whether a format character is doubled
+		var lookAhead = function(match) {
+			var matches = (iFormat + 1 < format.length && format.charAt(iFormat + 1) == match);
+			if (matches)
+				iFormat++;
+			return matches;
+		};
+		// Format a number, with leading zero if necessary
+		var formatNumber = function(match, value, len) {
+			var num = '' + value;
+			if (lookAhead(match))
+				while (num.length < len)
+					num = '0' + num;
+			return num;
+		};
+		// Format a name, short or long as requested
+		var formatName = function(match, value, shortNames, longNames) {
+			return (lookAhead(match) ? longNames[value] : shortNames[value]);
+		};
+		var output = '';
+		var literal = false;
+		if (date)
+			for (var iFormat = 0; iFormat < format.length; iFormat++) {
+				if (literal)
+					if (format.charAt(iFormat) == "'" && !lookAhead("'"))
+						literal = false;
+					else
+						output += format.charAt(iFormat);
+				else
+					switch (format.charAt(iFormat)) {
+						case 'd':
+							output += formatNumber('d', date.getDate(), 2);
+							break;
+						case 'D':
+							output += formatName('D', date.getDay(), dayNamesShort, dayNames);
+							break;
+						case 'o':
+							output += formatNumber('o',
+								Math.round((new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000), 3);
+							break;
+						case 'm':
+							output += formatNumber('m', date.getMonth() + 1, 2);
+							break;
+						case 'M':
+							output += formatName('M', date.getMonth(), monthNamesShort, monthNames);
+							break;
+						case 'y':
+							output += (lookAhead('y') ? date.getFullYear() :
+								(date.getYear() % 100 < 10 ? '0' : '') + date.getYear() % 100);
+							break;
+						case '@':
+							output += date.getTime();
+							break;
+						case '!':
+							output += date.getTime() * 10000 + this._ticksTo1970;
+							break;
+						case "'":
+							if (lookAhead("'"))
+								output += "'";
+							else
+								literal = true;
+							break;
+						default:
+							output += format.charAt(iFormat);
+					}
+			}
+		return output;
+	},
+
+	/* Extract all possible characters from the date format. */
+	_possibleChars: function (format) {
+		var chars = '';
+		var literal = false;
+		// Check whether a format character is doubled
+		var lookAhead = function(match) {
+			var matches = (iFormat + 1 < format.length && format.charAt(iFormat + 1) == match);
+			if (matches)
+				iFormat++;
+			return matches;
+		};
+		for (var iFormat = 0; iFormat < format.length; iFormat++)
+			if (literal)
+				if (format.charAt(iFormat) == "'" && !lookAhead("'"))
+					literal = false;
+				else
+					chars += format.charAt(iFormat);
+			else
+				switch (format.charAt(iFormat)) {
+					case 'd': case 'm': case 'y': case '@':
+						chars += '0123456789';
+						break;
+					case 'D': case 'M':
+						return null; // Accept anything
+					case "'":
+						if (lookAhead("'"))
+							chars += "'";
+						else
+							literal = true;
+						break;
+					default:
+						chars += format.charAt(iFormat);
+				}
+		return chars;
+	},
+
+	/* Get a setting value, defaulting if necessary. */
+	_get: function(inst, name) {
+		return inst.settings[name] !== undefined ?
+			inst.settings[name] : this._defaults[name];
+	},
+
+	/* Parse existing date and initialise date picker. */
+	_setDateFromField: function(inst, noDefault) {
+		if (inst.input.val() == inst.lastVal) {
+			return;
+		}
+		var dateFormat = this._get(inst, 'dateFormat');
+		var dates = inst.lastVal = inst.input ? inst.input.val() : null;
+		var date, defaultDate;
+		date = defaultDate = this._getDefaultDate(inst);
+		var settings = this._getFormatConfig(inst);
+		try {
+			date = this.parseDate(dateFormat, dates, settings) || defaultDate;
+		} catch (event) {
+			this.log(event);
+			dates = (noDefault ? '' : dates);
+		}
+		inst.selectedDay = date.g
