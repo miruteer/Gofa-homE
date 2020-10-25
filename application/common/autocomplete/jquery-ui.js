@@ -8360,4 +8360,65 @@ $.extend(Datepicker.prototype, {
 			this._getFormatConfig(inst)));
 		var next = (this._canAdjustMonth(inst, +1, drawYear, drawMonth) ?
 			'<a class="ui-datepicker-next ui-corner-all" data-handler="next" data-event="click"' +
-			' title="' + nextText + '"><span class
+			' title="' + nextText + '"><span class="ui-icon ui-icon-circle-triangle-' + ( isRTL ? 'w' : 'e') + '">' + nextText + '</span></a>' :
+			(hideIfNoPrevNext ? '' : '<a class="ui-datepicker-next ui-corner-all ui-state-disabled" title="'+ nextText + '"><span class="ui-icon ui-icon-circle-triangle-' + ( isRTL ? 'w' : 'e') + '">' + nextText + '</span></a>'));
+		var currentText = this._get(inst, 'currentText');
+		var gotoDate = (this._get(inst, 'gotoCurrent') && inst.currentDay ? currentDate : today);
+		currentText = (!navigationAsDateFormat ? currentText :
+			this.formatDate(currentText, gotoDate, this._getFormatConfig(inst)));
+		var controls = (!inst.inline ? '<button type="button" class="ui-datepicker-close ui-state-default ui-priority-primary ui-corner-all" data-handler="hide" data-event="click">' +
+			this._get(inst, 'closeText') + '</button>' : '');
+		var buttonPanel = (showButtonPanel) ? '<div class="ui-datepicker-buttonpane ui-widget-content">' + (isRTL ? controls : '') +
+			(this._isInRange(inst, gotoDate) ? '<button type="button" class="ui-datepicker-current ui-state-default ui-priority-secondary ui-corner-all" data-handler="today" data-event="click"' +
+			'>' + currentText + '</button>' : '') + (isRTL ? '' : controls) + '</div>' : '';
+		var firstDay = parseInt(this._get(inst, 'firstDay'),10);
+		firstDay = (isNaN(firstDay) ? 0 : firstDay);
+		var showWeek = this._get(inst, 'showWeek');
+		var dayNames = this._get(inst, 'dayNames');
+		var dayNamesShort = this._get(inst, 'dayNamesShort');
+		var dayNamesMin = this._get(inst, 'dayNamesMin');
+		var monthNames = this._get(inst, 'monthNames');
+		var monthNamesShort = this._get(inst, 'monthNamesShort');
+		var beforeShowDay = this._get(inst, 'beforeShowDay');
+		var showOtherMonths = this._get(inst, 'showOtherMonths');
+		var selectOtherMonths = this._get(inst, 'selectOtherMonths');
+		var calculateWeek = this._get(inst, 'calculateWeek') || this.iso8601Week;
+		var defaultDate = this._getDefaultDate(inst);
+		var html = '';
+		for (var row = 0; row < numMonths[0]; row++) {
+			var group = '';
+			this.maxRows = 4;
+			for (var col = 0; col < numMonths[1]; col++) {
+				var selectedDate = this._daylightSavingAdjust(new Date(drawYear, drawMonth, inst.selectedDay));
+				var cornerClass = ' ui-corner-all';
+				var calender = '';
+				if (isMultiMonth) {
+					calender += '<div class="ui-datepicker-group';
+					if (numMonths[1] > 1)
+						switch (col) {
+							case 0: calender += ' ui-datepicker-group-first';
+								cornerClass = ' ui-corner-' + (isRTL ? 'right' : 'left'); break;
+							case numMonths[1]-1: calender += ' ui-datepicker-group-last';
+								cornerClass = ' ui-corner-' + (isRTL ? 'left' : 'right'); break;
+							default: calender += ' ui-datepicker-group-middle'; cornerClass = ''; break;
+						}
+					calender += '">';
+				}
+				calender += '<div class="ui-datepicker-header ui-widget-header ui-helper-clearfix' + cornerClass + '">' +
+					(/all|left/.test(cornerClass) && row == 0 ? (isRTL ? next : prev) : '') +
+					(/all|right/.test(cornerClass) && row == 0 ? (isRTL ? prev : next) : '') +
+					this._generateMonthYearHeader(inst, drawMonth, drawYear, minDate, maxDate,
+					row > 0 || col > 0, monthNames, monthNamesShort) + // draw month headers
+					'</div><table class="ui-datepicker-calendar"><thead>' +
+					'<tr>';
+				var thead = (showWeek ? '<th class="ui-datepicker-week-col">' + this._get(inst, 'weekHeader') + '</th>' : '');
+				for (var dow = 0; dow < 7; dow++) { // days of the week
+					var day = (dow + firstDay) % 7;
+					thead += '<th' + ((dow + firstDay + 6) % 7 >= 5 ? ' class="ui-datepicker-week-end"' : '') + '>' +
+						'<span title="' + dayNames[day] + '">' + dayNamesMin[day] + '</span></th>';
+				}
+				calender += thead + '</tr></thead><tbody>';
+				var daysInMonth = this._getDaysInMonth(drawYear, drawMonth);
+				if (drawYear == inst.selectedYear && drawMonth == inst.selectedMonth)
+					inst.selectedDay = Math.min(inst.selectedDay, daysInMonth);
+				var leadDays = (this._getFirstDayOfMonth(drawYear, dra
