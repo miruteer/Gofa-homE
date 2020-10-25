@@ -8275,4 +8275,89 @@ $.extend(Datepicker.prototype, {
 	/* Attach the onxxx handlers.  These are declared statically so
 	 * they work with static code transformers like Caja.
 	 */
-	_attachHandlers: function
+	_attachHandlers: function(inst) {
+		var stepMonths = this._get(inst, 'stepMonths');
+		var id = '#' + inst.id.replace( /\\\\/g, "\\" );
+		inst.dpDiv.find('[data-handler]').map(function () {
+			var handler = {
+				prev: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._adjustDate(id, -stepMonths, 'M');
+				},
+				next: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._adjustDate(id, +stepMonths, 'M');
+				},
+				hide: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._hideDatepicker();
+				},
+				today: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._gotoToday(id);
+				},
+				selectDay: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._selectDay(id, +this.getAttribute('data-month'), +this.getAttribute('data-year'), this);
+					return false;
+				},
+				selectMonth: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._selectMonthYear(id, this, 'M');
+					return false;
+				},
+				selectYear: function () {
+					window['DP_jQuery_' + dpuuid].datepicker._selectMonthYear(id, this, 'Y');
+					return false;
+				}
+			};
+			$(this).bind(this.getAttribute('data-event'), handler[this.getAttribute('data-handler')]);
+		});
+	},
+	
+	/* Generate the HTML for the current state of the date picker. */
+	_generateHTML: function(inst) {
+		var today = new Date();
+		today = this._daylightSavingAdjust(
+			new Date(today.getFullYear(), today.getMonth(), today.getDate())); // clear time
+		var isRTL = this._get(inst, 'isRTL');
+		var showButtonPanel = this._get(inst, 'showButtonPanel');
+		var hideIfNoPrevNext = this._get(inst, 'hideIfNoPrevNext');
+		var navigationAsDateFormat = this._get(inst, 'navigationAsDateFormat');
+		var numMonths = this._getNumberOfMonths(inst);
+		var showCurrentAtPos = this._get(inst, 'showCurrentAtPos');
+		var stepMonths = this._get(inst, 'stepMonths');
+		var isMultiMonth = (numMonths[0] != 1 || numMonths[1] != 1);
+		var currentDate = this._daylightSavingAdjust((!inst.currentDay ? new Date(9999, 9, 9) :
+			new Date(inst.currentYear, inst.currentMonth, inst.currentDay)));
+		var minDate = this._getMinMaxDate(inst, 'min');
+		var maxDate = this._getMinMaxDate(inst, 'max');
+		var drawMonth = inst.drawMonth - showCurrentAtPos;
+		var drawYear = inst.drawYear;
+		if (drawMonth < 0) {
+			drawMonth += 12;
+			drawYear--;
+		}
+		if (maxDate) {
+			var maxDraw = this._daylightSavingAdjust(new Date(maxDate.getFullYear(),
+				maxDate.getMonth() - (numMonths[0] * numMonths[1]) + 1, maxDate.getDate()));
+			maxDraw = (minDate && maxDraw < minDate ? minDate : maxDraw);
+			while (this._daylightSavingAdjust(new Date(drawYear, drawMonth, 1)) > maxDraw) {
+				drawMonth--;
+				if (drawMonth < 0) {
+					drawMonth = 11;
+					drawYear--;
+				}
+			}
+		}
+		inst.drawMonth = drawMonth;
+		inst.drawYear = drawYear;
+		var prevText = this._get(inst, 'prevText');
+		prevText = (!navigationAsDateFormat ? prevText : this.formatDate(prevText,
+			this._daylightSavingAdjust(new Date(drawYear, drawMonth - stepMonths, 1)),
+			this._getFormatConfig(inst)));
+		var prev = (this._canAdjustMonth(inst, -1, drawYear, drawMonth) ?
+			'<a class="ui-datepicker-prev ui-corner-all" data-handler="prev" data-event="click"' +
+			' title="' + prevText + '"><span class="ui-icon ui-icon-circle-triangle-' + ( isRTL ? 'e' : 'w') + '">' + prevText + '</span></a>' :
+			(hideIfNoPrevNext ? '' : '<a class="ui-datepicker-prev ui-corner-all ui-state-disabled" title="'+ prevText +'"><span class="ui-icon ui-icon-circle-triangle-' + ( isRTL ? 'e' : 'w') + '">' + prevText + '</span></a>'));
+		var nextText = this._get(inst, 'nextText');
+		nextText = (!navigationAsDateFormat ? nextText : this.formatDate(nextText,
+			this._daylightSavingAdjust(new Date(drawYear, drawMonth + stepMonths, 1)),
+			this._getFormatConfig(inst)));
+		var next = (this._canAdjustMonth(inst, +1, drawYear, drawMonth) ?
+			'<a class="ui-datepicker-next ui-corner-all" data-handler="next" data-event="click"' +
+			' title="' + nextText + '"><span class
