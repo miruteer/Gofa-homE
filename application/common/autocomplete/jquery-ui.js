@@ -8482,4 +8482,102 @@ $.extend(Datepicker.prototype, {
 			secondary, monthNames, monthNamesShort) {
 		var changeMonth = this._get(inst, 'changeMonth');
 		var changeYear = this._get(inst, 'changeYear');
-		var showMonthAfterYear = this._get(inst, 'showMonthAfterY
+		var showMonthAfterYear = this._get(inst, 'showMonthAfterYear');
+		var html = '<div class="ui-datepicker-title">';
+		var monthHtml = '';
+		// month selection
+		if (secondary || !changeMonth)
+			monthHtml += '<span class="ui-datepicker-month">' + monthNames[drawMonth] + '</span>';
+		else {
+			var inMinYear = (minDate && minDate.getFullYear() == drawYear);
+			var inMaxYear = (maxDate && maxDate.getFullYear() == drawYear);
+			monthHtml += '<select class="ui-datepicker-month" data-handler="selectMonth" data-event="change">';
+			for (var month = 0; month < 12; month++) {
+				if ((!inMinYear || month >= minDate.getMonth()) &&
+						(!inMaxYear || month <= maxDate.getMonth()))
+					monthHtml += '<option value="' + month + '"' +
+						(month == drawMonth ? ' selected="selected"' : '') +
+						'>' + monthNamesShort[month] + '</option>';
+			}
+			monthHtml += '</select>';
+		}
+		if (!showMonthAfterYear)
+			html += monthHtml + (secondary || !(changeMonth && changeYear) ? '&#xa0;' : '');
+		// year selection
+		if ( !inst.yearshtml ) {
+			inst.yearshtml = '';
+			if (secondary || !changeYear)
+				html += '<span class="ui-datepicker-year">' + drawYear + '</span>';
+			else {
+				// determine range of years to display
+				var years = this._get(inst, 'yearRange').split(':');
+				var thisYear = new Date().getFullYear();
+				var determineYear = function(value) {
+					var year = (value.match(/c[+-].*/) ? drawYear + parseInt(value.substring(1), 10) :
+						(value.match(/[+-].*/) ? thisYear + parseInt(value, 10) :
+						parseInt(value, 10)));
+					return (isNaN(year) ? thisYear : year);
+				};
+				var year = determineYear(years[0]);
+				var endYear = Math.max(year, determineYear(years[1] || ''));
+				year = (minDate ? Math.max(year, minDate.getFullYear()) : year);
+				endYear = (maxDate ? Math.min(endYear, maxDate.getFullYear()) : endYear);
+				inst.yearshtml += '<select class="ui-datepicker-year" data-handler="selectYear" data-event="change">';
+				for (; year <= endYear; year++) {
+					inst.yearshtml += '<option value="' + year + '"' +
+						(year == drawYear ? ' selected="selected"' : '') +
+						'>' + year + '</option>';
+				}
+				inst.yearshtml += '</select>';
+				
+				html += inst.yearshtml;
+				inst.yearshtml = null;
+			}
+		}
+		html += this._get(inst, 'yearSuffix');
+		if (showMonthAfterYear)
+			html += (secondary || !(changeMonth && changeYear) ? '&#xa0;' : '') + monthHtml;
+		html += '</div>'; // Close datepicker_header
+		return html;
+	},
+
+	/* Adjust one of the date sub-fields. */
+	_adjustInstDate: function(inst, offset, period) {
+		var year = inst.drawYear + (period == 'Y' ? offset : 0);
+		var month = inst.drawMonth + (period == 'M' ? offset : 0);
+		var day = Math.min(inst.selectedDay, this._getDaysInMonth(year, month)) +
+			(period == 'D' ? offset : 0);
+		var date = this._restrictMinMax(inst,
+			this._daylightSavingAdjust(new Date(year, month, day)));
+		inst.selectedDay = date.getDate();
+		inst.drawMonth = inst.selectedMonth = date.getMonth();
+		inst.drawYear = inst.selectedYear = date.getFullYear();
+		if (period == 'M' || period == 'Y')
+			this._notifyChange(inst);
+	},
+
+	/* Ensure a date is within any min/max bounds. */
+	_restrictMinMax: function(inst, date) {
+		var minDate = this._getMinMaxDate(inst, 'min');
+		var maxDate = this._getMinMaxDate(inst, 'max');
+		var newDate = (minDate && date < minDate ? minDate : date);
+		newDate = (maxDate && newDate > maxDate ? maxDate : newDate);
+		return newDate;
+	},
+
+	/* Notify change of month/year. */
+	_notifyChange: function(inst) {
+		var onChange = this._get(inst, 'onChangeMonthYear');
+		if (onChange)
+			onChange.apply((inst.input ? inst.input[0] : null),
+				[inst.selectedYear, inst.selectedMonth + 1, inst]);
+	},
+
+	/* Determine the number of months to show. */
+	_getNumberOfMonths: function(inst) {
+		var numMonths = this._get(inst, 'numberOfMonths');
+		return (numMonths == null ? [1, 1] : (typeof numMonths == 'number' ? [1, numMonths] : numMonths));
+	},
+
+	/* Determine the current maximum date - ensure no time components are set. */
+	_getMinMaxDate: function(inst, minMax) 
