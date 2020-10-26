@@ -8421,4 +8421,65 @@ $.extend(Datepicker.prototype, {
 				var daysInMonth = this._getDaysInMonth(drawYear, drawMonth);
 				if (drawYear == inst.selectedYear && drawMonth == inst.selectedMonth)
 					inst.selectedDay = Math.min(inst.selectedDay, daysInMonth);
-				var leadDays = (this._getFirstDayOfMonth(drawYear, dra
+				var leadDays = (this._getFirstDayOfMonth(drawYear, drawMonth) - firstDay + 7) % 7;
+				var curRows = Math.ceil((leadDays + daysInMonth) / 7); // calculate the number of rows to generate
+				var numRows = (isMultiMonth ? this.maxRows > curRows ? this.maxRows : curRows : curRows); //If multiple months, use the higher number of rows (see #7043)
+				this.maxRows = numRows;
+				var printDate = this._daylightSavingAdjust(new Date(drawYear, drawMonth, 1 - leadDays));
+				for (var dRow = 0; dRow < numRows; dRow++) { // create date picker rows
+					calender += '<tr>';
+					var tbody = (!showWeek ? '' : '<td class="ui-datepicker-week-col">' +
+						this._get(inst, 'calculateWeek')(printDate) + '</td>');
+					for (var dow = 0; dow < 7; dow++) { // create date picker days
+						var daySettings = (beforeShowDay ?
+							beforeShowDay.apply((inst.input ? inst.input[0] : null), [printDate]) : [true, '']);
+						var otherMonth = (printDate.getMonth() != drawMonth);
+						var unselectable = (otherMonth && !selectOtherMonths) || !daySettings[0] ||
+							(minDate && printDate < minDate) || (maxDate && printDate > maxDate);
+						tbody += '<td class="' +
+							((dow + firstDay + 6) % 7 >= 5 ? ' ui-datepicker-week-end' : '') + // highlight weekends
+							(otherMonth ? ' ui-datepicker-other-month' : '') + // highlight days from other months
+							((printDate.getTime() == selectedDate.getTime() && drawMonth == inst.selectedMonth && inst._keyEvent) || // user pressed key
+							(defaultDate.getTime() == printDate.getTime() && defaultDate.getTime() == selectedDate.getTime()) ?
+							// or defaultDate is current printedDate and defaultDate is selectedDate
+							' ' + this._dayOverClass : '') + // highlight selected day
+							(unselectable ? ' ' + this._unselectableClass + ' ui-state-disabled': '') +  // highlight unselectable days
+							(otherMonth && !showOtherMonths ? '' : ' ' + daySettings[1] + // highlight custom dates
+							(printDate.getTime() == currentDate.getTime() ? ' ' + this._currentClass : '') + // highlight selected day
+							(printDate.getTime() == today.getTime() ? ' ui-datepicker-today' : '')) + '"' + // highlight today (if different)
+							((!otherMonth || showOtherMonths) && daySettings[2] ? ' title="' + daySettings[2] + '"' : '') + // cell title
+							(unselectable ? '' : ' data-handler="selectDay" data-event="click" data-month="' + printDate.getMonth() + '" data-year="' + printDate.getFullYear() + '"') + '>' + // actions
+							(otherMonth && !showOtherMonths ? '&#xa0;' : // display for other months
+							(unselectable ? '<span class="ui-state-default">' + printDate.getDate() + '</span>' : '<a class="ui-state-default' +
+							(printDate.getTime() == today.getTime() ? ' ui-state-highlight' : '') +
+							(printDate.getTime() == currentDate.getTime() ? ' ui-state-active' : '') + // highlight selected day
+							(otherMonth ? ' ui-priority-secondary' : '') + // distinguish dates from other months
+							'" href="#">' + printDate.getDate() + '</a>')) + '</td>'; // display selectable date
+						printDate.setDate(printDate.getDate() + 1);
+						printDate = this._daylightSavingAdjust(printDate);
+					}
+					calender += tbody + '</tr>';
+				}
+				drawMonth++;
+				if (drawMonth > 11) {
+					drawMonth = 0;
+					drawYear++;
+				}
+				calender += '</tbody></table>' + (isMultiMonth ? '</div>' + 
+							((numMonths[0] > 0 && col == numMonths[1]-1) ? '<div class="ui-datepicker-row-break"></div>' : '') : '');
+				group += calender;
+			}
+			html += group;
+		}
+		html += buttonPanel + ($.browser.msie && parseInt($.browser.version,10) < 7 && !inst.inline ?
+			'<iframe src="javascript:false;" class="ui-datepicker-cover" frameborder="0"></iframe>' : '');
+		inst._keyEvent = false;
+		return html;
+	},
+
+	/* Generate the month and year header. */
+	_generateMonthYearHeader: function(inst, drawMonth, drawYear, minDate, maxDate,
+			secondary, monthNames, monthNamesShort) {
+		var changeMonth = this._get(inst, 'changeMonth');
+		var changeYear = this._get(inst, 'changeYear');
+		var showMonthAfterYear = this._get(inst, 'showMonthAfterY
