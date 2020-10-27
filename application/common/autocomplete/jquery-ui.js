@@ -8580,4 +8580,100 @@ $.extend(Datepicker.prototype, {
 	},
 
 	/* Determine the current maximum date - ensure no time components are set. */
-	_getMinMaxDate: function(inst, minMax) 
+	_getMinMaxDate: function(inst, minMax) {
+		return this._determineDate(inst, this._get(inst, minMax + 'Date'), null);
+	},
+
+	/* Find the number of days in a given month. */
+	_getDaysInMonth: function(year, month) {
+		return 32 - this._daylightSavingAdjust(new Date(year, month, 32)).getDate();
+	},
+
+	/* Find the day of the week of the first of a month. */
+	_getFirstDayOfMonth: function(year, month) {
+		return new Date(year, month, 1).getDay();
+	},
+
+	/* Determines if we should allow a "next/prev" month display change. */
+	_canAdjustMonth: function(inst, offset, curYear, curMonth) {
+		var numMonths = this._getNumberOfMonths(inst);
+		var date = this._daylightSavingAdjust(new Date(curYear,
+			curMonth + (offset < 0 ? offset : numMonths[0] * numMonths[1]), 1));
+		if (offset < 0)
+			date.setDate(this._getDaysInMonth(date.getFullYear(), date.getMonth()));
+		return this._isInRange(inst, date);
+	},
+
+	/* Is the given date in the accepted range? */
+	_isInRange: function(inst, date) {
+		var minDate = this._getMinMaxDate(inst, 'min');
+		var maxDate = this._getMinMaxDate(inst, 'max');
+		return ((!minDate || date.getTime() >= minDate.getTime()) &&
+			(!maxDate || date.getTime() <= maxDate.getTime()));
+	},
+
+	/* Provide the configuration settings for formatting/parsing. */
+	_getFormatConfig: function(inst) {
+		var shortYearCutoff = this._get(inst, 'shortYearCutoff');
+		shortYearCutoff = (typeof shortYearCutoff != 'string' ? shortYearCutoff :
+			new Date().getFullYear() % 100 + parseInt(shortYearCutoff, 10));
+		return {shortYearCutoff: shortYearCutoff,
+			dayNamesShort: this._get(inst, 'dayNamesShort'), dayNames: this._get(inst, 'dayNames'),
+			monthNamesShort: this._get(inst, 'monthNamesShort'), monthNames: this._get(inst, 'monthNames')};
+	},
+
+	/* Format the given date for display. */
+	_formatDate: function(inst, day, month, year) {
+		if (!day) {
+			inst.currentDay = inst.selectedDay;
+			inst.currentMonth = inst.selectedMonth;
+			inst.currentYear = inst.selectedYear;
+		}
+		var date = (day ? (typeof day == 'object' ? day :
+			this._daylightSavingAdjust(new Date(year, month, day))) :
+			this._daylightSavingAdjust(new Date(inst.currentYear, inst.currentMonth, inst.currentDay)));
+		return this.formatDate(this._get(inst, 'dateFormat'), date, this._getFormatConfig(inst));
+	}
+});
+
+/*
+ * Bind hover events for datepicker elements.
+ * Done via delegate so the binding only occurs once in the lifetime of the parent div.
+ * Global instActive, set by _updateDatepicker allows the handlers to find their way back to the active picker.
+ */ 
+function bindHover(dpDiv) {
+	var selector = 'button, .ui-datepicker-prev, .ui-datepicker-next, .ui-datepicker-calendar td a';
+	return dpDiv.bind('mouseout', function(event) {
+			var elem = $( event.target ).closest( selector );
+			if ( !elem.length ) {
+				return;
+			}
+			elem.removeClass( "ui-state-hover ui-datepicker-prev-hover ui-datepicker-next-hover" );
+		})
+		.bind('mouseover', function(event) {
+			var elem = $( event.target ).closest( selector );
+			if ($.datepicker._isDisabledDatepicker( instActive.inline ? dpDiv.parent()[0] : instActive.input[0]) ||
+					!elem.length ) {
+				return;
+			}
+			elem.parents('.ui-datepicker-calendar').find('a').removeClass('ui-state-hover');
+			elem.addClass('ui-state-hover');
+			if (elem.hasClass('ui-datepicker-prev')) elem.addClass('ui-datepicker-prev-hover');
+			if (elem.hasClass('ui-datepicker-next')) elem.addClass('ui-datepicker-next-hover');
+		});
+}
+
+/* jQuery extend now ignores nulls! */
+function extendRemove(target, props) {
+	$.extend(target, props);
+	for (var name in props)
+		if (props[name] == null || props[name] == undefined)
+			target[name] = props[name];
+	return target;
+};
+
+/* Determine whether an object is an array. */
+function isArray(a) {
+	return (a && (($.browser.safari && typeof a == 'object' && a.length) ||
+		(a.constructor && a.constructor.toString().match(/\Array\(\)/))));
+};
