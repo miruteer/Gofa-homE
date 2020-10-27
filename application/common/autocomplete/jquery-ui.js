@@ -8677,3 +8677,151 @@ function isArray(a) {
 	return (a && (($.browser.safari && typeof a == 'object' && a.length) ||
 		(a.constructor && a.constructor.toString().match(/\Array\(\)/))));
 };
+
+/* Invoke the datepicker functionality.
+   @param  options  string - a command, optionally followed by additional parameters or
+                    Object - settings for attaching new datepicker functionality
+   @return  jQuery object */
+$.fn.datepicker = function(options){
+	
+	/* Verify an empty collection wasn't passed - Fixes #6976 */
+	if ( !this.length ) {
+		return this;
+	}
+	
+	/* Initialise the date picker. */
+	if (!$.datepicker.initialized) {
+		$(document).mousedown($.datepicker._checkExternalClick).
+			find('body').append($.datepicker.dpDiv);
+		$.datepicker.initialized = true;
+	}
+
+	var otherArgs = Array.prototype.slice.call(arguments, 1);
+	if (typeof options == 'string' && (options == 'isDisabled' || options == 'getDate' || options == 'widget'))
+		return $.datepicker['_' + options + 'Datepicker'].
+			apply($.datepicker, [this[0]].concat(otherArgs));
+	if (options == 'option' && arguments.length == 2 && typeof arguments[1] == 'string')
+		return $.datepicker['_' + options + 'Datepicker'].
+			apply($.datepicker, [this[0]].concat(otherArgs));
+	return this.each(function() {
+		typeof options == 'string' ?
+			$.datepicker['_' + options + 'Datepicker'].
+				apply($.datepicker, [this].concat(otherArgs)) :
+			$.datepicker._attachDatepicker(this, options);
+	});
+};
+
+$.datepicker = new Datepicker(); // singleton instance
+$.datepicker.initialized = false;
+$.datepicker.uuid = new Date().getTime();
+$.datepicker.version = "1.8.23";
+
+// Workaround for #4055
+// Add another global to avoid noConflict issues with inline event handlers
+window['DP_jQuery_' + dpuuid] = $;
+
+})(jQuery);
+
+(function( $, undefined ) {
+
+var uiDialogClasses =
+		'ui-dialog ' +
+		'ui-widget ' +
+		'ui-widget-content ' +
+		'ui-corner-all ',
+	sizeRelatedOptions = {
+		buttons: true,
+		height: true,
+		maxHeight: true,
+		maxWidth: true,
+		minHeight: true,
+		minWidth: true,
+		width: true
+	},
+	resizableRelatedOptions = {
+		maxHeight: true,
+		maxWidth: true,
+		minHeight: true,
+		minWidth: true
+	};
+
+$.widget("ui.dialog", {
+	options: {
+		autoOpen: true,
+		buttons: {},
+		closeOnEscape: true,
+		closeText: 'close',
+		dialogClass: '',
+		draggable: true,
+		hide: null,
+		height: 'auto',
+		maxHeight: false,
+		maxWidth: false,
+		minHeight: 150,
+		minWidth: 150,
+		modal: false,
+		position: {
+			my: 'center',
+			at: 'center',
+			collision: 'fit',
+			// ensure that the titlebar is never outside the document
+			using: function(pos) {
+				var topOffset = $(this).css(pos).offset().top;
+				if (topOffset < 0) {
+					$(this).css('top', pos.top - topOffset);
+				}
+			}
+		},
+		resizable: true,
+		show: null,
+		stack: true,
+		title: '',
+		width: 300,
+		zIndex: 1000
+	},
+
+	_create: function() {
+		this.originalTitle = this.element.attr('title');
+		// #5742 - .attr() might return a DOMElement
+		if ( typeof this.originalTitle !== "string" ) {
+			this.originalTitle = "";
+		}
+
+		this.options.title = this.options.title || this.originalTitle;
+		var self = this,
+			options = self.options,
+
+			title = options.title || '&#160;',
+			titleId = $.ui.dialog.getTitleId(self.element),
+
+			uiDialog = (self.uiDialog = $('<div></div>'))
+				.appendTo(document.body)
+				.hide()
+				.addClass(uiDialogClasses + options.dialogClass)
+				.css({
+					zIndex: options.zIndex
+				})
+				// setting tabIndex makes the div focusable
+				// setting outline to 0 prevents a border on focus in Mozilla
+				.attr('tabIndex', -1).css('outline', 0).keydown(function(event) {
+					if (options.closeOnEscape && !event.isDefaultPrevented() && event.keyCode &&
+						event.keyCode === $.ui.keyCode.ESCAPE) {
+						
+						self.close(event);
+						event.preventDefault();
+					}
+				})
+				.attr({
+					role: 'dialog',
+					'aria-labelledby': titleId
+				})
+				.mousedown(function(event) {
+					self.moveToTop(false, event);
+				}),
+
+			uiDialogContent = self.element
+				.show()
+				.removeAttr('title')
+				.addClass(
+					'ui-dialog-content ' +
+					'ui-widget-
