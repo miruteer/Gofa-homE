@@ -8824,4 +8824,179 @@ $.widget("ui.dialog", {
 				.removeAttr('title')
 				.addClass(
 					'ui-dialog-content ' +
-					'ui-widget-
+					'ui-widget-content')
+				.appendTo(uiDialog),
+
+			uiDialogTitlebar = (self.uiDialogTitlebar = $('<div></div>'))
+				.addClass(
+					'ui-dialog-titlebar ' +
+					'ui-widget-header ' +
+					'ui-corner-all ' +
+					'ui-helper-clearfix'
+				)
+				.prependTo(uiDialog),
+
+			uiDialogTitlebarClose = $('<a href="#"></a>')
+				.addClass(
+					'ui-dialog-titlebar-close ' +
+					'ui-corner-all'
+				)
+				.attr('role', 'button')
+				.hover(
+					function() {
+						uiDialogTitlebarClose.addClass('ui-state-hover');
+					},
+					function() {
+						uiDialogTitlebarClose.removeClass('ui-state-hover');
+					}
+				)
+				.focus(function() {
+					uiDialogTitlebarClose.addClass('ui-state-focus');
+				})
+				.blur(function() {
+					uiDialogTitlebarClose.removeClass('ui-state-focus');
+				})
+				.click(function(event) {
+					self.close(event);
+					return false;
+				})
+				.appendTo(uiDialogTitlebar),
+
+			uiDialogTitlebarCloseText = (self.uiDialogTitlebarCloseText = $('<span></span>'))
+				.addClass(
+					'ui-icon ' +
+					'ui-icon-closethick'
+				)
+				.text(options.closeText)
+				.appendTo(uiDialogTitlebarClose),
+
+			uiDialogTitle = $('<span></span>')
+				.addClass('ui-dialog-title')
+				.attr('id', titleId)
+				.html(title)
+				.prependTo(uiDialogTitlebar);
+
+		//handling of deprecated beforeclose (vs beforeClose) option
+		//Ticket #4669 http://dev.jqueryui.com/ticket/4669
+		//TODO: remove in 1.9pre
+		if ($.isFunction(options.beforeclose) && !$.isFunction(options.beforeClose)) {
+			options.beforeClose = options.beforeclose;
+		}
+
+		uiDialogTitlebar.find("*").add(uiDialogTitlebar).disableSelection();
+
+		if (options.draggable && $.fn.draggable) {
+			self._makeDraggable();
+		}
+		if (options.resizable && $.fn.resizable) {
+			self._makeResizable();
+		}
+
+		self._createButtons(options.buttons);
+		self._isOpen = false;
+
+		if ($.fn.bgiframe) {
+			uiDialog.bgiframe();
+		}
+	},
+
+	_init: function() {
+		if ( this.options.autoOpen ) {
+			this.open();
+		}
+	},
+
+	destroy: function() {
+		var self = this;
+		
+		if (self.overlay) {
+			self.overlay.destroy();
+		}
+		self.uiDialog.hide();
+		self.element
+			.unbind('.dialog')
+			.removeData('dialog')
+			.removeClass('ui-dialog-content ui-widget-content')
+			.hide().appendTo('body');
+		self.uiDialog.remove();
+
+		if (self.originalTitle) {
+			self.element.attr('title', self.originalTitle);
+		}
+
+		return self;
+	},
+
+	widget: function() {
+		return this.uiDialog;
+	},
+
+	close: function(event) {
+		var self = this,
+			maxZ, thisZ;
+		
+		if (false === self._trigger('beforeClose', event)) {
+			return;
+		}
+
+		if (self.overlay) {
+			self.overlay.destroy();
+		}
+		self.uiDialog.unbind('keypress.ui-dialog');
+
+		self._isOpen = false;
+
+		if (self.options.hide) {
+			self.uiDialog.hide(self.options.hide, function() {
+				self._trigger('close', event);
+			});
+		} else {
+			self.uiDialog.hide();
+			self._trigger('close', event);
+		}
+
+		$.ui.dialog.overlay.resize();
+
+		// adjust the maxZ to allow other modal dialogs to continue to work (see #4309)
+		if (self.options.modal) {
+			maxZ = 0;
+			$('.ui-dialog').each(function() {
+				if (this !== self.uiDialog[0]) {
+					thisZ = $(this).css('z-index');
+					if(!isNaN(thisZ)) {
+						maxZ = Math.max(maxZ, thisZ);
+					}
+				}
+			});
+			$.ui.dialog.maxZ = maxZ;
+		}
+
+		return self;
+	},
+
+	isOpen: function() {
+		return this._isOpen;
+	},
+
+	// the force parameter allows us to move modal dialogs to their correct
+	// position on open
+	moveToTop: function(force, event) {
+		var self = this,
+			options = self.options,
+			saveScroll;
+
+		if ((options.modal && !force) ||
+			(!options.stack && !options.modal)) {
+			return self._trigger('focus', event);
+		}
+
+		if (options.zIndex > $.ui.dialog.maxZ) {
+			$.ui.dialog.maxZ = options.zIndex;
+		}
+		if (self.overlay) {
+			$.ui.dialog.maxZ += 1;
+			self.overlay.$el.css('z-index', $.ui.dialog.overlay.maxZ = $.ui.dialog.maxZ);
+		}
+
+		//Save and then restore scroll since Opera 9.5+ resets when parent z-Index is changed.
+		//  http://ui.jquery.com/bugs/ticket
