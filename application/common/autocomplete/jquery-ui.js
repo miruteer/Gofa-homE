@@ -8999,4 +8999,151 @@ $.widget("ui.dialog", {
 		}
 
 		//Save and then restore scroll since Opera 9.5+ resets when parent z-Index is changed.
-		//  http://ui.jquery.com/bugs/ticket
+		//  http://ui.jquery.com/bugs/ticket/3193
+		saveScroll = { scrollTop: self.element.scrollTop(), scrollLeft: self.element.scrollLeft() };
+		$.ui.dialog.maxZ += 1;
+		self.uiDialog.css('z-index', $.ui.dialog.maxZ);
+		self.element.attr(saveScroll);
+		self._trigger('focus', event);
+
+		return self;
+	},
+
+	open: function() {
+		if (this._isOpen) { return; }
+
+		var self = this,
+			options = self.options,
+			uiDialog = self.uiDialog;
+
+		self.overlay = options.modal ? new $.ui.dialog.overlay(self) : null;
+		self._size();
+		self._position(options.position);
+		uiDialog.show(options.show);
+		self.moveToTop(true);
+
+		// prevent tabbing out of modal dialogs
+		if ( options.modal ) {
+			uiDialog.bind( "keydown.ui-dialog", function( event ) {
+				if ( event.keyCode !== $.ui.keyCode.TAB ) {
+					return;
+				}
+
+				var tabbables = $(':tabbable', this),
+					first = tabbables.filter(':first'),
+					last  = tabbables.filter(':last');
+
+				if (event.target === last[0] && !event.shiftKey) {
+					first.focus(1);
+					return false;
+				} else if (event.target === first[0] && event.shiftKey) {
+					last.focus(1);
+					return false;
+				}
+			});
+		}
+
+		// set focus to the first tabbable element in the content area or the first button
+		// if there are no tabbable elements, set focus on the dialog itself
+		$(self.element.find(':tabbable').get().concat(
+			uiDialog.find('.ui-dialog-buttonpane :tabbable').get().concat(
+				uiDialog.get()))).eq(0).focus();
+
+		self._isOpen = true;
+		self._trigger('open');
+
+		return self;
+	},
+
+	_createButtons: function(buttons) {
+		var self = this,
+			hasButtons = false,
+			uiDialogButtonPane = $('<div></div>')
+				.addClass(
+					'ui-dialog-buttonpane ' +
+					'ui-widget-content ' +
+					'ui-helper-clearfix'
+				),
+			uiButtonSet = $( "<div></div>" )
+				.addClass( "ui-dialog-buttonset" )
+				.appendTo( uiDialogButtonPane );
+
+		// if we already have a button pane, remove it
+		self.uiDialog.find('.ui-dialog-buttonpane').remove();
+
+		if (typeof buttons === 'object' && buttons !== null) {
+			$.each(buttons, function() {
+				return !(hasButtons = true);
+			});
+		}
+		if (hasButtons) {
+			$.each(buttons, function(name, props) {
+				props = $.isFunction( props ) ?
+					{ click: props, text: name } :
+					props;
+				var button = $('<button type="button"></button>')
+					.click(function() {
+						props.click.apply(self.element[0], arguments);
+					})
+					.appendTo(uiButtonSet);
+				// can't use .attr( props, true ) with jQuery 1.3.2.
+				$.each( props, function( key, value ) {
+					if ( key === "click" ) {
+						return;
+					}
+					if ( key in button ) {
+						button[ key ]( value );
+					} else {
+						button.attr( key, value );
+					}
+				});
+				if ($.fn.button) {
+					button.button();
+				}
+			});
+			uiDialogButtonPane.appendTo(self.uiDialog);
+		}
+	},
+
+	_makeDraggable: function() {
+		var self = this,
+			options = self.options,
+			doc = $(document),
+			heightBeforeDrag;
+
+		function filteredUi(ui) {
+			return {
+				position: ui.position,
+				offset: ui.offset
+			};
+		}
+
+		self.uiDialog.draggable({
+			cancel: '.ui-dialog-content, .ui-dialog-titlebar-close',
+			handle: '.ui-dialog-titlebar',
+			containment: 'document',
+			start: function(event, ui) {
+				heightBeforeDrag = options.height === "auto" ? "auto" : $(this).height();
+				$(this).height($(this).height()).addClass("ui-dialog-dragging");
+				self._trigger('dragStart', event, filteredUi(ui));
+			},
+			drag: function(event, ui) {
+				self._trigger('drag', event, filteredUi(ui));
+			},
+			stop: function(event, ui) {
+				options.position = [ui.position.left - doc.scrollLeft(),
+					ui.position.top - doc.scrollTop()];
+				$(this).removeClass("ui-dialog-dragging").height(heightBeforeDrag);
+				self._trigger('dragStop', event, filteredUi(ui));
+				$.ui.dialog.overlay.resize();
+			}
+		});
+	},
+
+	_makeResizable: function(handles) {
+		handles = (handles === undefined ? this.options.resizable : handles);
+		var self = this,
+			options = self.options,
+			// .ui-resizable has position: relative defined in the stylesheet
+			// but dialogs have to use absolute or fixed positioning
+			position = self.uiD
