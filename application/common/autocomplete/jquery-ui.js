@@ -9146,4 +9146,159 @@ $.widget("ui.dialog", {
 			options = self.options,
 			// .ui-resizable has position: relative defined in the stylesheet
 			// but dialogs have to use absolute or fixed positioning
-			position = self.uiD
+			position = self.uiDialog.css('position'),
+			resizeHandles = (typeof handles === 'string' ?
+				handles	:
+				'n,e,s,w,se,sw,ne,nw'
+			);
+
+		function filteredUi(ui) {
+			return {
+				originalPosition: ui.originalPosition,
+				originalSize: ui.originalSize,
+				position: ui.position,
+				size: ui.size
+			};
+		}
+
+		self.uiDialog.resizable({
+			cancel: '.ui-dialog-content',
+			containment: 'document',
+			alsoResize: self.element,
+			maxWidth: options.maxWidth,
+			maxHeight: options.maxHeight,
+			minWidth: options.minWidth,
+			minHeight: self._minHeight(),
+			handles: resizeHandles,
+			start: function(event, ui) {
+				$(this).addClass("ui-dialog-resizing");
+				self._trigger('resizeStart', event, filteredUi(ui));
+			},
+			resize: function(event, ui) {
+				self._trigger('resize', event, filteredUi(ui));
+			},
+			stop: function(event, ui) {
+				$(this).removeClass("ui-dialog-resizing");
+				options.height = $(this).height();
+				options.width = $(this).width();
+				self._trigger('resizeStop', event, filteredUi(ui));
+				$.ui.dialog.overlay.resize();
+			}
+		})
+		.css('position', position)
+		.find('.ui-resizable-se').addClass('ui-icon ui-icon-grip-diagonal-se');
+	},
+
+	_minHeight: function() {
+		var options = this.options;
+
+		if (options.height === 'auto') {
+			return options.minHeight;
+		} else {
+			return Math.min(options.minHeight, options.height);
+		}
+	},
+
+	_position: function(position) {
+		var myAt = [],
+			offset = [0, 0],
+			isVisible;
+
+		if (position) {
+			// deep extending converts arrays to objects in jQuery <= 1.3.2 :-(
+	//		if (typeof position == 'string' || $.isArray(position)) {
+	//			myAt = $.isArray(position) ? position : position.split(' ');
+
+			if (typeof position === 'string' || (typeof position === 'object' && '0' in position)) {
+				myAt = position.split ? position.split(' ') : [position[0], position[1]];
+				if (myAt.length === 1) {
+					myAt[1] = myAt[0];
+				}
+
+				$.each(['left', 'top'], function(i, offsetPosition) {
+					if (+myAt[i] === myAt[i]) {
+						offset[i] = myAt[i];
+						myAt[i] = offsetPosition;
+					}
+				});
+
+				position = {
+					my: myAt.join(" "),
+					at: myAt.join(" "),
+					offset: offset.join(" ")
+				};
+			} 
+
+			position = $.extend({}, $.ui.dialog.prototype.options.position, position);
+		} else {
+			position = $.ui.dialog.prototype.options.position;
+		}
+
+		// need to show the dialog to get the actual offset in the position plugin
+		isVisible = this.uiDialog.is(':visible');
+		if (!isVisible) {
+			this.uiDialog.show();
+		}
+		this.uiDialog
+			// workaround for jQuery bug #5781 http://dev.jquery.com/ticket/5781
+			.css({ top: 0, left: 0 })
+			.position($.extend({ of: window }, position));
+		if (!isVisible) {
+			this.uiDialog.hide();
+		}
+	},
+
+	_setOptions: function( options ) {
+		var self = this,
+			resizableOptions = {},
+			resize = false;
+
+		$.each( options, function( key, value ) {
+			self._setOption( key, value );
+			
+			if ( key in sizeRelatedOptions ) {
+				resize = true;
+			}
+			if ( key in resizableRelatedOptions ) {
+				resizableOptions[ key ] = value;
+			}
+		});
+
+		if ( resize ) {
+			this._size();
+		}
+		if ( this.uiDialog.is( ":data(resizable)" ) ) {
+			this.uiDialog.resizable( "option", resizableOptions );
+		}
+	},
+
+	_setOption: function(key, value){
+		var self = this,
+			uiDialog = self.uiDialog;
+
+		switch (key) {
+			//handling of deprecated beforeclose (vs beforeClose) option
+			//Ticket #4669 http://dev.jqueryui.com/ticket/4669
+			//TODO: remove in 1.9pre
+			case "beforeclose":
+				key = "beforeClose";
+				break;
+			case "buttons":
+				self._createButtons(value);
+				break;
+			case "closeText":
+				// ensure that we always pass a string
+				self.uiDialogTitlebarCloseText.text("" + value);
+				break;
+			case "dialogClass":
+				uiDialog
+					.removeClass(self.options.dialogClass)
+					.addClass(uiDialogClasses + value);
+				break;
+			case "disabled":
+				if (value) {
+					uiDialog.addClass('ui-dialog-disabled');
+				} else {
+					uiDialog.removeClass('ui-dialog-disabled');
+				}
+				brea
