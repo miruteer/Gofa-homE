@@ -9731,4 +9731,147 @@ $.ui.position = {
 		top: function( position, data ) {
 			var win = $( window ),
 				over = data.collisionPosition.top + data.collisionHeight - win.height() - win.scrollTop();
-			position.top = over > 0 ? position.top - over : Math.max( position.top - data.collision
+			position.top = over > 0 ? position.top - over : Math.max( position.top - data.collisionPosition.top, position.top );
+		}
+	},
+
+	flip: {
+		left: function( position, data ) {
+			if ( data.at[0] === center ) {
+				return;
+			}
+			var win = $( window ),
+				over = data.collisionPosition.left + data.collisionWidth - win.width() - win.scrollLeft(),
+				myOffset = data.my[ 0 ] === "left" ?
+					-data.elemWidth :
+					data.my[ 0 ] === "right" ?
+						data.elemWidth :
+						0,
+				atOffset = data.at[ 0 ] === "left" ?
+					data.targetWidth :
+					-data.targetWidth,
+				offset = -2 * data.offset[ 0 ];
+			position.left += data.collisionPosition.left < 0 ?
+				myOffset + atOffset + offset :
+				over > 0 ?
+					myOffset + atOffset + offset :
+					0;
+		},
+		top: function( position, data ) {
+			if ( data.at[1] === center ) {
+				return;
+			}
+			var win = $( window ),
+				over = data.collisionPosition.top + data.collisionHeight - win.height() - win.scrollTop(),
+				myOffset = data.my[ 1 ] === "top" ?
+					-data.elemHeight :
+					data.my[ 1 ] === "bottom" ?
+						data.elemHeight :
+						0,
+				atOffset = data.at[ 1 ] === "top" ?
+					data.targetHeight :
+					-data.targetHeight,
+				offset = -2 * data.offset[ 1 ];
+			position.top += data.collisionPosition.top < 0 ?
+				myOffset + atOffset + offset :
+				over > 0 ?
+					myOffset + atOffset + offset :
+					0;
+		}
+	}
+};
+
+// offset setter from jQuery 1.4
+if ( !$.offset.setOffset ) {
+	$.offset.setOffset = function( elem, options ) {
+		// set position first, in-case top/left are set even on static elem
+		if ( /static/.test( $.curCSS( elem, "position" ) ) ) {
+			elem.style.position = "relative";
+		}
+		var curElem   = $( elem ),
+			curOffset = curElem.offset(),
+			curTop    = parseInt( $.curCSS( elem, "top",  true ), 10 ) || 0,
+			curLeft   = parseInt( $.curCSS( elem, "left", true ), 10)  || 0,
+			props     = {
+				top:  (options.top  - curOffset.top)  + curTop,
+				left: (options.left - curOffset.left) + curLeft
+			};
+		
+		if ( 'using' in options ) {
+			options.using.call( elem, props );
+		} else {
+			curElem.css( props );
+		}
+	};
+
+	$.fn.offset = function( options ) {
+		var elem = this[ 0 ];
+		if ( !elem || !elem.ownerDocument ) { return null; }
+		if ( options ) {
+			if ( $.isFunction( options ) ) {
+				return this.each(function( i ) {
+					$( this ).offset( options.call( this, i, $( this ).offset() ) );
+				});
+			}
+			return this.each(function() {
+				$.offset.setOffset( this, options );
+			});
+		}
+		return _offset.call( this );
+	};
+}
+
+// jQuery <1.4.3 uses curCSS, in 1.4.3 - 1.7.2 curCSS = css, 1.8+ only has css
+if ( !$.curCSS ) {
+	$.curCSS = $.css;
+}
+
+// fraction support test (older versions of jQuery don't support fractions)
+(function () {
+	var body = document.getElementsByTagName( "body" )[ 0 ], 
+		div = document.createElement( "div" ),
+		testElement, testElementParent, testElementStyle, offset, offsetTotal;
+
+	//Create a "fake body" for testing based on method used in jQuery.support
+	testElement = document.createElement( body ? "div" : "body" );
+	testElementStyle = {
+		visibility: "hidden",
+		width: 0,
+		height: 0,
+		border: 0,
+		margin: 0,
+		background: "none"
+	};
+	if ( body ) {
+		$.extend( testElementStyle, {
+			position: "absolute",
+			left: "-1000px",
+			top: "-1000px"
+		});
+	}
+	for ( var i in testElementStyle ) {
+		testElement.style[ i ] = testElementStyle[ i ];
+	}
+	testElement.appendChild( div );
+	testElementParent = body || document.documentElement;
+	testElementParent.insertBefore( testElement, testElementParent.firstChild );
+
+	div.style.cssText = "position: absolute; left: 10.7432222px; top: 10.432325px; height: 30px; width: 201px;";
+
+	offset = $( div ).offset( function( _, offset ) {
+		return offset;
+	}).offset();
+
+	testElement.innerHTML = "";
+	testElementParent.removeChild( testElement );
+
+	offsetTotal = offset.top + offset.left + ( body ? 2000 : 0 );
+	support.fractions = offsetTotal > 21 && offsetTotal < 22;
+})();
+
+}( jQuery ));
+
+(function( $, undefined ) {
+
+$.widget( "ui.progressbar", {
+	option
