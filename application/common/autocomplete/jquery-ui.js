@@ -9874,4 +9874,172 @@ if ( !$.curCSS ) {
 (function( $, undefined ) {
 
 $.widget( "ui.progressbar", {
-	option
+	options: {
+		value: 0,
+		max: 100
+	},
+
+	min: 0,
+
+	_create: function() {
+		this.element
+			.addClass( "ui-progressbar ui-widget ui-widget-content ui-corner-all" )
+			.attr({
+				role: "progressbar",
+				"aria-valuemin": this.min,
+				"aria-valuemax": this.options.max,
+				"aria-valuenow": this._value()
+			});
+
+		this.valueDiv = $( "<div class='ui-progressbar-value ui-widget-header ui-corner-left'></div>" )
+			.appendTo( this.element );
+
+		this.oldValue = this._value();
+		this._refreshValue();
+	},
+
+	destroy: function() {
+		this.element
+			.removeClass( "ui-progressbar ui-widget ui-widget-content ui-corner-all" )
+			.removeAttr( "role" )
+			.removeAttr( "aria-valuemin" )
+			.removeAttr( "aria-valuemax" )
+			.removeAttr( "aria-valuenow" );
+
+		this.valueDiv.remove();
+
+		$.Widget.prototype.destroy.apply( this, arguments );
+	},
+
+	value: function( newValue ) {
+		if ( newValue === undefined ) {
+			return this._value();
+		}
+
+		this._setOption( "value", newValue );
+		return this;
+	},
+
+	_setOption: function( key, value ) {
+		if ( key === "value" ) {
+			this.options.value = value;
+			this._refreshValue();
+			if ( this._value() === this.options.max ) {
+				this._trigger( "complete" );
+			}
+		}
+
+		$.Widget.prototype._setOption.apply( this, arguments );
+	},
+
+	_value: function() {
+		var val = this.options.value;
+		// normalize invalid value
+		if ( typeof val !== "number" ) {
+			val = 0;
+		}
+		return Math.min( this.options.max, Math.max( this.min, val ) );
+	},
+
+	_percentage: function() {
+		return 100 * this._value() / this.options.max;
+	},
+
+	_refreshValue: function() {
+		var value = this.value();
+		var percentage = this._percentage();
+
+		if ( this.oldValue !== value ) {
+			this.oldValue = value;
+			this._trigger( "change" );
+		}
+
+		this.valueDiv
+			.toggle( value > this.min )
+			.toggleClass( "ui-corner-right", value === this.options.max )
+			.width( percentage.toFixed(0) + "%" );
+		this.element.attr( "aria-valuenow", value );
+	}
+});
+
+$.extend( $.ui.progressbar, {
+	version: "1.8.23"
+});
+
+})( jQuery );
+
+(function( $, undefined ) {
+
+// number of pages in a slider
+// (how many times can you page up/down to go through the whole range)
+var numPages = 5;
+
+$.widget( "ui.slider", $.ui.mouse, {
+
+	widgetEventPrefix: "slide",
+
+	options: {
+		animate: false,
+		distance: 0,
+		max: 100,
+		min: 0,
+		orientation: "horizontal",
+		range: false,
+		step: 1,
+		value: 0,
+		values: null
+	},
+
+	_create: function() {
+		var self = this,
+			o = this.options,
+			existingHandles = this.element.find( ".ui-slider-handle" ).addClass( "ui-state-default ui-corner-all" ),
+			handle = "<a class='ui-slider-handle ui-state-default ui-corner-all' href='#'></a>",
+			handleCount = ( o.values && o.values.length ) || 1,
+			handles = [];
+
+		this._keySliding = false;
+		this._mouseSliding = false;
+		this._animateOff = true;
+		this._handleIndex = null;
+		this._detectOrientation();
+		this._mouseInit();
+
+		this.element
+			.addClass( "ui-slider" +
+				" ui-slider-" + this.orientation +
+				" ui-widget" +
+				" ui-widget-content" +
+				" ui-corner-all" +
+				( o.disabled ? " ui-slider-disabled ui-disabled" : "" ) );
+
+		this.range = $([]);
+
+		if ( o.range ) {
+			if ( o.range === true ) {
+				if ( !o.values ) {
+					o.values = [ this._valueMin(), this._valueMin() ];
+				}
+				if ( o.values.length && o.values.length !== 2 ) {
+					o.values = [ o.values[0], o.values[0] ];
+				}
+			}
+
+			this.range = $( "<div></div>" )
+				.appendTo( this.element )
+				.addClass( "ui-slider-range" +
+				// note: this isn't the most fittingly semantic framework class for this element,
+				// but worked best visually with a variety of themes
+				" ui-widget-header" + 
+				( ( o.range === "min" || o.range === "max" ) ? " ui-slider-range-" + o.range : "" ) );
+		}
+
+		for ( var i = existingHandles.length; i < handleCount; i += 1 ) {
+			handles.push( handle );
+		}
+
+		this.handles = existingHandles.add( $( handles.join( "" ) ).appendTo( self.element ) );
+
+		this.handle = this.handles.eq( 0 );
+
+		this.handles.add( 
