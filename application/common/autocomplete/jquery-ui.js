@@ -10641,4 +10641,132 @@ $.widget( "ui.tabs", {
 		disabled: [],
 		enable: null,
 		event: "click",
-		
+		fx: null, // e.g. { height: 'toggle', opacity: 'toggle', duration: 200 }
+		idPrefix: "ui-tabs-",
+		load: null,
+		panelTemplate: "<div></div>",
+		remove: null,
+		select: null,
+		show: null,
+		spinner: "<em>Loading&#8230;</em>",
+		tabTemplate: "<li><a href='#{href}'><span>#{label}</span></a></li>"
+	},
+
+	_create: function() {
+		this._tabify( true );
+	},
+
+	_setOption: function( key, value ) {
+		if ( key == "selected" ) {
+			if (this.options.collapsible && value == this.options.selected ) {
+				return;
+			}
+			this.select( value );
+		} else {
+			this.options[ key ] = value;
+			this._tabify();
+		}
+	},
+
+	_tabId: function( a ) {
+		return a.title && a.title.replace( /\s/g, "_" ).replace( /[^\w\u00c0-\uFFFF-]/g, "" ) ||
+			this.options.idPrefix + getNextTabId();
+	},
+
+	_sanitizeSelector: function( hash ) {
+		// we need this because an id may contain a ":"
+		return hash.replace( /:/g, "\\:" );
+	},
+
+	_cookie: function() {
+		var cookie = this.cookie ||
+			( this.cookie = this.options.cookie.name || "ui-tabs-" + getNextListId() );
+		return $.cookie.apply( null, [ cookie ].concat( $.makeArray( arguments ) ) );
+	},
+
+	_ui: function( tab, panel ) {
+		return {
+			tab: tab,
+			panel: panel,
+			index: this.anchors.index( tab )
+		};
+	},
+
+	_cleanup: function() {
+		// restore all former loading tabs labels
+		this.lis.filter( ".ui-state-processing" )
+			.removeClass( "ui-state-processing" )
+			.find( "span:data(label.tabs)" )
+				.each(function() {
+					var el = $( this );
+					el.html( el.data( "label.tabs" ) ).removeData( "label.tabs" );
+				});
+	},
+
+	_tabify: function( init ) {
+		var self = this,
+			o = this.options,
+			fragmentId = /^#.+/; // Safari 2 reports '#' for an empty hash
+
+		this.list = this.element.find( "ol,ul" ).eq( 0 );
+		this.lis = $( " > li:has(a[href])", this.list );
+		this.anchors = this.lis.map(function() {
+			return $( "a", this )[ 0 ];
+		});
+		this.panels = $( [] );
+
+		this.anchors.each(function( i, a ) {
+			var href = $( a ).attr( "href" );
+			// For dynamically created HTML that contains a hash as href IE < 8 expands
+			// such href to the full page url with hash and then misinterprets tab as ajax.
+			// Same consideration applies for an added tab with a fragment identifier
+			// since a[href=#fragment-identifier] does unexpectedly not match.
+			// Thus normalize href attribute...
+			var hrefBase = href.split( "#" )[ 0 ],
+				baseEl;
+			if ( hrefBase && ( hrefBase === location.toString().split( "#" )[ 0 ] ||
+					( baseEl = $( "base" )[ 0 ]) && hrefBase === baseEl.href ) ) {
+				href = a.hash;
+				a.href = href;
+			}
+
+			// inline tab
+			if ( fragmentId.test( href ) ) {
+				self.panels = self.panels.add( self.element.find( self._sanitizeSelector( href ) ) );
+			// remote tab
+			// prevent loading the page itself if href is just "#"
+			} else if ( href && href !== "#" ) {
+				// required for restore on destroy
+				$.data( a, "href.tabs", href );
+
+				// TODO until #3808 is fixed strip fragment identifier from url
+				// (IE fails to load from such url)
+				$.data( a, "load.tabs", href.replace( /#.*$/, "" ) );
+
+				var id = self._tabId( a );
+				a.href = "#" + id;
+				var $panel = self.element.find( "#" + id );
+				if ( !$panel.length ) {
+					$panel = $( o.panelTemplate )
+						.attr( "id", id )
+						.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom" )
+						.insertAfter( self.panels[ i - 1 ] || self.list );
+					$panel.data( "destroy.tabs", true );
+				}
+				self.panels = self.panels.add( $panel );
+			// invalid tab href
+			} else {
+				o.disabled.push( i );
+			}
+		});
+
+		// initialization from scratch
+		if ( init ) {
+			// attach necessary classes for styling
+			this.element.addClass( "ui-tabs ui-widget ui-widget-content ui-corner-all" );
+			this.list.addClass( "ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" );
+			this.lis.addClass( "ui-state-default ui-corner-top" );
+			this.panels.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom" );
+
+			// Selected tab
+			// use "selected" option
