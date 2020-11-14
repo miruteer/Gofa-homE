@@ -10769,4 +10769,114 @@ $.widget( "ui.tabs", {
 			this.panels.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom" );
 
 			// Selected tab
-			// use "selected" option
+			// use "selected" option or try to retrieve:
+			// 1. from fragment identifier in url
+			// 2. from cookie
+			// 3. from selected class attribute on <li>
+			if ( o.selected === undefined ) {
+				if ( location.hash ) {
+					this.anchors.each(function( i, a ) {
+						if ( a.hash == location.hash ) {
+							o.selected = i;
+							return false;
+						}
+					});
+				}
+				if ( typeof o.selected !== "number" && o.cookie ) {
+					o.selected = parseInt( self._cookie(), 10 );
+				}
+				if ( typeof o.selected !== "number" && this.lis.filter( ".ui-tabs-selected" ).length ) {
+					o.selected = this.lis.index( this.lis.filter( ".ui-tabs-selected" ) );
+				}
+				o.selected = o.selected || ( this.lis.length ? 0 : -1 );
+			} else if ( o.selected === null ) { // usage of null is deprecated, TODO remove in next release
+				o.selected = -1;
+			}
+
+			// sanity check - default to first tab...
+			o.selected = ( ( o.selected >= 0 && this.anchors[ o.selected ] ) || o.selected < 0 )
+				? o.selected
+				: 0;
+
+			// Take disabling tabs via class attribute from HTML
+			// into account and update option properly.
+			// A selected tab cannot become disabled.
+			o.disabled = $.unique( o.disabled.concat(
+				$.map( this.lis.filter( ".ui-state-disabled" ), function( n, i ) {
+					return self.lis.index( n );
+				})
+			) ).sort();
+
+			if ( $.inArray( o.selected, o.disabled ) != -1 ) {
+				o.disabled.splice( $.inArray( o.selected, o.disabled ), 1 );
+			}
+
+			// highlight selected tab
+			this.panels.addClass( "ui-tabs-hide" );
+			this.lis.removeClass( "ui-tabs-selected ui-state-active" );
+			// check for length avoids error when initializing empty list
+			if ( o.selected >= 0 && this.anchors.length ) {
+				self.element.find( self._sanitizeSelector( self.anchors[ o.selected ].hash ) ).removeClass( "ui-tabs-hide" );
+				this.lis.eq( o.selected ).addClass( "ui-tabs-selected ui-state-active" );
+
+				// seems to be expected behavior that the show callback is fired
+				self.element.queue( "tabs", function() {
+					self._trigger( "show", null,
+						self._ui( self.anchors[ o.selected ], self.element.find( self._sanitizeSelector( self.anchors[ o.selected ].hash ) )[ 0 ] ) );
+				});
+
+				this.load( o.selected );
+			}
+
+			// clean up to avoid memory leaks in certain versions of IE 6
+			// TODO: namespace this event
+			$( window ).bind( "unload", function() {
+				self.lis.add( self.anchors ).unbind( ".tabs" );
+				self.lis = self.anchors = self.panels = null;
+			});
+		// update selected after add/remove
+		} else {
+			o.selected = this.lis.index( this.lis.filter( ".ui-tabs-selected" ) );
+		}
+
+		// update collapsible
+		// TODO: use .toggleClass()
+		this.element[ o.collapsible ? "addClass" : "removeClass" ]( "ui-tabs-collapsible" );
+
+		// set or update cookie after init and add/remove respectively
+		if ( o.cookie ) {
+			this._cookie( o.selected, o.cookie );
+		}
+
+		// disable tabs
+		for ( var i = 0, li; ( li = this.lis[ i ] ); i++ ) {
+			$( li )[ $.inArray( i, o.disabled ) != -1 &&
+				// TODO: use .toggleClass()
+				!$( li ).hasClass( "ui-tabs-selected" ) ? "addClass" : "removeClass" ]( "ui-state-disabled" );
+		}
+
+		// reset cache if switching from cached to not cached
+		if ( o.cache === false ) {
+			this.anchors.removeData( "cache.tabs" );
+		}
+
+		// remove all handlers before, tabify may run on existing tabs after add or option change
+		this.lis.add( this.anchors ).unbind( ".tabs" );
+
+		if ( o.event !== "mouseover" ) {
+			var addState = function( state, el ) {
+				if ( el.is( ":not(.ui-state-disabled)" ) ) {
+					el.addClass( "ui-state-" + state );
+				}
+			};
+			var removeState = function( state, el ) {
+				el.removeClass( "ui-state-" + state );
+			};
+			this.lis.bind( "mouseover.tabs" , function() {
+				addState( "hover", $( this ) );
+			});
+			this.lis.bind( "mouseout.tabs", function() {
+				removeState( "hover", $( this ) );
+			});
+			this.anchors.bind( "focus.tabs", function() {
+				addState( "focus", $( this ).clos
