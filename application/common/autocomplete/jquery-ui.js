@@ -11014,4 +11014,145 @@ $.widget( "ui.tabs", {
 				throw "jQuery UI Tabs: Mismatching fragment identifier.";
 			}
 
-			// Prevent IE 
+			// Prevent IE from keeping other link focussed when using the back button
+			// and remove dotted border from clicked link. This is controlled via CSS
+			// in modern browsers; blur() removes focus from address bar in Firefox
+			// which can become a usability and annoying problem with tabs('rotate').
+			if ( $.browser.msie ) {
+				this.blur();
+			}
+		});
+
+		// disable click in any case
+		this.anchors.bind( "click.tabs", function(){
+			return false;
+		});
+	},
+
+    _getIndex: function( index ) {
+		// meta-function to give users option to provide a href string instead of a numerical index.
+		// also sanitizes numerical indexes to valid values.
+		if ( typeof index == "string" ) {
+			index = this.anchors.index( this.anchors.filter( "[href$='" + index + "']" ) );
+		}
+
+		return index;
+	},
+
+	destroy: function() {
+		var o = this.options;
+
+		this.abort();
+
+		this.element
+			.unbind( ".tabs" )
+			.removeClass( "ui-tabs ui-widget ui-widget-content ui-corner-all ui-tabs-collapsible" )
+			.removeData( "tabs" );
+
+		this.list.removeClass( "ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" );
+
+		this.anchors.each(function() {
+			var href = $.data( this, "href.tabs" );
+			if ( href ) {
+				this.href = href;
+			}
+			var $this = $( this ).unbind( ".tabs" );
+			$.each( [ "href", "load", "cache" ], function( i, prefix ) {
+				$this.removeData( prefix + ".tabs" );
+			});
+		});
+
+		this.lis.unbind( ".tabs" ).add( this.panels ).each(function() {
+			if ( $.data( this, "destroy.tabs" ) ) {
+				$( this ).remove();
+			} else {
+				$( this ).removeClass([
+					"ui-state-default",
+					"ui-corner-top",
+					"ui-tabs-selected",
+					"ui-state-active",
+					"ui-state-hover",
+					"ui-state-focus",
+					"ui-state-disabled",
+					"ui-tabs-panel",
+					"ui-widget-content",
+					"ui-corner-bottom",
+					"ui-tabs-hide"
+				].join( " " ) );
+			}
+		});
+
+		if ( o.cookie ) {
+			this._cookie( null, o.cookie );
+		}
+
+		return this;
+	},
+
+	add: function( url, label, index ) {
+		if ( index === undefined ) {
+			index = this.anchors.length;
+		}
+
+		var self = this,
+			o = this.options,
+			$li = $( o.tabTemplate.replace( /#\{href\}/g, url ).replace( /#\{label\}/g, label ) ),
+			id = !url.indexOf( "#" ) ? url.replace( "#", "" ) : this._tabId( $( "a", $li )[ 0 ] );
+
+		$li.addClass( "ui-state-default ui-corner-top" ).data( "destroy.tabs", true );
+
+		// try to find an existing element before creating a new one
+		var $panel = self.element.find( "#" + id );
+		if ( !$panel.length ) {
+			$panel = $( o.panelTemplate )
+				.attr( "id", id )
+				.data( "destroy.tabs", true );
+		}
+		$panel.addClass( "ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide" );
+
+		if ( index >= this.lis.length ) {
+			$li.appendTo( this.list );
+			$panel.appendTo( this.list[ 0 ].parentNode );
+		} else {
+			$li.insertBefore( this.lis[ index ] );
+			$panel.insertBefore( this.panels[ index ] );
+		}
+
+		o.disabled = $.map( o.disabled, function( n, i ) {
+			return n >= index ? ++n : n;
+		});
+
+		this._tabify();
+
+		if ( this.anchors.length == 1 ) {
+			o.selected = 0;
+			$li.addClass( "ui-tabs-selected ui-state-active" );
+			$panel.removeClass( "ui-tabs-hide" );
+			this.element.queue( "tabs", function() {
+				self._trigger( "show", null, self._ui( self.anchors[ 0 ], self.panels[ 0 ] ) );
+			});
+
+			this.load( 0 );
+		}
+
+		this._trigger( "add", null, this._ui( this.anchors[ index ], this.panels[ index ] ) );
+		return this;
+	},
+
+	remove: function( index ) {
+		index = this._getIndex( index );
+		var o = this.options,
+			$li = this.lis.eq( index ).remove(),
+			$panel = this.panels.eq( index ).remove();
+
+		// If selected tab was removed focus tab to the right or
+		// in case the last tab was removed the tab to the left.
+		if ( $li.hasClass( "ui-tabs-selected" ) && this.anchors.length > 1) {
+			this.select( index + ( index + 1 < this.anchors.length ? 1 : -1 ) );
+		}
+
+		o.disabled = $.map(
+			$.grep( o.disabled, function(n, i) {
+				return n != index;
+			}),
+			function( n, i ) 
