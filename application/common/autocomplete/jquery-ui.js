@@ -10879,4 +10879,139 @@ $.widget( "ui.tabs", {
 				removeState( "hover", $( this ) );
 			});
 			this.anchors.bind( "focus.tabs", function() {
-				addState( "focus", $( this ).clos
+				addState( "focus", $( this ).closest( "li" ) );
+			});
+			this.anchors.bind( "blur.tabs", function() {
+				removeState( "focus", $( this ).closest( "li" ) );
+			});
+		}
+
+		// set up animations
+		var hideFx, showFx;
+		if ( o.fx ) {
+			if ( $.isArray( o.fx ) ) {
+				hideFx = o.fx[ 0 ];
+				showFx = o.fx[ 1 ];
+			} else {
+				hideFx = showFx = o.fx;
+			}
+		}
+
+		// Reset certain styles left over from animation
+		// and prevent IE's ClearType bug...
+		function resetStyle( $el, fx ) {
+			$el.css( "display", "" );
+			if ( !$.support.opacity && fx.opacity ) {
+				$el[ 0 ].style.removeAttribute( "filter" );
+			}
+		}
+
+		// Show a tab...
+		var showTab = showFx
+			? function( clicked, $show ) {
+				$( clicked ).closest( "li" ).addClass( "ui-tabs-selected ui-state-active" );
+				$show.hide().removeClass( "ui-tabs-hide" ) // avoid flicker that way
+					.animate( showFx, showFx.duration || "normal", function() {
+						resetStyle( $show, showFx );
+						self._trigger( "show", null, self._ui( clicked, $show[ 0 ] ) );
+					});
+			}
+			: function( clicked, $show ) {
+				$( clicked ).closest( "li" ).addClass( "ui-tabs-selected ui-state-active" );
+				$show.removeClass( "ui-tabs-hide" );
+				self._trigger( "show", null, self._ui( clicked, $show[ 0 ] ) );
+			};
+
+		// Hide a tab, $show is optional...
+		var hideTab = hideFx
+			? function( clicked, $hide ) {
+				$hide.animate( hideFx, hideFx.duration || "normal", function() {
+					self.lis.removeClass( "ui-tabs-selected ui-state-active" );
+					$hide.addClass( "ui-tabs-hide" );
+					resetStyle( $hide, hideFx );
+					self.element.dequeue( "tabs" );
+				});
+			}
+			: function( clicked, $hide, $show ) {
+				self.lis.removeClass( "ui-tabs-selected ui-state-active" );
+				$hide.addClass( "ui-tabs-hide" );
+				self.element.dequeue( "tabs" );
+			};
+
+		// attach tab event handler, unbind to avoid duplicates from former tabifying...
+		this.anchors.bind( o.event + ".tabs", function() {
+			var el = this,
+				$li = $(el).closest( "li" ),
+				$hide = self.panels.filter( ":not(.ui-tabs-hide)" ),
+				$show = self.element.find( self._sanitizeSelector( el.hash ) );
+
+			// If tab is already selected and not collapsible or tab disabled or
+			// or is already loading or click callback returns false stop here.
+			// Check if click handler returns false last so that it is not executed
+			// for a disabled or loading tab!
+			if ( ( $li.hasClass( "ui-tabs-selected" ) && !o.collapsible) ||
+				$li.hasClass( "ui-state-disabled" ) ||
+				$li.hasClass( "ui-state-processing" ) ||
+				self.panels.filter( ":animated" ).length ||
+				self._trigger( "select", null, self._ui( this, $show[ 0 ] ) ) === false ) {
+				this.blur();
+				return false;
+			}
+
+			o.selected = self.anchors.index( this );
+
+			self.abort();
+
+			// if tab may be closed
+			if ( o.collapsible ) {
+				if ( $li.hasClass( "ui-tabs-selected" ) ) {
+					o.selected = -1;
+
+					if ( o.cookie ) {
+						self._cookie( o.selected, o.cookie );
+					}
+
+					self.element.queue( "tabs", function() {
+						hideTab( el, $hide );
+					}).dequeue( "tabs" );
+
+					this.blur();
+					return false;
+				} else if ( !$hide.length ) {
+					if ( o.cookie ) {
+						self._cookie( o.selected, o.cookie );
+					}
+
+					self.element.queue( "tabs", function() {
+						showTab( el, $show );
+					});
+
+					// TODO make passing in node possible, see also http://dev.jqueryui.com/ticket/3171
+					self.load( self.anchors.index( this ) );
+
+					this.blur();
+					return false;
+				}
+			}
+
+			if ( o.cookie ) {
+				self._cookie( o.selected, o.cookie );
+			}
+
+			// show new tab
+			if ( $show.length ) {
+				if ( $hide.length ) {
+					self.element.queue( "tabs", function() {
+						hideTab( el, $hide );
+					});
+				}
+				self.element.queue( "tabs", function() {
+					showTab( el, $show );
+				});
+
+				self.load( self.anchors.index( this ) );
+			} else {
+				throw "jQuery UI Tabs: Mismatching fragment identifier.";
+			}
+
+			// Prevent IE 
