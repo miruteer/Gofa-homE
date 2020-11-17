@@ -54,4 +54,49 @@ window.open(' http://www.connect.renren.com/share/sharer?url='+url+'&title='+tit
 return;
 }else if(id=="xianguo"){
 _gaq.push(['_trackEvent', 'SocialShare', 'Share', 'XianGuo', 1]);
-window.open(' http://xianguo.com/service/submitdigg/?link='+
+window.open(' http://xianguo.com/service/submitdigg/?link='+url+'&title='+title,'_blank');
+return;
+}else if(id=="mail"){
+_gaq.push(['_trackEvent', 'SocialShare', 'Share', 'Mail', 1]);
+window.open('mailto:?subject='+title+'&body='+encodeURIComponent('这是我看到了一篇很不错的文章，分享给你看看！\r\n\r\n')+title+encodeURIComponent('\r\n')+url);
+return;
+}
+}
+</script>
+<style type="text/css"> 
+#share a{BORDER-RIGHT: #7b9ebd 1px solid; PADDING-RIGHT: 2px; BORDER-TOP: #7b9ebd 1px solid; PADDING-LEFT: 2px; FONT-SIZE: 12px; FILTER: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, StartColorStr=#ffffff, EndColorStr=#cecfde); BORDER-LEFT: #7b9ebd 1px solid; CURSOR: hand; COLOR: black; PADDING-TOP: 2px; BORDER-BOTTOM: #7b9ebd 1px solid}
+</style>
+</head><body>
+<p>
+
+<div id="share">
+<a href="javascript:void()" onClick="window.open('<%=request.getContextPath()%>/common/barcode.jsp?fullurl='+window.top.document.location.href,'newwindow','height=300,width=300,top=0,left=0,toolbar=no,menubar=no,location=no, status=no')"> 
+微信分享</a>
+<a href="javascript:shareto('qzone')" title="分享到QQ空间">QQ空间</a>
+<a href="javascript:shareto('sina')" title="分享到新浪微博">新浪微博</a>
+<a href="javascript:shareto('douban')" title="分享到豆瓣">豆瓣</a>
+<a href="javascript:shareto('renren')" title="分享到人人网">人人网</a>
+<a href="javascript:shareto('googlebuzz')" title="分享到Google+">Google+</a>
+<a href="javascript:shareto('facebook')" title="收藏到 - Facebook">Facebook</a>
+<a href="javascript:shareto('twitter')" title="收藏到 - Twitter">Twitter</a>
+<a href="javascript:shareto('xianguo')" title="分享到鲜果网">鲜果网</a>
+<a href="javascript:shareto('mail')" title="发送邮件分享给朋友">邮件</a>
+<a href="javascript:void()" onClick='copyToClipBoard()' > 复制网址</a>
+
+
+</div>    
+
+<script language="javascript">
+function copyToClipBoard()
+{
+try{
+ var clipBoardContent=window.top.document.title;
+ clipBoardContent+='\r\n' + window.top.document.location.href;
+ window.clipboardData.setData("Text",clipBoardContent);
+ alert("复制成功，请粘贴到你的QQ/MSN上推荐给你的好友！\r\n\r\n内容如下：\r\n" +clipBoardContent);
+}catch(e){}	
+
+}
+</script>
+
+</body></html>
