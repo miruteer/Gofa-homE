@@ -1,0 +1,5 @@
+﻿/*
+Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or http://ckeditor.com/license
+*/
+CKEDITOR.lang['bn']={"editor":"Rich Text Editor","editorPanel":"Rich Text Editor panel","common":{"editorHelp":"Press ALT 0 for help","browseServer":"ব্রাউজ সার্ভার","url":"URL","protocol":"প্রোটোকল","upload":"আপলোড","uploadSubmit":"ইহাকে সার্ভারে প্রেরন কর","image":"ছবির লেবেল যুক্ত কর","flash":"ফ্লাশ লেবেল যুক্ত কর","form":"ফর্ম","checkbox":"চেক বাক্স","radio":"রেডিও বাটন","textField":"টেক্সট ফীল্ড","textarea":"টেক্সট এরিয়া","hiddenField":"গুপ্ত ফীল্ড","button":"বাটন","select":"বাছাই ফীল্ড","imageButton":"ছবির বাটন","notSet":"<সেট নেই>","id":"আইডি","name":"নাম","langDir":"ভাষা লেখার দিক","langDirLtr":"বাম থেকে ডান (LTR)","langDirRtl":"ডান থেকে বাম (RTL)","langCode":"ভাষা কোড","longDescr":"URL এর লম্বা বর্ণনা","cssClass":"স্টাইল-শীট ক্লাস","advisoryTitle":"পরামর্শ শীর্ষক","cssStyle":"স্টাইল","ok":"ওকে","cancel":"ব
