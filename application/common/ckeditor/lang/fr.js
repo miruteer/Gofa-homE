@@ -1,0 +1,5 @@
+﻿/*
+Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or http://ckeditor.com/license
+*/
+CKEDITOR.lang['fr']={"editor":"Éditeur de texte enrichi","editorPanel":"Tableau de bord de l'éditeur de texte enrichi","common":{"editorHelp":"Utilisez le raccourci Alt-0 pour obtenir de l'aide","browseServer":"Parcourir le serveur","url":"URL","protocol":"Protocole","upload":"Télécharger","uploadSubmit":"Envoyer sur le serveur","image":"Image","flash":"Flash","form":"Formulaire","checkbox":"Case à cocher","radio":"Bouton radio","textField":"Champ texte","textarea":"Zone de texte","hiddenField":"Champ invisible","button":"Bouton","select":"Liste déroulante","imageButton":"Bouton avec image","notSet":"<indéfini>","id":"ID","name":"Nom","langDir":"Sens d'écriture","langDirLtr":"Gauche à droite (LTR)","langDir
