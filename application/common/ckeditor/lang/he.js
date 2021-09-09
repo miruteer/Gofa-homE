@@ -1,0 +1,5 @@
+﻿/*
+Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or http://ckeditor.com/license
+*/
+CKEDITOR.lang['he']={"editor":"עורך טקסט עשיר","editorPanel":"Rich Text Editor panel","common":{"editorHelp":"לחץ אלט ALT + 0 לעזרה","browseServer":"סייר השרת","url":"כתובת (URL)","protocol":"פרוטוקול","upload":"העלאה","uploadSubmit":"שליחה לשרת","image":"תמונה","flash":"פלאש","form":"טופס","checkbox":"תיבת סימון","radio":"לחצן אפשרויות","textField":"שדה טקסט","textarea":"איזור טקסט","hiddenField":"שדה חבוי","button":"כפתור","select":"שדה בחירה","imageButton":"כפתור תמונה","notSet":"<לא נקבע>","id":"זיהוי (ID)","name":"שם","langDir":"כיוון שפה","langDirLtr":"שמאל לימין (LTR)","langDirRtl":"ימין לשמאל (RTL)","langCode":"קוד שפה","longDescr":"קישור לתיאור מפורט","cssClass":"מחלקת עיצוב (CSS Class)","advisoryTitle":"כותרת מוצעת","cssStyle":"סגנון","ok":"אישור","cancel":"ביטול","close":"סגירה","prev
