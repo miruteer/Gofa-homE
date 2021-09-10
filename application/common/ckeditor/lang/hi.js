@@ -1,0 +1,5 @@
+﻿/*
+Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or http://ckeditor.com/license
+*/
+CKEDITOR.lang['hi']={"editor":"रिच टेक्स्ट एडिटर","editorPanel":"Rich Text Editor panel","common":{"editorHelp":"मदद के लिये ALT 0 दबाए","browseServer":"सर्वर ब्राउज़ करें","url":"URL","protocol":"प्रोटोकॉल","upload":"अपलोड","uploadSubmit":"इसे सर्वर को भेजें","image":"तस्वीर","flash":"फ़्लैश","form":"फ़ॉर्म","checkbox":"चॅक बॉक्स","radio":"रेडिओ बटन","textField":"टेक्स्ट फ़ील्ड","textarea":"टेक्स्ट एरिया","hiddenField":"गुप्त फ़ील्ड","button":"बटन","select":"चुनाव फ़ील्ड","imageButton":"तस्वीर बटन","notSet":"<सॅट नहीं>","id":"Id","name":"नाम","langDir":"भाषा लिखने की दिशा","langDirLtr":"बायें से दायें (LTR)","langDirRtl":"दायें से बायें (RTL)","langCode":"भाषा कोड","longDescr":"अधिक विवरण के लिए URL","cssClass":"स्टाइल-शीट क्लास","advisoryTitle":"परामर्श शीर्शक","cssStyle":"स्टाइल","ok":"ठीक है","cancel":"रद्द करें","close":"Close","preview":"प्रीव्यू","resize":"Resize","generalTab":"सामान्य","advancedTab":"ऍड्वान्स्ड","val
