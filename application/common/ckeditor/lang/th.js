@@ -1,0 +1,5 @@
+﻿/*
+Copyright (c) 2003-2018, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or http://ckeditor.com/license
+*/
+CKEDITOR.lang['th']={"editor":"Rich Text Editor","editorPanel":"Rich Text Editor panel","common":{"editorHelp":"กด ALT 0 หากต้องการความช่วยเหลือ","browseServer":"เปิดหน้าต่างจัดการไฟล์อัพโหลด","url":"ที่อยู่อ้างอิง URL","protocol":"โปรโตคอล","upload":"อัพโหลดไฟล์","uploadSubmit":"อัพโหลดไฟล์ไปเก็บไว้ที่เครื่องแม่ข่าย (เซิร์ฟเวอร์)","image":"รูปภาพ","flash":"ไฟล์ Flash","form":"แบบฟอร์ม","checkbox":"เช็คบ๊อก","radio":"เรดิโอบัตตอน","textField":"เท็กซ์ฟิลด์","textarea":"เท็กซ์แอเรีย","hiddenField":"ฮิดเดนฟิลด์","button":"ปุ่ม","select":"แถบตัวเลือก","imageButton":"ปุ่มแบบรูปภาพ","notSet":"<ไม่ระบุ>","id":"ไอดี","name":"ชื่อ","langDir":"การเขียน-อ่านภาษา","langDirLtr":"จากซ้ายไปขวา (LTR)","langDirRtl":"จากขวามาซ้าย (RT
