@@ -47,4 +47,24 @@
         if (timeOutId) {
             clearTimeout(timeOutId);
         }
-        var delay = CKEDITOR.config.autosave_delay !
+        var delay = CKEDITOR.config.autosave_delay != null ? CKEDITOR.config.autosave_delay : 10;
+        timeOutId = setTimeout(onTimer, delay * 1000, event);
+    };
+    var onTimer = function (event) {
+        if (savingActive) {
+            startTimer(event);
+        } else if (event.editor.checkDirty() || event.editor.plugins.bbcode) {
+            savingActive = true;
+
+            // save content
+            localStorage.setItem('autosave' + event.editor.id, event.editor.getData());
+
+            savingActive = false;
+        } 
+    };
+
+    // localStorage detection
+    function supportsLocalStorage() {
+        return typeof(Storage) !== 'undefined';
+    }
+})();
