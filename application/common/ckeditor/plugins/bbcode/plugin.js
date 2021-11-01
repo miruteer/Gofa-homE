@@ -222,4 +222,136 @@
 			// removing logic (from htmldataprocessor).
 			// 2. Or we're at the end of pseudo block, where it requires us to compensate
 			// the bogus br effect.
-			if ( pendingBrs && tagName in blockLikeT
+			if ( pendingBrs && tagName in blockLikeTags )
+				pendingBrs++;
+
+			while ( pendingBrs && pendingBrs-- )
+				currentNode.children.push( previous = new CKEDITOR.htmlParser.element( 'br' ) );
+		}
+
+		function addElement( node, target ) {
+			checkPendingBrs( node.name, 1 );
+
+			target = target || currentNode || fragment;
+
+			var len = target.children.length,
+				previous = len > 0 && target.children[ len - 1 ] || null;
+
+			node.previous = previous;
+			node.parent = target;
+
+			target.children.push( node );
+
+			if ( node.returnPoint ) {
+				currentNode = node.returnPoint;
+				delete node.returnPoint;
+			}
+		}
+
+		parser.onTagOpen = function( tagName, attributes ) {
+			var element = new CKEDITOR.htmlParser.element( tagName, attributes );
+
+			// This is a tag to be removed if empty, so do not add it immediately.
+			if ( CKEDITOR.dtd.$removeEmpty[ tagName ] ) {
+				pendingInline.push( element );
+				return;
+			}
+
+			var currentName = currentNode.name;
+
+			var currentDtd = currentName && ( CKEDITOR.dtd[ currentName ] || ( currentNode._.isBlockLike ? CKEDITOR.dtd.div : CKEDITOR.dtd.span ) );
+
+			// If the element cannot be child of the current element.
+			if ( currentDtd && !currentDtd[ tagName ] ) {
+				var reApply = false,
+					addPoint; // New position to start adding nodes.
+
+				// If the element name is the same as the current element name,
+				// then just close the current one and append the new one to the
+				// parent. This situation usually happens with <p>, <li>, <dt> and
+				// <dd>, specially in IE. Do not enter in this if block in this case.
+				if ( tagName == currentName )
+					addElement( currentNode, currentNode.parent );
+				else if ( tagName in CKEDITOR.dtd.$listItem ) {
+					parser.onTagOpen( 'ul', {} );
+					addPoint = currentNode;
+					reApply = true;
+				} else {
+					addElement( currentNode, currentNode.parent );
+
+					// The current element is an inline element, which
+					// cannot hold the new one. Put it in the pending list,
+					// and try adding the new one after it.
+					pendingInline.unshift( currentNode );
+					reApply = true;
+				}
+
+				if ( addPoint )
+					currentNode = addPoint;
+				// Try adding it to the return point, or the parent element.
+				else
+					currentNode = currentNode.returnPoint || currentNode.parent;
+
+				if ( reApply ) {
+					parser.onTagOpen.apply( this, arguments );
+					return;
+				}
+			}
+
+			checkPending( tagName );
+			checkPendingBrs( tagName );
+
+			element.parent = currentNode;
+			element.returnPoint = returnPoint;
+			returnPoint = 0;
+
+			if ( element.isEmpty )
+				addElement( element );
+			else
+				currentNode = element;
+		};
+
+		parser.onTagClose = function( tagName ) {
+			// Check if there is any pending tag to be closed.
+			for ( var i = pendingInline.length - 1; i >= 0; i-- ) {
+				// If found, just remove it from the list.
+				if ( tagName == pendingInline[ i ].name ) {
+					pendingInline.splice( i, 1 );
+					return;
+				}
+			}
+
+			var pendingAdd = [],
+				newPendingInline = [],
+				candidate = currentNode;
+
+			while ( candidate.type && candidate.name != tagName ) {
+				// If this is an inline element, add it to the pending list, if we're
+				// really closing one of the parents element later, they will continue
+				// after it.
+				if ( !candidate._.isBlockLike )
+					newPendingInline.unshift( candidate );
+
+				// This node should be added to it's parent at this point. But,
+				// it should happen only if the closing tag is really closing
+				// one of the nodes. So, for now, we just cache it.
+				pendingAdd.push( candidate );
+
+				candidate = candidate.parent;
+			}
+
+			if ( candidate.type ) {
+				// Add all elements that have been found in the above loop.
+				for ( i = 0; i < pendingAdd.length; i++ ) {
+					var node = pendingAdd[ i ];
+					addElement( node, node.parent );
+				}
+
+				currentNode = candidate;
+
+
+				addElement( candidate, candidate.parent );
+
+				// The parent should start receiving new nodes now, except if
+				// addElement changed the currentNode.
+				if ( candidate == curr
