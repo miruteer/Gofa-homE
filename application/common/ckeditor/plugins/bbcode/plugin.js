@@ -354,4 +354,162 @@
 
 				// The parent should start receiving new nodes now, except if
 				// addElement changed the currentNode.
-				if ( candidate == curr
+				if ( candidate == currentNode )
+					currentNode = currentNode.parent;
+
+				pendingInline = pendingInline.concat( newPendingInline );
+			}
+		};
+
+		parser.onText = function( text ) {
+			var currentDtd = CKEDITOR.dtd[ currentNode.name ];
+			if ( !currentDtd || currentDtd[ '#' ] ) {
+				checkPendingBrs();
+				checkPending();
+
+				text.replace( /(\r\n|[\r\n])|[^\r\n]*/g, function( piece, lineBreak ) {
+					if ( lineBreak !== undefined && lineBreak.length )
+						pendingBrs++;
+					else if ( piece.length ) {
+						var lastIndex = 0;
+
+						
+						if ( lastIndex != piece.length )
+							addElement( new CKEDITOR.htmlParser.text( piece.substring( lastIndex, piece.length ) ), currentNode );
+					}
+				} );
+			}
+		};
+
+		// Parse it.
+		parser.parse( CKEDITOR.tools.htmlEncode( source ) );
+
+		// Close all hanging nodes.
+		while ( currentNode.type != CKEDITOR.NODE_DOCUMENT_FRAGMENT ) {
+			var parent = currentNode.parent,
+				node = currentNode;
+
+			addElement( node, parent );
+			currentNode = parent;
+		}
+
+		return fragment;
+	};
+
+	var BBCodeWriter = CKEDITOR.tools.createClass( {
+		$: function() {
+			this._ = {
+				output: [],
+				rules: []
+			};
+
+			// List and list item.
+			this.setRules( 'list', { breakBeforeOpen: 1, breakAfterOpen: 1, breakBeforeClose: 1, breakAfterClose: 1 } );
+
+			this.setRules( '*', {
+				breakBeforeOpen: 1,
+				breakAfterOpen: 0,
+				breakBeforeClose: 1,
+				breakAfterClose: 0
+			} );
+
+			this.setRules( 'quote', {
+				breakBeforeOpen: 1,
+				breakAfterOpen: 0,
+				breakBeforeClose: 0,
+				breakAfterClose: 1
+			} );
+		},
+
+		proto: {
+			//
+			// Sets formatting rules for a given tag. The possible rules are:
+			// <ul>
+			//	<li><b>breakBeforeOpen</b>: break line before the opener tag for this element.</li>
+			//	<li><b>breakAfterOpen</b>: break line after the opener tag for this element.</li>
+			//	<li><b>breakBeforeClose</b>: break line before the closer tag for this element.</li>
+			//	<li><b>breakAfterClose</b>: break line after the closer tag for this element.</li>
+			// </ul>
+			//
+			// All rules default to "false". Each call to the function overrides
+			// already present rules, leaving the undefined untouched.
+			//
+			// @param {String} tagName The tag name to which set the rules.
+			// @param {Object} rules An object containing the element rules.
+			// @example
+			// // Break line before and after "img" tags.
+			// writer.setRules( 'list',
+			//		 {
+			//				 breakBeforeOpen : true
+			//				 breakAfterOpen : true
+			//		 });
+			setRules: function( tagName, rules ) {
+				var currentRules = this._.rules[ tagName ];
+
+				if ( currentRules )
+					CKEDITOR.tools.extend( currentRules, rules, true );
+				else
+					this._.rules[ tagName ] = rules;
+			},
+
+			getRule: function( tagName, ruleName ) {
+				return this._.rules[ tagName ] && this._.rules[ tagName ][ ruleName ];
+			},
+
+			openTag: function( tag ) {
+				if ( tag in bbcodeMap ) {
+					if ( this.getRule( tag, 'breakBeforeOpen' ) )
+						this.lineBreak( 1 );
+
+					this.write( '[', tag );
+				}
+			},
+
+			openTagClose: function( tag ) {
+				if ( tag == 'br' )
+					this._.output.push( '\n' );
+				else if ( tag in bbcodeMap ) {
+					this.write( ']' );
+					if ( this.getRule( tag, 'breakAfterOpen' ) )
+						this.lineBreak( 1 );
+				}
+			},
+
+			attribute: function( name, val ) {
+				if ( name == 'option' ) {
+					this.write( '=', val );
+				}
+			},
+
+			closeTag: function( tag ) {
+				if ( tag in bbcodeMap ) {
+					if ( this.getRule( tag, 'breakBeforeClose' ) )
+						this.lineBreak( 1 );
+
+					tag != '*' && this.write( '[/', tag, ']' );
+
+					if ( this.getRule( tag, 'breakAfterClose' ) )
+						this.lineBreak( 1 );
+				}
+			},
+
+			text: function( text ) {
+				this.write( text );
+			},
+
+			comment: function() {},
+
+			// Output line-break for formatting.
+			lineBreak: function() {
+				// Avoid line break when:
+				// 1) Previous tag already put one.
+				// 2) We're at output start.
+				if ( !this._.hasLineBreak && this._.output.length ) {
+					this.write( '\n' );
+					this._.hasLineBreak = 1;
+				}
+			},
+
+			write: function() {
+				this._.hasLineBreak = 0;
+	
