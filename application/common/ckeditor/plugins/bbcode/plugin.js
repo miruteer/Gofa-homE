@@ -121,4 +121,105 @@
 							if ( !isNaN( optionPart ) )
 								optionPart = 'decimal';
 							else if ( /^[a-z]+$/.test( optionPart ) )
-								optionPart = 'lo
+								optionPart = 'lower-alpha';
+							else if ( /^[A-Z]+$/.test( optionPart ) )
+								optionPart = 'upper-alpha';
+						}
+
+						if ( stylesMap[ part ] ) {
+							// Font size represents percentage.
+							if ( part == 'size' ) {
+								optionPart += '%';
+							}
+
+							styles[ stylesMap[ part ] ] = optionPart;
+							attribs.style = serializeStyleText( styles );
+						} else if ( attributesMap[ part ] ) {
+							// All the input BBCode is encoded at the beginning so <> characters in the textual part
+							// are later correctly preserved in HTML. However... it affects parts that now become
+							// attributes, so we need to revert that. As a matter of fact, the content should not be
+							// encoded at the beginning, but only later when creating text nodes (encoding should be more precise)
+							// but it's too late not for such changes.
+							attribs[ attributesMap[ part ] ] = CKEDITOR.tools.htmlDecode( optionPart );
+						}
+					}
+
+					// Two special handling - image and email, protect them
+					// as "span" with an attribute marker.
+					if ( part == 'email' || part == 'img' )
+						attribs.bbcode = part;
+
+					this.onTagOpen( tagName, attribs, CKEDITOR.dtd.$empty[ tagName ] );
+				}
+				// Closing tag
+				else if ( parts[ 3 ] ) {
+					this.onTagClose( bbcodeMap[part] );
+				}
+			}
+
+			if ( bbcode.length > lastIndex )
+				this.onText( bbcode.substring( lastIndex, bbcode.length ), 1 );
+		}
+	};
+
+	/**
+	 * Creates a {@link CKEDITOR.htmlParser.fragment} from an HTML string.
+	 *
+	 *		var fragment = CKEDITOR.htmlParser.fragment.fromHtml( '<b>Sample</b> Text' );
+	 *		alert( fragment.children[ 0 ].name );		// 'b'
+	 *		alert( fragment.children[ 1 ].value );	// ' Text'
+	 *
+	 * @static
+	 * @member CKEDITOR.htmlParser.fragment
+	 * @param {String} source The HTML to be parsed, filling the fragment.
+	 * @returns {CKEDITOR.htmlParser.fragment} The fragment created.
+	 */
+	CKEDITOR.htmlParser.fragment.fromBBCode = function( source ) {
+		var parser = new CKEDITOR.BBCodeParser(),
+			fragment = new CKEDITOR.htmlParser.fragment(),
+			pendingInline = [],
+			pendingBrs = 0,
+			currentNode = fragment,
+			returnPoint;
+
+		function checkPending( newTagName ) {
+			if ( pendingInline.length > 0 ) {
+				for ( var i = 0; i < pendingInline.length; i++ ) {
+					var pendingElement = pendingInline[ i ],
+						pendingName = pendingElement.name,
+						pendingDtd = CKEDITOR.dtd[ pendingName ],
+						currentDtd = currentNode.name && CKEDITOR.dtd[ currentNode.name ];
+
+					if ( ( !currentDtd || currentDtd[ pendingName ] ) && ( !newTagName || !pendingDtd || pendingDtd[ newTagName ] || !CKEDITOR.dtd[ newTagName ] ) ) {
+						// Get a clone for the pending element.
+						pendingElement = pendingElement.clone();
+
+						// Add it to the current node and make it the current,
+						// so the new element will be added inside of it.
+						pendingElement.parent = currentNode;
+						currentNode = pendingElement;
+
+						// Remove the pending element (back the index by one
+						// to properly process the next entry).
+						pendingInline.splice( i, 1 );
+						i--;
+					}
+				}
+			}
+		}
+
+		function checkPendingBrs( tagName, closing ) {
+			var len = currentNode.children.length,
+				previous = len > 0 && currentNode.children[ len - 1 ],
+				lineBreakParent = !previous && writer.getRule( tagnameMap[ currentNode.name ], 'breakAfterOpen' ),
+				lineBreakPrevious = previous && previous.type == CKEDITOR.NODE_ELEMENT && writer.getRule( tagnameMap[ previous.name ], 'breakAfterClose' ),
+				lineBreakCurrent = tagName && writer.getRule( tagnameMap[ tagName ], closing ? 'breakBeforeClose' : 'breakBeforeOpen' );
+
+			if ( pendingBrs && ( lineBreakParent || lineBreakPrevious || lineBreakCurrent ) )
+				pendingBrs--;
+
+			// 1. Either we're at the end of block, where it requires us to compensate the br filler
+			// removing logic (from htmldataprocessor).
+			// 2. Or we're at the end of pseudo block, where it requires us to compensate
+			// the bogus br effect.
+			if ( pendingBrs && tagName in blockLikeT
