@@ -512,4 +512,138 @@
 
 			write: function() {
 				this._.hasLineBreak = 0;
-	
+				var data = Array.prototype.join.call( arguments, '' );
+				this._.output.push( data );
+			},
+
+			reset: function() {
+				this._.output = [];
+				this._.hasLineBreak = 0;
+			},
+
+			getHtml: function( reset ) {
+				var bbcode = this._.output.join( '' );
+
+				if ( reset )
+					this.reset();
+
+				return decodeHtml( bbcode );
+			}
+		}
+	} );
+
+	var writer = new BBCodeWriter();
+
+	CKEDITOR.plugins.add( 'bbcode', {
+		requires: 'entities',
+
+		// Adapt some critical editor configuration for better support
+		// of BBCode environment.
+		beforeInit: function( editor ) {
+			var config = editor.config;
+
+			CKEDITOR.tools.extend( config, {
+				// This one is for backwards compatibility only as
+				// editor#enterMode is already set at this stage (https://dev.ckeditor.com/ticket/11202).
+				enterMode: CKEDITOR.ENTER_BR,
+				basicEntities: false,
+				entities: false,
+				fillEmptyBlocks: false
+			}, true );
+
+			editor.filter.disable();
+
+			// Since CKEditor 4.3, editor#(active)enterMode is set before
+			// beforeInit. Properties got to be updated (https://dev.ckeditor.com/ticket/11202).
+			editor.activeEnterMode = editor.enterMode = CKEDITOR.ENTER_BR;
+		},
+
+		init: function( editor ) {
+			var config = editor.config;
+
+			function BBCodeToHtml( code ) {
+				var fragment = CKEDITOR.htmlParser.fragment.fromBBCode( code ),
+					writer = new CKEDITOR.htmlParser.basicWriter();
+
+				fragment.writeHtml( writer, bbcodeFilter );
+				return writer.getHtml( true );
+			}
+
+			var bbcodeFilter = new CKEDITOR.htmlParser.filter();
+			bbcodeFilter.addRules( {
+				elements: {
+					blockquote: function( element ) {
+						var quoted = new CKEDITOR.htmlParser.element( 'div' );
+						quoted.children = element.children;
+						element.children = [ quoted ];
+						var citeText = element.attributes.cite;
+						if ( citeText ) {
+							var cite = new CKEDITOR.htmlParser.element( 'cite' );
+							cite.add( new CKEDITOR.htmlParser.text( citeText.replace( /^"|"$/g, '' ) ) );
+							delete element.attributes.cite;
+							element.children.unshift( cite );
+						}
+					},
+					span: function( element ) {
+						var bbcode;
+						if ( ( bbcode = element.attributes.bbcode ) ) {
+							if ( bbcode == 'img' ) {
+								element.name = 'img';
+								element.attributes.src = element.children[ 0 ].value;
+								element.children = [];
+							} else if ( bbcode == 'email' ) {
+								element.name = 'a';
+								element.attributes.href = 'mailto:' + element.children[ 0 ].value;
+							}
+
+							delete element.attributes.bbcode;
+						}
+					},
+					ol: function( element ) {
+						if ( element.attributes.listType ) {
+							if ( element.attributes.listType != 'decimal' )
+								element.attributes.style = 'list-style-type:' + element.attributes.listType;
+						} else {
+							element.name = 'ul';
+						}
+
+						delete element.attributes.listType;
+					},
+					a: function( element ) {
+						if ( !element.attributes.href )
+							element.attributes.href = element.children[ 0 ].value;
+					},
+					
+				}
+			} );
+
+			editor.dataProcessor.htmlFilter.addRules( {
+				elements: {
+					$: function( element ) {
+						var attributes = element.attributes,
+							style = CKEDITOR.tools.parseCssText( attributes.style, 1 ),
+							value;
+
+						var tagName = element.name;
+						if ( tagName in convertMap )
+							tagName = convertMap[ tagName ];
+						else if ( tagName == 'span' ) {
+							if ( ( value = style.color ) ) {
+								tagName = 'color';
+								value = CKEDITOR.tools.convertRgbToHex( value );
+							} else if ( ( value = style[ 'font-size' ] ) ) {
+								var percentValue = value.match( /(\d+)%$/ );
+								if ( percentValue ) {
+									value = percentValue[ 1 ];
+									tagName = 'size';
+								}
+							}
+						} else if ( tagName == 'ol' || tagName == 'ul' ) {
+							if ( ( value = style[ 'list-style-type' ] ) ) {
+								switch ( value ) {
+									case 'lower-alpha':
+										value = 'a';
+										break;
+									case 'upper-alpha':
+										value = 'A';
+										
