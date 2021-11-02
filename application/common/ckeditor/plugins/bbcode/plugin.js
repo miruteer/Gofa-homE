@@ -646,4 +646,126 @@
 										break;
 									case 'upper-alpha':
 										value = 'A';
-										
+										break;
+								}
+							} else if ( tagName == 'ol' ) {
+								value = 1;
+							}
+
+							tagName = 'list';
+						} else if ( tagName == 'blockquote' ) {
+							try {
+								var cite = element.children[ 0 ],
+									quoted = element.children[ 1 ],
+									citeText = cite.name == 'cite' && cite.children[ 0 ].value;
+
+								if ( citeText ) {
+									value = '"' + citeText + '"';
+									element.children = quoted.children;
+								}
+
+							} catch ( er ) {}
+
+							tagName = 'quote';
+						} else if ( tagName == 'a' ) {
+							if ( ( value = attributes.href ) ) {
+								if ( value.indexOf( 'mailto:' ) !== -1 ) {
+									tagName = 'email';
+									// [email] should have a single text child with email address.
+									element.children = [ new CKEDITOR.htmlParser.text( value.replace( 'mailto:', '' ) ) ];
+									value = '';
+								} else {
+									var singleton = element.children.length == 1 && element.children[ 0 ];
+									if ( singleton && singleton.type == CKEDITOR.NODE_TEXT && singleton.value == value )
+										value = '';
+
+									tagName = 'url';
+								}
+							}
+						} else if ( tagName == 'img' ) {
+							element.isEmpty = 0;
+
+							var src = attributes[ 'data-cke-saved-src' ] || attributes.src,
+								alt = attributes.alt;
+
+						
+								element.children = [ new CKEDITOR.htmlParser.text( src ) ];
+						}
+
+						element.name = tagName;
+						value && ( element.attributes.option = value );
+
+						return null;
+					},
+
+					div: function( element ) {
+						var alignment = CKEDITOR.tools.parseCssText( element.attributes.style, 1 )[ 'text-align' ] || '';
+
+						if ( alignment ) {
+							element.name = alignment;
+							return null;
+						}
+					},
+
+					// Remove any bogus br from the end of a pseudo block,
+					// e.g. <div>some text<br /><p>paragraph</p></div>
+					br: function( element ) {
+						var next = element.next;
+						if ( next && next.name in blockLikeTags )
+							return false;
+					}
+				}
+			}, 1 );
+
+			editor.dataProcessor.writer = writer;
+
+			function onSetData( evt ) {
+				var bbcode = evt.data.dataValue;
+				evt.data.dataValue = BBCodeToHtml( bbcode );
+			}
+
+			// Skip the first "setData" call from inline creator, to allow content of
+			// HTML to be loaded from the page element.
+			if ( editor.elementMode == CKEDITOR.ELEMENT_MODE_INLINE )
+				editor.once( 'contentDom', function() {
+					editor.on( 'setData', onSetData );
+				} );
+			else
+				editor.on( 'setData', onSetData );
+
+		},
+
+		afterInit: function( editor ) {
+			var filters;
+			if ( editor._.elementsPath ) {
+				// Eliminate irrelevant elements from displaying, e.g body and p.
+				if ( ( filters = editor._.elementsPath.filters ) ) {
+					filters.push( function( element ) {
+						var htmlName = element.getName(),
+							name = tagnameMap[ htmlName ] || false;
+
+						// Specialized anchor presents as email.
+						if ( name == 'link' && element.getAttribute( 'href' ).indexOf( 'mailto:' ) === 0 )
+							name = 'email';
+						// Styled span could be either size or color.
+						else if ( htmlName == 'span' ) {
+							if ( element.getStyle( 'font-size' ) )
+								name = 'size';
+							else if ( element.getStyle( 'color' ) )
+								name = 'color';
+						// Styled div could be align
+						} else if ( htmlName == 'div' && element.getStyle( 'text-align' ) ) {
+							name = element.getStyle( 'text-align' );
+						} else if ( name == 'img' ) {
+							var src = element.data( 'cke-saved-src' ) || element.getAttribute( 'src' );
+					
+						}
+
+						return name;
+					} );
+				}
+			}
+		}
+	} );
+
+} )();
