@@ -91,3 +91,10 @@ function releaseKeyboard(){
 function forumSubmit(event)
 {
    var page;
+   event = event ? event : (window.event ? window.event : null);
+
+   if (event.keyCode==13 && event.ctrlKey){      
+      document.getElementById("formSubmitButton").click();                     
+   }else return;
+   
+ }
