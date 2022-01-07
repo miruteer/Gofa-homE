@@ -17,4 +17,277 @@
   font-style: normal;
   text-rendering: auto;
   /* Better Font Rendering =========== */
-  -webkit-font-s
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.fa-search:before {
+  content: "\f002";
+}
+.fa-star-half-full:before {
+  content: "\f006";
+}
+.fa-home:before {
+  content: "\f015";
+}
+.fa-feed:before {
+  content: "\f09e";
+}
+.fa-rss:before {
+  content: "\f09e";
+}
+.fa-list-ul:before {
+  content: "\f0ca";
+}
+.fa-weibo:before {
+  content: "\f18a";
+}
+.fa-qq:before {
+  content: "\f1d6";
+}
+.fa-wechat:before {
+  content: "\f1d7";
+}
+.fa-weixin:before {
+  content: "\f1d7";
+}
+.fa-arrow-circle-o-down:before {
+content: "\f01a";
+}
+.fa-circle-o:before {
+  content: "\f01a";
+}  
+.fa-bars:before {
+content: "\f039";
+}
+.fa-arrow-circle-up:before {
+content: "\f062";
+}
+.fa-eye:before {
+  content: "\f06e";
+}
+.fa-calendar:before {
+  content: "\f073";
+}
+.fa-sign-out:before {
+  content: "\f08b";
+}
+.fa-sign-in:before {
+  content: "\f090";
+}
+.fa-list-ul:before {
+  content: "\f0ca";
+}
+.fa-comment:before {
+  content: "\f0e5";
+}
+.fa-share-square:before {
+  content: "\f0e5";
+}
+.fa-newspaper-o:before {
+  content: "\f0f6";
+}
+.fa-print:before {
+  content: "\f162";
+}
+.fa-thumbs-o-up:before {
+  content: "\f164";
+}
+.fa-heart:before {
+  content: "\f164";
+}
+.icon-star-o:before {
+  content: "\f006";
+}
+.fa-user:before {
+  content: "\f007";
+}
+body {
+  background: url(../img/bg2.png) fixed;
+  color: #666;
+  font-weight: 400;
+  font-size: 15px;
+  font-family: "Ek Mukta", sans-serif;
+  line-height: 1.6em;
+}
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  word-wrap: break-word;
+}
+::-moz-selection {
+  background: #000;
+  color: #fff;
+  text-shadow: none;
+}
+::selection {
+  background: #000;
+  color: #fff;
+  text-shadow: none;
+}
+html {
+   -webkit-text-size-adjust: none;
+}
+.video embed,
+.video iframe,
+.video object {
+   width: 100%;
+    height: auto;
+}
+img {
+  width: auto\9;
+  height: auto;
+  max-width: 100%;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #555;
+  font-weight: 600;
+}
+p {
+  margin: 0 0 20px;
+}
+.indent {
+  text-indent: 0px;
+}
+a {
+  color: #41872d;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
+}
+a:focus,
+a:hover {
+  color: #000;
+  text-decoration: none;
+}
+.bige20 {
+  font-size: 24px;
+}
+.center {
+  margin: 0 auto;
+  text-align: center;
+}
+.f-right {
+  float: right;
+}
+.f-left {
+  float: left;
+}
+.t-right {
+  text-align: right;
+}
+.t-left {
+  text-align: left;
+}
+.post:after,
+.post:before,
+article:after,
+article:before,
+section:after,
+section:before {
+  clear: both;
+  display: block;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  content: "\0020";
+}
+.clear {
+  clear: both;
+  display: block;
+  visibility: hidden;
+  height: 0;
+  content: "\0020";
+}
+.clearfix:after,
+.clearfix:before {
+  clear: both;
+  display: block;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  content: "\0020";
+}
+hr.line {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  border-color: #ddd;
+}
+.copyrights {
+  overflow: hidden;
+  height: 0;
+  text-indent: -9999px;
+  font-size: 0;
+  line-height: 0;
+}
+body.sub-page {
+  padding-top: 30px;
+  background-color: #f9f9f9;
+}
+body.sub-page .logo {
+  margin: 110px 0 80px;
+  padding: 30px 0 50px;
+}
+#top {
+  padding: 10px 0 0;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  color: #000;
+}
+#top a {
+  color: #000;
+}
+#top a:hover {
+  color: #69bf03;
+}
+.link {
+  text-align: right;
+}
+.link a {
+  display: inline-block;
+  text-decoration: none;
+  letter-spacing: 1px;
+  font-weight: 700;
+  font-size: 12px;
+}
+.link li:after {
+  display: inline-block;
+  margin: 0 0 0 12px;
+  content: "/";
+  font-weight: 700;
+}
+.link li:last-child:after {
+  display: none;
+  margin-right: 0;
+  margin-left: 0;
+  content: "";
+}
+.link li ul {
+  display: none;
+}
+#menu {
+  border-radius: 0;
+  background-color: #000;
+}
+#menu a.navbar-brand:hover {
+  color: #fff;
+}
+#menu .navbar-brand {
+  margin: 0;
+  padding: 14px 18px;
+  height: auto;
+  background-color: #000;
+  text-transform: uppercase;
+}
+#menu .navbar-collapse {
+  padding: 0;
+}
+#menu .navbar-nav {
+  background-color:
