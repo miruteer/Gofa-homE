@@ -224,4 +224,113 @@
 .blur_os_x_close {
 	width: 19px;
 	height: 19px;
-	background: transparent url(/c
+	background: transparent url(/common/js/styles/mac_os_x/close.gif) no-repeat 0 0;			
+	position:absolute;
+	top:12px;
+	left:25px;
+	cursor:pointer;
+	z-index:1000;
+}
+
+.blur_os_x_minimize {
+	width: 19px;
+	height: 19px;
+	background: transparent url(/common/js/styles/mac_os_x/minimize.gif) no-repeat 0 0;			
+	position:absolute;
+	top:12px;
+	left:45px;
+	cursor:pointer;
+	z-index:1000;
+}
+
+.blur_os_x_maximize {
+	width: 19px;
+	height: 19px;
+	background: transparent url(/common/js/styles/mac_os_x/maximize.gif) no-repeat 0 0;			
+	position:absolute;
+	top:12px;
+	left:65px;
+	cursor:pointer;
+	z-index:1000;
+}
+
+.blur_os_x_title {
+	float:left;
+	height:14px;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size:12px;
+	text-align:center;
+	margin-top:8px;
+	width:100%;
+	color:#000;
+}
+
+.blur_os_x_content {
+	overflow:auto;
+	color: #222;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 10px;
+	background:#FFF;
+}
+.blur_os_x_s .status_bar {
+  padding-bottom:24px;
+}
+
+/* FOR IE */
+* html .blur_os_x_nw {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/TL.png", sizingMethod="crop");
+}
+
+* html .blur_os_x_n {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/T.png", sizingMethod="scale");
+}
+
+* html .blur_os_x_ne {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/TR.png", sizingMethod="crop");
+}
+
+* html .blur_os_x_w {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/L.png", sizingMethod="scale");
+}
+
+* html .blur_os_x_e {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/R.png", sizingMethod="scale");
+}
+
+* html .blur_os_x_sw {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/BL.png", sizingMethod="crop");
+}
+
+* html .blur_os_x_s {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/B.png", sizingMethod="scale");
+}
+
+* html .blur_os_x_se {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/BR.png", sizingMethod="crop");
+}
+
+* html .blur_os_x_sizer {
+	background-color: transparent;
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/common/js/styles/mac_os_x/BR.png", sizingMethod="crop");
+}
+
+.mac_os_x_buttons {
+  text-align: center;
+}
