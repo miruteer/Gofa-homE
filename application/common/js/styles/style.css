@@ -499,4 +499,243 @@ body.sub-page .logo {
   background-color: #da251d;
   color: #fff;
   color: #fff;
-  text-transfo
+  text-transform: uppercase;
+  font-size: 40px;
+}
+.header-text h3 {
+  color: #fff;
+}
+#page-content {
+  padding: 0;
+}
+#page-content.archive-page,
+#page-content.index-page,
+#page-content.single-page {
+  margin-top: 20px;
+}
+.archive-page .box .zoom-container {
+  float: left;
+  display: inline-block;
+  margin-right: 5px;
+  max-width: 250px;
+}
+.featured {
+  padding: 15px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+.box {
+  padding: 10px 10px 10px;
+  background-color: #fff;
+}
+
+.box:after,
+.box:before {
+  clear: both;
+  display: block;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  content: "\0020";
+}
+.box .info {
+  margin: 5px 0 10px 0;
+}
+.box .info a {
+  border-bottom: 1px solid #000;
+  box-shadow: inset 0 -1px 0 #000;
+  color: #000;
+  transition: all ease 150ms;
+}
+.box .info a:hover {
+  border-bottom: 1px solid #000;
+  box-shadow: inset 0 -1.3em 0 #000;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: none;
+}
+.box h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.box .box-header.header-photo {
+  margin-bottom: 20px;
+  background: url(/common/js/img/title-picture.png) repeat-x center center;
+}
+.box .box-header.header-natural {
+  margin-bottom: 20px;
+  background: url(/common/js/img/title-natural.png) repeat-x center center;
+}
+.box .box-header.header-vimeo {
+  margin-bottom: 20px;
+  background: url(/common/js/img/title-vimeo.png) repeat-x center center;
+}
+.box .box-header h2 {
+  display: inline-block;
+  margin-left: 15px;
+  padding: 0 8px;
+  background-color: #fff;
+  color: #333;
+  font-size: 25px;
+}
+.box .box-content {
+  margin-top: 30px;
+}
+.box .box-content a {
+  color: #333;
+  font-weight: 700;
+}
+.box .box-content a:hover {
+  color: #555;
+}
+.box .box-content h3 {
+  margin: 10px 0 5px;
+  font-size: 18px;
+}
+.box .box-content span {
+  font-size: 15px;
+}
+.box .box-content span i {
+  margin-right: 2px;
+  font-size: 14px;
+}
+.box .box-content p {
+  margin-top: 10px;
+}
+.vid-item {
+  position: relative;
+}
+.vid-name {
+  margin: 0;
+}
+.vid-name a {
+  color: #333;
+  font-size: 19px;
+}
+.vid-name a:hover {
+  color: #fd0005;
+}
+.vid-tags {
+  margin: 15px 0;
+  padding: 30px;
+  border: 1px solid #ddd;
+}
+.vid-tags a {
+  padding: 5px 10px;
+  background: #fd0005;
+  color: #fff;
+}
+.vid-tags a:hover {
+  background: #000;
+}
+.info {
+  margin: 0;
+  font-size: 14px;
+}
+.info i {
+  margin-right: 8px;
+}
+.info span {
+  margin-right: 10px;
+}
+.info a,
+.info h5 {
+  margin: 0 0 5px;
+  font-size: 13px;
+  line-height: 1;
+}
+.info a {
+  color: #006ea0;
+}
+.info a:hover {
+  text-decoration: underline;
+}
+.rating {
+  font-size: 14px;
+  line-height: 1.2;
+}
+ul.pagination {
+  margin: 42px auto 25px;
+}
+ul.pagination li a {
+  color: #444;
+}
+.widget {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  padding: 10px 20px;
+  background: #fff;
+}
+.widget:after,
+.widget:before {
+  clear: both;
+  display: block;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+  content: "\0020";
+}
+.widget ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.widget ul li {
+  overflow: hidden;
+  list-style: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.widget .heading {
+  background: url(/common/js/img/title.png) repeat-x center center;
+}
+.widget .heading h4 {
+  display: inline-block;
+  margin-left: 15px;
+  padding: 0 8px;
+  background-color: #fff;
+  color: #333;
+  text-transform: uppercase;
+  font-size: 22px;
+}
+.widget.wid-vid ul a {
+  float: left;
+  display: inline;
+  margin: 3px 2px;
+  padding: 5px;
+  border-top: none;
+  border-right: none;
+  border-bottom: 1px solid transparent;
+  border-left: none;
+  color: #333;
+  font-weight: 700;
+}
+.widget.wid-vid .tab-content {
+  margin-top: 13px;
+}
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:focus,
+.nav-tabs > li.active > a:hover {
+  background: 0 0;
+}
+.widget.wid-vid ul a:focus,
+.widget.wid-vid ul a:hover {
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  background: 0 0;
+}
+.widget.wid-vid ul li {
+  border-bottom: 1px solid transparent;
+}
+.widget.wid-vid ul li:hover {
+  border-bottom: 1px solid #fd0005;
+}
+.widget.wid-vid ul li + :hover {
+  border-bottom: 1px solid #41872d;
+}
+.widget.wid-vid ul li + li + :hover {
+  border-bottom: 1px solid #966b20;
+}
+.widget.wid-vid .po
