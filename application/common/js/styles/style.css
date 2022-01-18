@@ -1188,4 +1188,12 @@ DIV.diggArea {
 button, html input[type=button], input[type=reset], input[type=submit] {
   background-color: #41872d;
   color: white;
- 
+  border: 0;
+}
+.displaycode{
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+ins.adsbygoogle[data-ad-status='unfilled'] {
+  display: none !important;
+}
