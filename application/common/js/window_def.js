@@ -730,3 +730,817 @@ value+=",t:"+(this.storedLocation?this.storedLocation.top:this.element.getStyle(
 else
 value+=",b:"+(this.storedLocation?this.storedLocation.bottom:this.element.getStyle('bottom'))
 value+=","+(this.storedLocation?this.storedLocation.width:this.width);
+value+=","+(this.storedLocation?this.storedLocation.height:this.height);
+value+=","+this.isMinimized();
+value+=","+this.isMaximized();
+WindowUtilities.setCookie(value,this.cookie)}},
+_createWiredElement:function(){
+if(!this.wiredElement){
+if(Prototype.Browser.IE)
+this._getWindowBorderSize();
+var div=document.createElement("div");
+div.className="wired_frame "+this.options.className+"_wired_frame";
+div.style.position='absolute';
+this.options.parent.insertBefore(div,this.options.parent.firstChild);
+this.wiredElement=$(div);}
+if(this.useLeft)
+this.wiredElement.setStyle({left:this.element.getStyle('left')});
+else
+this.wiredElement.setStyle({right:this.element.getStyle('right')});
+if(this.useTop)
+this.wiredElement.setStyle({top:this.element.getStyle('top')});
+else
+this.wiredElement.setStyle({bottom:this.element.getStyle('bottom')});
+var dim=this.element.getDimensions();
+this.wiredElement.setStyle({width:dim.width+"px",height:dim.height+"px"});
+this.wiredElement.setStyle({zIndex:Windows.maxZIndex+30});
+return this.wiredElement;},
+_hideWiredElement:function(){
+if(!this.wiredElement||!this.currentDrag)
+return;
+if(this.currentDrag==this.element)
+this.currentDrag=null;
+else{
+if(this.useLeft)
+this.element.setStyle({left:this.currentDrag.getStyle('left')});
+else
+this.element.setStyle({right:this.currentDrag.getStyle('right')});
+if(this.useTop)
+this.element.setStyle({top:this.currentDrag.getStyle('top')});
+else
+this.element.setStyle({bottom:this.currentDrag.getStyle('bottom')});
+this.currentDrag.hide();
+this.currentDrag=null;
+if(this.doResize)
+this.setSize(this.width,this.height);}},
+_notify:function(eventName){
+if(this.options[eventName])
+this.options[eventName](this);
+else
+Windows.notify(eventName,this);}};
+var Windows={
+windows:[],
+modalWindows:[],
+observers:[],
+focusedWindow:null,
+maxZIndex:0,
+overlayShowEffectOptions:{duration:0.5},
+overlayHideEffectOptions:{duration:0.5},
+addObserver:function(observer){
+this.removeObserver(observer);
+this.observers.push(observer);},
+removeObserver:function(observer){
+this.observers=this.observers.reject(function(o){return o==observer});},
+notify:function(eventName,win){
+this.observers.each(function(o){if(o[eventName])o[eventName](eventName,win);});},
+getWindow:function(id){
+return this.windows.detect(function(d){return d.getId()==id});},
+getFocusedWindow:function(){
+return this.focusedWindow;},
+updateFocusedWindow:function(){
+this.focusedWindow=this.windows.length>=2?this.windows[this.windows.length-2]:null;},
+register:function(win){
+this.windows.push(win);},
+addModalWindow:function(win){
+if(this.modalWindows.length==0){
+WindowUtilities.disableScreen(win.options.className,'overlay_modal',win.overlayOpacity,win.getId(),win.options.parent);}
+else{
+if(Window.keepMultiModalWindow){
+$('overlay_modal').style.zIndex=Windows.maxZIndex+1;
+Windows.maxZIndex+=1;
+WindowUtilities._hideSelect(this.modalWindows.last().getId());}
+else
+this.modalWindows.last().element.hide();
+WindowUtilities._showSelect(win.getId());}
+this.modalWindows.push(win);},
+removeModalWindow:function(win){
+this.modalWindows.pop();
+if(this.modalWindows.length==0)
+WindowUtilities.enableScreen();
+else{
+if(Window.keepMultiModalWindow){
+this.modalWindows.last().toFront();
+WindowUtilities._showSelect(this.modalWindows.last().getId());}
+else
+this.modalWindows.last().element.show();}},
+register:function(win){
+this.windows.push(win);},
+unregister:function(win){
+this.windows=this.windows.reject(function(d){return d==win});},
+closeAll:function(){
+this.windows.each(function(w){Windows.close(w.getId())});},
+closeAllModalWindows:function(){
+WindowUtilities.enableScreen();
+this.modalWindows.each(function(win){if(win)win.close()});},
+minimize:function(id,event){
+var win=this.getWindow(id)
+if(win&&win.visible)
+win.minimize();
+Event.stop(event);},
+maximize:function(id,event){
+var win=this.getWindow(id)
+if(win&&win.visible)
+win.maximize();
+Event.stop(event);},
+close:function(id,event){
+var win=this.getWindow(id);
+if(win)
+win.close();
+if(event)
+Event.stop(event);},
+blur:function(id){
+var win=this.getWindow(id);
+if(!win)
+return;
+if(win.options.blurClassName)
+win.changeClassName(win.options.blurClassName);
+if(this.focusedWindow==win)
+this.focusedWindow=null;
+win._notify("onBlur");},
+focus:function(id){
+var win=this.getWindow(id);
+if(!win)
+return;
+if(this.focusedWindow)
+this.blur(this.focusedWindow.getId())
+if(win.options.focusClassName)
+win.changeClassName(win.options.focusClassName);
+this.focusedWindow=win;
+win._notify("onFocus");},
+unsetOverflow:function(except){
+this.windows.each(function(d){d.oldOverflow=d.getContent().getStyle("overflow")||"auto";d.getContent().setStyle({overflow:"hidden"})});
+if(except&&except.oldOverflow)
+except.getContent().setStyle({overflow:except.oldOverflow});},
+resetOverflow:function(){
+this.windows.each(function(d){if(d.oldOverflow)d.getContent().setStyle({overflow:d.oldOverflow})});},
+updateZindex:function(zindex,win){
+if(zindex>this.maxZIndex){
+this.maxZIndex=zindex;
+if(this.focusedWindow)
+this.blur(this.focusedWindow.getId())}
+this.focusedWindow=win;
+if(this.focusedWindow)
+this.focus(this.focusedWindow.getId())}};
+var Dialog={
+dialogId:null,
+onCompleteFunc:null,
+callFunc:null,
+parameters:null,
+confirm:function(content,parameters){
+if(content&&typeof content!="string"){
+Dialog._runAjaxRequest(content,parameters,Dialog.confirm);
+return}
+content=content||"";
+parameters=parameters||{};
+var okLabel=parameters.okLabel?parameters.okLabel:"Ok";
+var cancelLabel=parameters.cancelLabel?parameters.cancelLabel:"Cancel";
+parameters=Object.extend(parameters,parameters.windowParameters||{});
+parameters.windowParameters=parameters.windowParameters||{};
+parameters.className=parameters.className||"alert";
+var okButtonClass="class ='"+(parameters.buttonClass?parameters.buttonClass+" ":"")+" ok_button'"
+var cancelButtonClass="class ='"+(parameters.buttonClass?parameters.buttonClass+" ":"")+" cancel_button'"
+var content="\<div class='" +parameters.className +"_message'>" +content  +"</div>\<div class='" +parameters.className +"_buttons'>\<input type='button' value='" +okLabel +"' onclick='Dialog.okCallback()' " +okButtonClass +"/>\<input type='button' value='" +cancelLabel +"' onclick='Dialog.cancelCallback()' " +cancelButtonClass +"/>\</div>\
+";
+return this._openDialog(content,parameters)},
+alert:function(content,parameters){
+if(content&&typeof content!="string"){
+Dialog._runAjaxRequest(content,parameters,Dialog.alert);
+return}
+content=content||"";
+parameters=parameters||{};
+var okLabel=parameters.okLabel?parameters.okLabel:"Ok";
+parameters=Object.extend(parameters,parameters.windowParameters||{});
+parameters.windowParameters=parameters.windowParameters||{};
+parameters.className=parameters.className||"alert";
+var okButtonClass="class ='"+(parameters.buttonClass?parameters.buttonClass+" ":"")+" ok_button'"
+var content="\<div class='" +parameters.className +"_message'>" +content  +"</div>\<div class='" +parameters.className +"_buttons'>\<input type='button' value='" +okLabel +"' onclick='Dialog.okCallback()' " +okButtonClass +"/>\</div>";
+return this._openDialog(content,parameters)},
+info:function(content,parameters){
+if(content&&typeof content!="string"){
+Dialog._runAjaxRequest(content,parameters,Dialog.info);
+return}
+content=content||"";
+parameters=parameters||{};
+parameters=Object.extend(parameters,parameters.windowParameters||{});
+parameters.windowParameters=parameters.windowParameters||{};
+parameters.className=parameters.className||"alert";
+var content="<div id='modal_dialog_message' class='"+parameters.className+"_message'>"+content+"</div>";
+if(parameters.showProgress)
+content+="<div id='modal_dialog_progress' class='"+parameters.className+"_progress'>  </div>";
+parameters.ok=null;
+parameters.cancel=null;
+return this._openDialog(content,parameters)},
+setInfoMessage:function(message){$('modal_dialog_message').update(message);},
+closeInfo:function(){
+Windows.close(this.dialogId);},
+_openDialog:function(content,parameters){
+var className=parameters.className;
+if(!parameters.height&&!parameters.width){
+parameters.width=WindowUtilities.getPageSize(parameters.options.parent||document.body).pageWidth/2;}
+if(parameters.id)
+this.dialogId=parameters.id;
+else{
+var t=new Date();
+this.dialogId='modal_dialog_'+t.getTime();
+parameters.id=this.dialogId;}
+if(!parameters.height||!parameters.width){
+var size=WindowUtilities._computeSize(content,this.dialogId,parameters.width,parameters.height,5,className)
+if(parameters.height)
+parameters.width=size+5
+else
+parameters.height=size+5}
+parameters.effectOptions=parameters.effectOptions;
+parameters.resizable=parameters.resizable||false;
+parameters.minimizable=parameters.minimizable||false;
+parameters.maximizable=parameters.maximizable||false;
+parameters.draggable=parameters.draggable||false;
+parameters.closable=parameters.closable||false;
+var win=new Window(parameters);
+win.getContent().innerHTML=content;
+win.showCenter(true,parameters.top,parameters.left);
+win.setDestroyOnClose();
+win.cancelCallback=parameters.onCancel||parameters.cancel;
+win.okCallback=parameters.onOk||parameters.ok;
+return win;},
+_getAjaxContent:function(originalRequest){
+Dialog.callFunc(originalRequest.responseText,Dialog.parameters)},
+_runAjaxRequest:function(message,parameters,callFunc){
+if(message.options==null)
+message.options={}
+Dialog.onCompleteFunc=message.options.onComplete;
+Dialog.parameters=parameters;
+Dialog.callFunc=callFunc;
+message.options.onComplete=Dialog._getAjaxContent;
+new Ajax.Request(message.url,message.options);},
+okCallback:function(){
+var win=Windows.focusedWindow;
+if(!win.okCallback||win.okCallback(win)){
+$$("#"+win.getId()+" input").each(function(element){element.onclick=null;})
+win.close();}},
+cancelCallback:function(){
+var win=Windows.focusedWindow;
+$$("#"+win.getId()+" input").each(function(element){element.onclick=null})
+win.close();
+if(win.cancelCallback)
+win.cancelCallback(win);}}/*
+Based on Lightbox JS:Fullsize Image Overlays
+by Lokesh Dhakar-http:
+For more information on this script,visit:
+http:
+Licensed under the Creative Commons Attribution 2.5 License-http:(basically,do anything you want,just leave my name and link)*/
+if(Prototype.Browser.WebKit){
+var array=navigator.userAgent.match(new RegExp(/AppleWebKit\/([\d\.\+]*)/));
+Prototype.Browser.WebKitVersion=parseFloat(array[1]);}
+var WindowUtilities={
+getWindowScroll:function(parent){
+var T,L,W,H;
+parent=parent||document.body;
+if(parent!=document.body){
+T=parent.scrollTop;
+L=parent.scrollLeft;
+W=parent.scrollWidth;
+H=parent.scrollHeight;}
+else{
+var w=window;
+with(w.document){
+if(w.document.documentElement&&documentElement.scrollTop){
+T=documentElement.scrollTop;
+L=documentElement.scrollLeft;}else if(w.document.body){
+T=body.scrollTop;
+L=body.scrollLeft;}
+if(w.innerWidth){
+W=w.innerWidth;
+H=w.innerHeight;}else if(w.document.documentElement&&documentElement.clientWidth){
+W=documentElement.clientWidth;
+H=documentElement.clientHeight;}else{
+W=body.offsetWidth;
+H=body.offsetHeight}}}
+return{top:T,left:L,width:W,height:H};},
+getPageSize:function(parent){
+parent=parent||document.body;
+var windowWidth,windowHeight;
+var pageHeight,pageWidth;
+if(parent!=document.body){
+windowWidth=parent.getWidth();
+windowHeight=parent.getHeight();
+pageWidth=parent.scrollWidth;
+pageHeight=parent.scrollHeight;}
+else{
+var xScroll,yScroll;
+if(window.innerHeight&&window.scrollMaxY){
+xScroll=document.body.scrollWidth;
+yScroll=window.innerHeight+window.scrollMaxY;}else if(document.body.scrollHeight>document.body.offsetHeight){
+xScroll=document.body.scrollWidth;
+yScroll=document.body.scrollHeight;}else{
+xScroll=document.body.offsetWidth;
+yScroll=document.body.offsetHeight;}
+if(self.innerHeight){
+windowWidth=self.innerWidth;
+windowHeight=self.innerHeight;}else if(document.documentElement&&document.documentElement.clientHeight){
+windowWidth=document.documentElement.clientWidth;
+windowHeight=document.documentElement.clientHeight;}else if(document.body){
+windowWidth=document.body.clientWidth;
+windowHeight=document.body.clientHeight;}
+if(yScroll<windowHeight){
+pageHeight=windowHeight;}else{
+pageHeight=yScroll;}
+if(xScroll<windowWidth){
+pageWidth=windowWidth;}else{
+pageWidth=xScroll;}}
+return{pageWidth:pageWidth,pageHeight:pageHeight,windowWidth:windowWidth,windowHeight:windowHeight};},
+disableScreen:function(className,overlayId,overlayOpacity,contentId,parent){
+WindowUtilities.initLightbox(overlayId,className,function(){this._disableScreen(className,overlayId,overlayOpacity,contentId)}.bind(this),parent||document.body);},
+_disableScreen:function(className,overlayId,overlayOpacity,contentId){
+var objOverlay=$(overlayId);
+var pageSize=WindowUtilities.getPageSize(objOverlay.parentNode);
+if(contentId&&Prototype.Browser.IE){
+WindowUtilities._hideSelect();
+WindowUtilities._showSelect(contentId);}
+objOverlay.style.height=(pageSize.pageHeight+'px');
+objOverlay.style.display='none';
+if(overlayId=="overlay_modal"&&Window.hasEffectLib&&Windows.overlayShowEffectOptions){
+objOverlay.overlayOpacity=overlayOpacity;
+new Effect.Appear(objOverlay,Object.extend({from:0,to:overlayOpacity},Windows.overlayShowEffectOptions));}
+else
+objOverlay.style.display="block";},
+enableScreen:function(id){
+id=id||'overlay_modal';
+var objOverlay=$(id);
+if(objOverlay){
+if(id=="overlay_modal"&&Window.hasEffectLib&&Windows.overlayHideEffectOptions)
+new Effect.Fade(objOverlay,Object.extend({from:objOverlay.overlayOpacity,to:0},Windows.overlayHideEffectOptions));
+else{
+objOverlay.style.display='none';
+objOverlay.parentNode.removeChild(objOverlay);}
+if(id!="__invisible__")
+WindowUtilities._showSelect();}},
+_hideSelect:function(id){
+if(Prototype.Browser.IE){
+id=id==null?"":"#"+id+" ";
+$$(id+'select').each(function(element){
+if(!WindowUtilities.isDefined(element.oldVisibility)){
+element.oldVisibility=element.style.visibility?element.style.visibility:"visible";
+element.style.visibility="hidden";}});}},
+_showSelect:function(id){
+if(Prototype.Browser.IE){
+id=id==null?"":"#"+id+" ";
+$$(id+'select').each(function(element){
+if(WindowUtilities.isDefined(element.oldVisibility)){
+try{
+element.style.visibility=element.oldVisibility;}catch(e){
+element.style.visibility="visible";}
+element.oldVisibility=null;}
+else{
+if(element.style.visibility)
+element.style.visibility="visible";}});}},
+isDefined:function(object){
+return typeof(object)!="undefined"&&object!=null;},
+initLightbox:function(id,className,doneHandler,parent){
+if($(id)){
+Element.setStyle(id,{zIndex:Windows.maxZIndex+1});
+Windows.maxZIndex++;
+doneHandler();}
+else{
+var objOverlay=document.createElement("div");
+objOverlay.setAttribute('id',id);
+objOverlay.className="overlay_"+className
+objOverlay.style.display='none';
+objOverlay.style.position='absolute';
+objOverlay.style.top='0';
+objOverlay.style.left='0';
+objOverlay.style.zIndex=Windows.maxZIndex+1;
+Windows.maxZIndex++;
+objOverlay.style.width='100%';
+parent.insertBefore(objOverlay,parent.firstChild);
+if(Prototype.Browser.WebKit&&id=="overlay_modal"){
+setTimeout(function(){doneHandler()},10);}
+else
+doneHandler();}},
+setCookie:function(value,parameters){
+document.cookie=parameters[0]+"="+escape(value)+((parameters[1])?"; expires="+parameters[1].toGMTString():"")+((parameters[2])?"; path="+parameters[2]:"")+((parameters[3])?"; domain="+parameters[3]:"")+((parameters[4])?"; secure":"");},
+getCookie:function(name){
+var dc=document.cookie;
+var prefix=name+"=";
+var begin=dc.indexOf("; "+prefix);
+if(begin==-1){
+begin=dc.indexOf(prefix);
+if(begin!=0)return null;}else{
+begin+=2;}
+var end=document.cookie.indexOf(";",begin);
+if(end==-1){
+end=dc.length;}
+return unescape(dc.substring(begin+prefix.length,end));},
+_computeSize:function(content,id,width,height,margin,className){
+var objBody=document.body;
+var tmpObj=document.createElement("div");
+tmpObj.setAttribute('id',id);
+tmpObj.className=className+"_content";
+if(height)
+tmpObj.style.height=height+"px"
+else
+tmpObj.style.width=width+"px"
+tmpObj.style.position='absolute';
+tmpObj.style.top='0';
+tmpObj.style.left='0';
+tmpObj.style.display='none';
+tmpObj.innerHTML=content;
+objBody.insertBefore(tmpObj,objBody.firstChild);
+var size;
+if(height)
+size=$(tmpObj).getDimensions().width+margin;
+else
+size=$(tmpObj).getDimensions().height+margin;
+objBody.removeChild(tmpObj);
+return size;}}
+
+
+
+Effect.ResizeWindow = Class.create();
+Object.extend(Object.extend(Effect.ResizeWindow.prototype, Effect.Base.prototype), {
+  initialize: function(win, top, left, width, height) {
+    this.window = win;
+    this.window.resizing = true;
+    
+    var size = win.getSize();
+    this.initWidth    = parseFloat(size.width);
+    this.initHeight   = parseFloat(size.height);
+
+    var location = win.getLocation();
+    this.initTop    = parseFloat(location.top);
+    this.initLeft   = parseFloat(location.left);
+
+    this.width    = width != null  ? parseFloat(width)  : this.initWidth;
+    this.height   = height != null ? parseFloat(height) : this.initHeight;
+    this.top      = top != null    ? parseFloat(top)    : this.initTop;
+    this.left     = left != null   ? parseFloat(left)   : this.initLeft;
+
+    this.dx     = this.left   - this.initLeft;
+    this.dy     = this.top    - this.initTop;
+    this.dw     = this.width  - this.initWidth;
+    this.dh     = this.height - this.initHeight;
+    
+    this.r2      = $(this.window.getId() + "_row2");
+    this.content = $(this.window.getId() + "_content");
+        
+    this.contentOverflow = this.content.getStyle("overflow") || "auto";
+    this.content.setStyle({overflow: "hidden"});
+    
+    // Wired mode
+    if (this.window.options.wiredDrag) {
+      this.window.currentDrag = win._createWiredElement();
+      this.window.currentDrag.show();
+      this.window.element.hide();
+    }
+
+    this.start(arguments[5]);
+  },
+  
+  update: function(position) {
+    var width  = Math.floor(this.initWidth  + this.dw * position);
+    var height = Math.floor(this.initHeight + this.dh * position);
+    var top    = Math.floor(this.initTop    + this.dy * position);
+    var left   = Math.floor(this.initLeft   + this.dx * position);
+
+    if (window.ie) {
+      if (Math.floor(height) == 0)  
+        this.r2.hide();
+      else if (Math.floor(height) >1)  
+        this.r2.show();
+    }      
+    this.r2.setStyle({height: height});
+    this.window.setSize(width, height);
+    this.window.setLocation(top, left);
+  },
+  
+  finish: function(position) {
+    // Wired mode
+    if (this.window.options.wiredDrag) {
+      this.window._hideWiredElement();
+      this.window.element.show();
+    }
+
+    this.window.setSize(this.width, this.height);
+    this.window.setLocation(this.top, this.left);
+    this.r2.setStyle({height: null});
+    
+    this.content.setStyle({overflow: this.contentOverflow});
+      
+    this.window.resizing = false;
+  }
+});
+
+Effect.ModalSlideDown = function(element) {
+  var windowScroll = WindowUtilities.getWindowScroll();    
+  var height = element.getStyle("height");  
+  element.setStyle({top: - (parseFloat(height) - windowScroll.top) + "px"});
+  
+  element.show();
+  return new Effect.Move(element, Object.extend({ x: 0, y: parseFloat(height) }, arguments[1] || {}));
+};
+
+
+Effect.ModalSlideUp = function(element) {
+  var height = element.getStyle("height");
+  return new Effect.Move(element, Object.extend({ x: 0, y: -parseFloat(height) }, arguments[1] || {}));
+};
+
+PopupEffect = Class.create();
+PopupEffect.prototype = {    
+  initialize: function(htmlElement) {
+    this.html = $(htmlElement);      
+    this.options = Object.extend({className: "popup_effect", duration: 0.4}, arguments[1] || {});
+    
+  },
+  show: function(element, options) { 
+    var position = Position.cumulativeOffset(this.html);      
+    var size = this.html.getDimensions();
+    var bounds = element.win.getBounds();
+    this.window =  element.win;      
+    // Create a div
+    if (!this.div) {
+      this.div = document.createElement("div");
+      this.div.className = this.options.className;
+      this.div.style.height = size.height + "px";
+      this.div.style.width  = size.width  + "px";
+      this.div.style.top    = position[1] + "px";
+      this.div.style.left   = position[0] + "px";   
+      this.div.style.position = "absolute"
+      document.body.appendChild(this.div);
+    }                                                   
+    if (this.options.fromOpacity)
+      this.div.setStyle({opacity: this.options.fromOpacity})
+    this.div.show();          
+    var style = "top:" + bounds.top + ";left:" +bounds.left + ";width:" + bounds.width +";height:" + bounds.height;
+    if (this.options.toOpacity)
+      style += ";opacity:" + this.options.toOpacity;
+    
+    new Effect.Morph(this.div ,{style: style, duration: this.options.duration, afterFinish: this._showWindow.bind(this)});    
+  },
+
+  hide: function(element, options) {     
+    var position = Position.cumulativeOffset(this.html);      
+    var size = this.html.getDimensions();    
+    this.window.visible = true; 
+    var bounds = this.window.getBounds();
+    this.window.visible = false; 
+
+    this.window.element.hide();
+
+    this.div.style.height = bounds.height;
+    this.div.style.width  = bounds.width;
+    this.div.style.top    = bounds.top;
+    this.div.style.left   = bounds.left;
+    
+    if (this.options.toOpacity)
+      this.div.setStyle({opacity: this.options.toOpacity})
+
+    this.div.show();                                 
+    var style = "top:" + position[1] + "px;left:" + position[0] + "px;width:" + size.width +"px;height:" + size.height + "px";
+
+    if (this.options.fromOpacity)
+      style += ";opacity:" + this.options.fromOpacity;
+    new Effect.Morph(this.div ,{style: style, duration: this.options.duration, afterFinish: this._hideDiv.bind(this)});    
+  },
+  
+  _showWindow: function() {
+    this.div.hide();
+    this.window.element.show(); 
+  },
+  
+  _hideDiv: function() {
+    this.div.hide();
+  }
+}
+
+TooltipManager = {
+  options: {cssClassName: 'tooltip', delayOver: 200, delayOut: 1000, shiftX: 2, shiftY: 2,
+            className: 'alphacube', width: 200, height: null, 
+            draggable: false, minimizable: false, maximizable: false, showEffect: Element.show, hideEffect: Element.hide},
+  ajaxInfo: null,
+  elements: null,
+  showTimer: null,
+  hideTimer: null,
+
+  init: function(cssClassName, ajaxInfo, tooltipOptions) {
+    TooltipManager.options = Object.extend(TooltipManager.options, tooltipOptions || {});
+    //dele by banq
+    //cssClassName = TooltipManager.options.cssClassName || "tooltip";
+    TooltipManager.ajaxInfo = ajaxInfo;
+    TooltipManager.elements = $$("." + cssClassName);
+    TooltipManager.elements.each(function(element) {
+      element = $(element)
+      var info = TooltipManager._getInfo(element);
+      if (info.ajax) {
+        element.ajaxId = info.id;
+        element.ajaxInfo = ajaxInfo;
+        element.frameWidth = tooltipOptions.width;
+        element.frameHeight = tooltipOptions.height;;
+      }
+      else {
+        element.tooltipElement = $(info.id);        
+      }
+      element.observe("mouseover", TooltipManager._mouseOver);
+      element.observe("mouseout", TooltipManager._mouseOut);
+    });
+    Windows.addObserver(this);
+  },
+  
+  showNow: function(element) {   
+    if (TooltipManager.showTimer) 
+      clearTimeout(TooltipManager.showTimer);
+    
+    TooltipManager.showTimer = setTimeout(function() {TooltipManager._showTooltip(element)}, TooltipManager.options.delayOver)           
+  },
+  
+  addHTML: function(element, tooltipElement) {
+    element = $(element);
+    tooltipElement = $(tooltipElement);
+    element.tooltipElement = tooltipElement;
+    
+    element.observe("mouseover", TooltipManager._mouseOver);
+    element.observe("mouseout", TooltipManager._mouseOut);
+  },
+  
+  addAjax: function(element, ajaxInfo) {
+    element = $(element);
+    element.ajaxInfo = ajaxInfo;
+    element.observe("mouseover", TooltipManager._mouseOver);
+    element.observe("mouseout", TooltipManager._mouseOut);    
+  },
+//add by banq    
+  addAjax: function(element, ajaxInfo, width, height) {  	
+  
+    element = $(element);
+    element.ajaxInfo = ajaxInfo;    
+    element.frameWidth = width;
+    element.frameHeight = height;
+   
+    element.observe("mouseover", TooltipManager._mouseOver);
+    element.observe("mouseout", TooltipManager._mouseOut);
+
+  },    
+        
+    
+  addURL: function(element, url, width, height) {
+    element = $(element);
+    element.url = url;
+    element.frameWidth = width;
+    element.frameHeight = height;
+    element.observe("mouseover", TooltipManager._mouseOver);
+    element.observe("mouseout", TooltipManager._mouseOut);    
+  },
+    
+  close: function() {
+    if (TooltipManager.tooltipWindow)
+      TooltipManager.tooltipWindow.hide();
+  },
+  
+  preloadImages: function(path, images, extension) {
+    if (!extension)
+      extension = ".gif";
+      
+    //preload images
+    $A(images).each(function(i) {
+      var image = new Image(); 
+      image.src= path + "/" + i + extension; 
+    });
+  },
+  
+  _showTooltip: function(element) {
+    if (this.element == element)
+      return;
+    // Get original element
+    while (element && (!element.tooltipElement && !element.ajaxInfo && !element.url)) 
+      element = element.parentNode;
+    this.element = element;
+    
+    TooltipManager.showTimer = null;
+    if (TooltipManager.hideTimer)
+      clearTimeout(TooltipManager.hideTimer);
+    
+    var position = Position.cumulativeOffset(element);
+    var dimension = element.getDimensions();
+
+    if (! this.tooltipWindow)
+      this.tooltipWindow = new Window("__tooltip__", TooltipManager.options);
+      
+    this.tooltipWindow.hide();
+    this.tooltipWindow.setLocation(position[1] + dimension.height + TooltipManager.options.shiftY, position[0] + TooltipManager.options.shiftX);
+
+    Event.observe(this.tooltipWindow.element, "mouseover", function(event) {TooltipManager._tooltipOver(event, element)});
+    Event.observe(this.tooltipWindow.element, "mouseout", function(event) {TooltipManager._tooltipOut(event, element)});
+    
+    
+    // Reset width/height for computation
+    this.tooltipWindow.height = TooltipManager.options.height;
+    this.tooltipWindow.width = TooltipManager.options.width;
+
+    // Ajax content
+    if (element.ajaxInfo) {
+      //add by banq
+      if (element.frameWidth){    	 	  
+    	    this.tooltipWindow.height = element.frameHeight;
+            this.tooltipWindow.width = element.frameWidth;
+      }
+      
+      var p = element.ajaxInfo.options.parameters;
+      var saveParam = p;
+      
+      // Set by CSS
+      if (element.ajaxId) {
+        if (p)
+          p += "&" + element.ajaxId;
+        else
+          p =   element.ajaxId;
+      }
+      element.ajaxInfo.options.parameters = p || "";
+      this.tooltipWindow.setHTMLContent("");
+      //this.tooltipWindow.setAjaxContent(element.ajaxInfo.url, element.ajaxInfo.options);
+      //add by banq
+      this.tooltipWindow.setAjaxContent(element.ajaxInfo.url, element.ajaxInfo.options, false, false);      
+      element.ajaxInfo.options.parameters = saveParam;    
+    } 
+    // URL content
+    else if (element.url) {
+      this.tooltipWindow.setURL(element.url);
+      this.tooltipWindow.setSize(element.frameWidth, element.frameHeight);
+
+      // Set tooltip size
+      this.tooltipWindow.height = element.frameHeight;
+      this.tooltipWindow.width = element.frameWidth;
+      //add by banq
+      this.tooltipWindow.setLocation(element.offsetTop + TooltipManager.options.shiftY, element.offsetLeft + TooltipManager.options.shiftX);
+ 
+    }
+    // HTML content
+    else
+      this.tooltipWindow.setHTMLContent(element.tooltipElement.innerHTML);
+
+    if (!element.ajaxInfo) {      
+      this.tooltipWindow.show();
+      this.tooltipWindow.toFront();
+      this.tooltipWindow.updateHeight();
+    }
+  },
+  
+   _refreshheight: function(element) {
+   alert("hello");
+    if (this.tooltipWindow) {
+      this.tooltipWindow.updateHeight();
+  
+    }
+  },
+  
+  _hideTooltip: function(element) {
+    if (this.tooltipWindow) {
+      this.tooltipWindow.hide();
+      this.element = null;
+    }
+  },
+  
+  _mouseOver: function (event) {
+    var element = Event.element(event);
+    if (TooltipManager.showTimer) 
+      clearTimeout(TooltipManager.showTimer);
+    
+    TooltipManager.showTimer = setTimeout(function() {TooltipManager._showTooltip(element)}, TooltipManager.options.delayOver)
+  },
+  
+  _mouseOut: function(event) {
+    var element = Event.element(event);
+    if (TooltipManager.showTimer) {
+      clearTimeout(TooltipManager.showTimer);
+      TooltipManager.showTimer = null;
+      return;
+    }
+    if (TooltipManager.tooltipWindow)
+      TooltipManager.hideTimer = setTimeout(function() {TooltipManager._hideTooltip(element)}, TooltipManager.options.delayOut)
+  },
+  
+  _tooltipOver: function(event, element) {
+    if (TooltipManager.hideTimer) {
+      clearTimeout(TooltipManager.hideTimer);
+      TooltipManager.hideTimer = null;
+    }
+  },
+  
+  _tooltipOut: function(event, element) {
+    if (TooltipManager.hideTimer == null)
+      TooltipManager.hideTimer = setTimeout(function() {TooltipManager._hideTooltip(element)}, TooltipManager.options.delayOut)
+  },
+  
+  _getInfo: function(element) {
+    // Find html_ for static content
+    var id = element.className.split(' ').detect(function(name) {return name.indexOf("html_") == 0});
+    var ajax = true;
+    if (id)
+      ajax = false;
+    else 
+      // Find ajax_ for ajax content
+      id = element.className.split(' ').detect(function(name) {return name.indexOf("ajax_") == 0});
+    
+    id = id.substr(id.indexOf('_')+1, id.length)
+    return id ? {ajax: ajax, id: id} : null;
+  }
+  
+};
