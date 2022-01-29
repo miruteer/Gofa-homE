@@ -66,4 +66,27 @@ window.callback = function(res){
   <tr><td>表单标题:</td><td><input type="text" name="subject" size="50" value="<bean:write name="subject"/>"></td></tr>
     <tr><td>表单内容:</td><td><textarea name="body" cols="50" rows="6"><bean:write name="body"/></textarea></td></tr>
 
-    <tr><
+    <tr><td>验证码:</td><td>
+    <!--点击此元素会自动激活验证码-->
+<!--id : 元素的id(必须)-->
+<!--data-appid : AppID(必须)-->
+<!--data-cbfn : 回调函数名(必须)-->
+<!--data-biz-state : 业务自定义透传参数(可选)-->
+<button type="button" id="TencentCaptcha"
+        data-appid="2050847547"
+        data-cbfn="callback"
+>验证</button>
+               <input type="hidden" id="registerCode" name="registerCode"  > 
+                <input type="hidden" id="randstr" name="randstr"   > 
+                </td></tr>
+    <tr><td colspan="2" align="center"><html:submit property="submit" value="提交"/></td></tr>
+  
+</table>
+  </html:form> --%>
+  <p>
+    <p>公众号：</p>
+                    <p><img src="/simgs/weixin.png"></p>
+
+</div>
+	
+<%@ include file="../../common/IncludeBottom.jsp" %>
