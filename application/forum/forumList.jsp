@@ -69,4 +69,38 @@
         <tr id='<bean:write name="forum" property="forumId" />_<bean:write name="forum" property="modifiedDate" />'>
             <td>
                  <a href="<%=request.getContextPath()%>/forum/<bean:write name="forum" property="forumId" />/">                
-                       <b><span
+                       <b><span class="threadTitle"><bean:write name="forum" property="name" /></span></b>
+                 </a>
+                 <% 
+                 if (request.getSession(false) != null){
+                     %>
+                      <a title="关注本道场" href="<%=request.getContextPath()%>/account/protected/sub/subAction.shtml?subscribeType=0&subscribeId=<bean:write name="forum" property="forumId" />"  rel="nofollow">
+                      <img src="/images/user_add.gif" width="18" height="18" alt="关注本道场" border="0" /></a>                                                         
+                     <%
+                 }
+                 %>
+
+                <br>
+                <span class="home_content" ><bean:write name="forum" property="description" filter="false"/></span>
+            </td>
+            <td>
+               <span class="home_content" > <bean:write name="forum" property="forumState.threadCount" /> </span>
+            </td>
+         
+        </tr>
+
+</logic:iterate>
+
+</tbody>
+</table>
+               </div>	
+			</div>
+        
+	
+	   </div>
+</div>
+
+
+<%@include file="../common/IncludeBottom.jsp"%> 
+
+
