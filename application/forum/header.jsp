@@ -30,4 +30,19 @@ String domainUrl = com.jdon.jivejdon.util.ToolsUtil.getAppURL(request);
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
-        <script src="https://cdn.jdon.com/js/html5s
+        <script src="https://cdn.jdon.com/js/html5shiv.min.js"></script>
+        <script src="https://cdn.jdon.com/js/respond.min.js"></script>
+    <![endif]-->
+    <link rel="prefetch" href="https://static.jdon.com/js/jquery-2.1.1.min.js">   
+    <link rel="prefetch" href="https://static.jdon.com/js/bootstrap.min.js">
+    <link rel="prefetch" href="https://cdn.jdon.com/common/js/jquery.lazyload-any.js">      
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7573657117119544" crossorigin="anonymous"></script>	
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PFPM5XC"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<%@ include file="../common/body_header.jsp" %>
+<%@ include file="../common/header_errors.jsp" %>
+ 
