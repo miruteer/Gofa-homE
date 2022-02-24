@@ -75,4 +75,56 @@
                     编辑
                   </a>
                   <logic:equal name="forumMessage" property="root" value="true">
-                    <a href
+                    <a href='<html:rewrite
+            page="/message/updateViewAction.shtml?action=edit"
+            paramId="threadId" paramName="forumMessage"
+            paramProperty="forumThread.threadId" />' rel='nofollow'>编辑标题 </a>
+
+                    <a href='<html:rewrite
+            page="/message/tag/thread.shtml?action=edit"
+            paramId="threadId" paramName="forumMessage"
+            paramProperty="forumThread.threadId" />' rel='nofollow'>编辑标签 </a>
+
+                    <a href='<html:rewrite
+            page="/message/reblogLink.shtml?action=edit"
+            paramId="threadId" paramName="forumMessage"
+            paramProperty="forumThread.threadId" />' rel='nofollow'>编辑互链 </a>
+                  </logic:equal>
+                </logic:equal>
+              </div>
+            </div>
+          </div>
+        </div>
+        <logic:equal name="forumMessage" property="root" value="true"><div>
+							<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7573657117119544" crossorigin="anonymous"></script>
+							        <!-- 自适应主广告 -->
+									<ins class="adsbygoogle"
+     									style="display:block"
+     									data-ad-client="ca-pub-7573657117119544"
+     									data-ad-slot="5184711902"
+     									data-ad-format="auto"
+     									data-full-width-responsive="true"></ins>
+							<script>
+     					  	(adsbygoogle = window.adsbygoogle || []).push({});
+          		</script>		
+         </div></logic:equal>        
+          <div class="post_body">
+          <div class="post_bodyin">
+            <div class="post_body_content">
+              <div class="article">
+                <span id='body_<bean:write name="forumMessage" property="messageId"/>'>
+                     <bean:write name="forumMessage" property="messageVO.body" filter="false"/>
+                </span>
+              </div>              
+              <p></p>
+</div>
+</div>
+</div>
+<logic:equal name="forumMessage" property="root" value="false">
+  </div>
+</logic:equal>
+</div>
+</div>
+</div>
+	
+ </logic:iterate>   
