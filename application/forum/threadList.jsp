@@ -99,4 +99,31 @@ function scrollLoader(url){
   var start = "<%=pageStartInt+pageCountInt%>";
   var loading = false;
   $(window).scroll(function() {
-    var hT = $('#nextPageContent').of
+    var hT = $('#nextPageContent').offset().top,
+       hH = $('#nextPageContent').outerHeight(),
+       wH = $(window).height(),
+       wS = $(this).scrollTop();       
+    if (wS > (hT+hH-wH) && !loading){           
+         loading = true;          
+         if (start <= <%=pageAllcountInt%> ){                  
+           surl = (url.indexOf("?")==-1)?(url+"?"):(url+"&");           
+           load(surl +'start=' + start +'&count=<%=pageCountInt%>&noheader=on', function (xhr) {
+               document.getElementById("nextPageContent").innerHTML = document.getElementById("nextPageContent").innerHTML + xhr.responseText;               
+               start = start/1 + <%=pageCountInt%>;                              
+               loading = false;
+           });          
+         }   
+    }
+   });
+}
+<logic:notEmpty name="forum" property="name">
+  scrollLoader('/forum/threadList.shtml?forumId=<bean:write name="forum" property="forumId"/>');      
+</logic:notEmpty>
+<logic:empty name="forum" property="name">
+  scrollLoader('/forum/threadList.shtml');   
+</logic:empty>
+</script>    
+
+</body>
+</html>
+</logic:notEqual>    
