@@ -29,4 +29,27 @@
 <input type="hidden" name="onlyreblog" id="onlyreblog" value="" />
 
 		
-        <inpu
+        <input type="hidden" name="subject" class="form-control" maxlength="80" size="80" tabindex="5" value="<bean:write name="parentMessageSubject"  />"  onFocus="loadCkeditJS()" id="replySubject" />
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+	<div class="col-md-12">
+       
+		<div class="form-group">
+          <textarea name="body" tabindex="6" cols="45" rows="9" onFocus="loadCkeditJS()" id="formBody" class="form-control"></textarea>
+        </div>
+
+   
+   <button type="submit" class="btn btn-4 btn-block" name="formButton" id="formSubmitButton" >评论</button>
+
+    </div>
+  </div>
+ 
+</html:form>
+    
+    </div> 
+</div>
+
