@@ -71,4 +71,28 @@ if (request.getParameter("url") != null)
           });
           $( "#searchV_2" ).autocomplete({
               source: "/message/tags.shtml?method=tags",
-              mi
+              minLength: 2,
+              delay: 1500
+          });
+          $( "#searchV_3" ).autocomplete({
+              source: "/message/tags.shtml?method=tags",
+              minLength: 2,
+              delay: 1500
+          });
+
+
+
+      } );
+  </script>
+
+<script>
+
+document.getElementById('replySubject').value='<%=subject%>';
+//document.getElementById('formBody').setAttribute("cols", "60");
+//document.getElementById('formBody').setAttribute("rows", "12"); 
+//document.getElementById('formBody').value='[url=<%=url%>]<%=subject%>[/url]';
+document.getElementById('formBody').value='<%=url%>';
+</script>
+
+</body>
+</html>
