@@ -76,3 +76,162 @@ response.setDateHeader("Expires", 0);
           </tr>
           <bean:define id="count" name="upLoadFile"  property="size" type="java.lang.Integer"/>
           
+          <%
+          allSize = allSize+ count.intValue();
+          tempId ++;
+          
+          %>
+     </logic:iterate>
+          
+          <tr><td height="1" colspan="4" bgcolor="#dddddd"></td></tr>
+                    <tr class="list" height="25">
+            <td width="20">&nbsp;</td>
+            <td width="250">总　　计</td>
+            <td width="50"><%=allSize%> k</td>            
+            <SCRIPT language = "Javascript">
+            var attcount = <%=tempId%>;
+            if(window.top.attcount != null){
+                window.top.attcount =  <%=tempId%>;
+             }
+            if(window.parent != null){
+                if(window.parent.document.attachsize!=null){	
+                    window.parent.document.attachsize.value = "有<%=tempId%>个附件 共<%=allSize%>k";
+                 }
+              }
+            </script>
+            <td width="52">&nbsp;</td>
+            <td width="100"></td>            
+          </tr>
+        </table>
+        
+</html:form>
+
+<!-- This iframe is used as a place for the post to load -->
+<iframe id='target_upload' name='target_upload' src='' style='display: none'></iframe>
+
+
+<html:form action="/message/upload/saveUploadAction.shtml" enctype="multipart/form-data"
+ onsubmit="return uploadValid(document.getElementById('uploadFile'))"
+ target="target_upload">
+
+<input type="hidden" name="action" value="create" />
+<input type="hidden" name="tempId" value="<%=tempId%>" />
+<input type="hidden" name="id" value="<%=tempId%>" />
+
+<html:hidden property="parentId" />
+<html:hidden property="parentName" />
+<br>
+本地附件:<html:file property="theFile" size="30" styleId="uploadFile"/> 
+<html:submit property="submit" value="上传"/>
+<br>
+<center><input id="submitButton" type="button" value="关闭本窗口" class="Button" onClick="closeThisWindow()"></center>
+<br>
+
+<SCRIPT language = "Javascript">
+<!--
+function insertText(num){
+	parentDoc = null;
+	 if(window.top != null){
+         parentDoc = window.top.document;
+     }
+     else if(window.parent != null){
+         parentDoc = window.parent.document;
+     }
+    var str = "[img index="+num+"]";
+    var ubb=parentDoc.getElementById("formBody");
+    var ubbLength=ubb.value.length;
+    ubb.focus();
+    if(typeof parentDoc.selection !="undefined")
+    {
+        parentDoc.selection.createRange().text=str;  
+    }
+    else
+    {
+        ubb.value=ubb.value.substr(0,ubb.selectionStart)+str+ubb.value.substring(ubb.selectionStart,ubbLength);
+    }			  
+}
+
+
+function closeThisWindow(){ 
+  var surl = urlAction();
+  window.top.killUploadWindow(surl, attcount);
+}
+
+function urlAction(){
+    var saveS = "";
+   
+}
+
+function uploadValid(field){
+	if (field.value.indexOf("http") > -1){
+        myalert("必须提供你硬盘上文件上传");
+         return false;
+	}
+    if (!isAuth(field)){
+       myalert("对不起，上传附件文件的类型不在允许的类型之中");
+       return false;
+   }
+}
+-->
+//-->
+</script>
+
+</table>
+<br>
+<SCRIPT language = "Javascript">
+
+function isAuth(field){
+  <logic:iterate id="fileType" name="upLoadFileForm" property="fileTypes" >
+     if (field.value.indexOf(".<bean:write name="fileType"/>") > -1){
+         return true;
+     }
+     
+   </logic:iterate> 
+   return false;
+}
+
+function isImage(field){
+    if ((field == null) || (field == "")) {
+        return false;  
+     }
+     <logic:iterate id="imageType" name="upLoadFileForm" property="imagesTypes" >
+     if (field.value.indexOf(".<bean:write name="imageType"/>") > -1){
+         return true;
+     }
+     
+   </logic:iterate> 
+     return false;  
+}
+</SCRIPT>
+
+<div style="font-size:12px; padding:5px;padding-left:20px;line-height:20px">
+1.附件在本地请用"浏览"选中文件后"上传",最多传三个附件，
+每个最大限制150K以内 <!-- 见struts-config-upload.xml中配置  --> 
+上传附件有效类型:
+ <logic:iterate id="fileType" name="upLoadFileForm" property="fileTypes" >
+  <bean:write name="fileType"/>,
+</logic:iterate> 
+<br>
+2.完成后必须按<input id="submitButton" type="button" value="关闭本窗口" class="Button" onClick="closeThisWindow()">，否则无效。
+<br>
+3.图片插入语法是[img index=顺序号]，顺序号是顶部图片1、2、3数字,如[img index=1] 。
+
+ 
+</div>
+</html:form>
+
+<script type="text/javascript" language="JavaScript">
+
+function myalert(errorM)
+    {
+        if (errorM == null) return;
+         alert(errorM);
+    }
+
+</script>
+
+</logic:equal>   
+
+
+</body>
+</html>
