@@ -18,4 +18,20 @@
     </tbody>
 </table>
 
-<table class="tabl
+<table class="table table-striped">
+    <tbody>
+    <tr><td align="middle">
+        <form action="https://www.baidu.com/baidu">
+            <input type=text name=word  value="<bean:write name="query"/>" size="40">
+            <input type="submit" value="百度本道场">
+            <input name=tn type=hidden value="bds">
+            <input name=cl type=hidden value="3">
+            <input name=ct type=hidden value="2097152">
+            <input name=si type=hidden value="www.jdon.com">
+            </form>
+    </td></tr>
+    </tbody>
+</table>
+
+
+
