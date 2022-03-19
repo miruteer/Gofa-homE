@@ -95,4 +95,45 @@
                         <p>
                         <span class="article">
                 <bean:write name="messageSearchSpec" property="body"
-                  
+                            filter="false"/>
+             </span>
+                    </td>
+                    <td><bean:define id="rootMessage" name="forumThread"
+                                     property="rootMessage"></bean:define>
+                        <logic:notEmpty name="rootMessage" property="account">
+                          
+                                <bean:write name="rootMessage"
+                                            property="account.username"/>
+                          
+                        </logic:notEmpty>
+                    </td>
+                    <td><bean:write name="forumThread"
+                                    property="rootMessage.creationDateForDay"/></td>
+
+                </tr>
+            </logic:iterate>
+
+            </tbody>
+        </table>
+
+
+        <div class="tres">
+
+          <MultiPages:pager actionFormName="messageListForm"
+                            page="/query/searchThreadAction.shtml"
+                            paramId="query" paramName="query">
+            <MultiPages:prev name=" 上一页 "/>
+
+            <MultiPages:next name=" 下一页 "/>
+          </MultiPages:pager>
+        </div>
+
+
+    </logic:greaterThan>
+</logic:present>
+
+
+<%@ include file="queryInputView.jsp" %>
+
+<%@include file="../common/IncludeBottom.jsp" %>
+
