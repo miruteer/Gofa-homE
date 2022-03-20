@@ -66,4 +66,13 @@
 					<MultiPages:prev name="[Prev ]" />
 					<MultiPages:index />
 					<MultiPages:next name="[Next ]" />
-				</MultiP
+				</MultiPages:pager>
+			</td>
+		</tr>
+	</table>
+</form>
+<html:link page="/account/protected/delAll.shtml?service=shortMessageService&method=deleteUserRecAllShortMessage"
+>全部清空</html:link>(超过3页请清空 否则无法接受新信息)
+
+
+<%@ include file="footer.jsp" %>
