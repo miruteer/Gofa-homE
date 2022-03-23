@@ -1,0 +1,72 @@
+﻿两种安装方式：
+1. Docker安装：
+mvn package
+docker build -t jivejdondb -f Dockerfile.db .
+docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 jivejdondb
+docker build -t jivejdonweb -f Dockerfile.web .
+docker run -p 8080:8080 jivejdonweb
+browser : http://$DOCKER_HOST_IP:8080
+
+
+2. 手工安装，非常麻烦
+JiveJdon可安装任何JavaEE服务器中。基于JDK/JRE 1.6 以上版本。
+
+
+###################################################################################################
+数据库安装准备，这个步骤是所有步骤第一步：
+
+(1)下载MySQL/或其他数据库。
+
+(2)SQL导入：
+ddl目录下SQL 导入数据库 jivejdon
+
+
+(3)任何涉及创建数据库的地方都选择Utf-8, phpMyadmin中创建jivejdon数据库时，都要选择utf-8-general-c
+
+#######################################################################################
+（一）Tomcat环境安装
+
+部署前提：JDK1.6以上更高版本，mysql5.0或者更高版本
+
+(1)在Tomcat启动配置中加入授权JAAS配置。
+
+配置tomcat/conf/jaas.config（该文件在jivejdon项目的doc\tomcat\conf下，复制到tomcat/conf下），也就是启用tomcat容器安全。
+jaas.config内容：
+JiveJdonRealm {
+	com.jdon.jivejdon.auth.jaas.JiveJdonLoginMoudle required;
+};
+
+然后再启动tomcat时，激活指定这个文件：
+在catalina.sh或catalina.bat 中加入：
+-Djava.security.auth.login.config=$CATALINA_BASE/conf/jaas.config
+
+分下面三种情况：
+1.如linux的catalina.sh：
+JAVA_OPTS="$JAVA_OPTS -Djava.security.auth.login.config=$CATALINA_BASE/conf/jaas.config"
+
+2.或win的catalina.bat：
+set JAVA_OPTS=-Xms128m -Xmx512m  -Djava.security.auth.login.config=%CATALINA_BASE%/conf/jaas.config
+
+3.或调试测试环节：在tomcat/bin目录建立一个debug.bat，将下面两行加入：
+set JAVA_OPTS=-XX:+UseStringCache -Djava.security.auth.login.config=../conf/jaas.config
+catalina.bat jpda start
+（激活 jpda以后，可以在IDE如idea或vscode中链接到这个tomcat，实现运行中断点调试。）
+
+(2)配置JAAS授权第二步：在conf/context.xml中加入:
+        
+      <Realm
+		className="org.apache.catalina.realm.JAASRealm"
+		appName="JiveJdonRealm"
+		userClassNames="com.jdon.jivejdon.auth.jaas.User"
+		roleClassNames="com.jdon.jivejdon.auth.jaas.Role"/>
+
+
+至此以上有关基于Tomcat容器认证授权的机制配置完成，下面是数据库源配置：
+
+(3)配置数据库源，在tomcat/conf/context.xml中配置数据源Datasource:
+ <Resource name="jdbc/JiveJdonDS" 
+              auth="Container" 
+              type="javax.sql.DataSource"  
+              maxActive="100" 
+              maxIdle="30"    
+              maxWait="10000"   

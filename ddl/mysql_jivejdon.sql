@@ -223,4 +223,55 @@ create table userconnector (
   PRIMARY KEY userIdtype (userId, conntype)
 );
 create table oauthuser (
-  weiboUserId varchar
+  weiboUserId varchar (100) not null,
+  userId varchar (100) not null,
+  nickname varchar (100) not null,
+  description varchar (200),
+  url varchar (100),
+  profileImageUrl varchar (100),
+  PRIMARY KEY weiboUserId (weiboUserId),
+  KEY userId (userId)
+);
+create table sitemap (
+  id BIGINT NOT NULL,
+  url varchar (255) not null,
+  name varchar (255) not null,
+  creationDate varchar (15) not null,
+  PRIMARY KEY id (id)
+);
+INSERT INTO `jiveForum`
+VALUES (
+    '101',
+    '1',
+    '11',
+    '0',
+    '0',
+    '0',
+    '0',
+    '001537193648828',
+    '001537193648828'
+  );
+INSERT INTO `jiveMessage`
+VALUES (
+    '101',
+    '101',
+    '1',
+    '101',
+    '1',
+    'aa',
+    'bb',
+    '1',
+    '1',
+    '1537195463805',
+    '1537195463805'
+  );
+INSERT INTO `jiveThread`
+VALUES (
+    '1',
+    '101',
+    '101',
+    '1',
+    '1',
+    '1537195463805',
+    '1537195463805'
+  );
