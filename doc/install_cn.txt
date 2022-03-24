@@ -174,4 +174,27 @@ Server中中会多出一个你配置的服务器，点按选择Debug启动，这
 1.tomcat 6已经提供了JPDA启动方式，只要命令行键入catalina.bat jpda start 就可以启动tomcat，端口8000提供远程调试。
 可将其做成debug.bat命令:
 
-2.启动eclipse，在run菜单下，选择open debug dialog，在弹出的对话框左边的菜单中选择“Remote Java Application”菜单，右键点击，选择“New”，基本参数不用变，端口是8000，在source 这个tab中，
+2.启动eclipse，在run菜单下，选择open debug dialog，在弹出的对话框左边的菜单中选择“Remote Java Application”菜单，右键点击，选择“New”，基本参数不用变，端口是8000，在source 这个tab中，需要加入自己的项目，这样，断点暂停时能够指向源码具体一行。
+
+3.最后，debug启动，启动后平静，就表示正常。可以在程序中设定一个断点，然后，在浏览器中运行即可，必须注意的是，jivejdon使用ant的build.xml，为保证每次编译打包的JiveJdon.war正确部署到tomcat下，需要在JiveJdon项目目录下设置一下build.properties，如：
+deploy.dir=E:/training/apache-tomcat-6.0.26/webapps
+E:/training/apache-tomcat-6.0.26/就是你的tomcat目录。tomcat必须配置好运行环境，如何配置见下：
+
+道友断点调试讨论：
+http://www.jdon.com/jivejdon/38583
+
+(4)注意：因为本论坛内置了防爬虫攻击安全机制，为正常运行，需要将jivejdon.war中WEB-INF/web.xml中referrer.domain.name的值http://www.jdon.com/改为
+你的域名，或将referrer.test.name值改为http://127.0.0.1或http://localhost
+或到数据表setup中清除相应IP记录
+
+##############################################################################################
+（五）参考
+
+没有接触过Java初学者；  https://www.jdon.com/33437
+
+get方式乱码问题解决：jbossweb-tomcat5sar/server.xml的conntector增加maxSavePostSize="-1" URIEncoding="UTF-8"
+
+道友JiveJdon4 配置安装成功步骤： https://www.jdon.com/38522
+
+eclipse application_zh_CN.properties 中文编辑插件
+在eclipse的install new software输入http://propedit.sourceforge.jp/eclipse/updates/
