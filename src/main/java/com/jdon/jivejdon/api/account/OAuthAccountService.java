@@ -27,4 +27,7 @@ public interface OAuthAccountService {
 
 	public Account saveGoogle(OAuthAccessor accessToken);
 
-	public String createP
+	public String createPassword(String uid);
+
+	void saveWeiboAuth(UserConnectorAuth userConnectorAuth);
+}
