@@ -133,3 +133,20 @@ public class ForumServiceImp implements ForumService {
 				Long forumId = (Long) pageIterator.next();
 				forums.add(getForum(forumId));
 			}
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return forums;
+	}
+
+	public void clearCache() {
+		logger.debug(" clear all  Forum cache");
+		forumDao.clearCache();
+	}
+
+	public void doRebuildIndex() {
+		TaskEngine.addTask(reBuildIndex);
+		logger.debug("work is over");
+	}
+
+}
