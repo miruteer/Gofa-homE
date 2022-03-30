@@ -159,3 +159,125 @@ public class OAuthAccountServiceImp implements OAuthAccountService {
 			// image = ImageUtils.resizeImage(image, imageType, 120, 140);
 			// byte[] datas = ImageUtils.getImageByteArray(image);
 			UploadFile uf = new UploadFile();
+			uf.setParentId(weiboUser.getUserConnectorAuth().getUserId());
+			uf.setContentType("image/" + imageType);
+			// uf.setData(datas);
+			uf.setName(weiboUser.getNickname());
+			uf.setDescription(weiboUser.getProfileImageUrl());
+
+			uploadRepository.saveUpload(uf);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void saveSinaAccountProfile(Account accountnew, OAuthUserVO weiboUser) throws Exception {
+
+		List propertys = new ArrayList();
+		Property property = new Property();
+		property.setName(weiboTransferParamVO.SINA_URL_name);
+		String weiboUrl = "<a href='" + weiboTransferParamVO.SINA_URL_Prefix + weiboUser.getUrl() + "'>@" + weiboUser.getNickname() + "</a>";
+		property.setValue(weiboUrl);
+		propertys.add(property);
+
+		property = new Property();
+		property.setName(weiboTransferParamVO.SINA_DES_name);
+		property.setValue(weiboUser.getDescription());
+		propertys.add(property);
+
+		accountService.saveUserpropertys(accountnew.getUserId(), propertys);
+
+	}
+
+	public Account transferSina(OAuthUserVO oAuthUser) {
+		Account account = new Account();
+		account.setUserId(oAuthUser.getUserConnectorAuth().getUserId());
+		String oAuthuserId = oAuthUser.getOAuthUserId();
+		if (oAuthuserId.length() > 5)
+			oAuthuserId = oAuthuserId.substring(oAuthuserId.length() - 5, oAuthuserId.length());
+		account.setUsername(weiboTransferParamVO.SINA_NIKCNAME_Prefix + oAuthuserId);
+		String password = createPassword(oAuthUser.getOAuthUserId());
+		account.setPassword(password);
+		account.setEmail(oAuthuserId + weiboTransferParamVO.SINA_EMAIL_URL_Suffix);
+		account.setEmailVisible(false);
+		// different with normal user :Role.user
+		account.setRoleName(Role.SINAUSER);
+		return account;
+	}
+
+	public String createPassword(String uid) {
+		if (uid.length() > 4)
+			return uid.substring(0, 4);
+		else
+			return uid;
+	}
+
+	
+
+	@Override
+	public Account saveGoogle(OAuthAccessor accessToken) {
+		if (accessToken == null)
+			return null;
+
+		Account account = null;
+		try {
+			OAuthUserVO oAuthUserVO = googleOAuthSubmitter.getUserInfo(accessToken);
+			if (oAuthUserVO == null)
+				return account;
+
+			boolean isNew = false;
+			String userId = userconnector.getUserId(oAuthUserVO.getOAuthUserId());
+			if (userId == null) {
+				// not exist, create new
+				Long userIDInt = sequenceDao.getNextId(Constants.USER);
+				Debug.logVerbose("new userIDInt =" + userIDInt, module);
+				userId = Long.toString(userIDInt);
+				isNew = true;
+			}
+
+			UserConnectorAuth userConnectorAuth = new UserConnectorAuth(userId, "google", accessToken);
+			oAuthUserVO.setUserConnectorAuth(userConnectorAuth);
+
+			jtaTransactionUtil.beginTransaction();
+			userconnector.saveUserConnectorAuth(userConnectorAuth);
+			userconnector.saveOAuthUserVO(oAuthUserVO);
+
+			// if (isNew) {
+			Account accountnew = transferGoogle(oAuthUserVO);
+			saveAccount(accountnew);
+			// saveProfileImg(oAuthUserVO, "jpg");
+			// }
+			jtaTransactionUtil.commitTransaction();
+			account = accountFactory.getFullAccount(userId);
+		} catch (Exception e) {
+			Debug.logError("savegoogle AccessToken error:" + e, module);
+			jtaTransactionUtil.rollback();
+		}
+		return account;
+	}
+
+	public Account transferGoogle(OAuthUserVO weiboUser) {
+		Account account = new Account();
+		account.setUserId(weiboUser.getUserConnectorAuth().getUserId());
+		String weibouesr = weiboUser.getOAuthUserId();
+		if (weibouesr.length() > 5)
+			weibouesr = weibouesr.substring(weibouesr.length() - 5, weibouesr.length());
+		account.setUsername(GoolgeOAuthParamVO.NIKCNAME_Prefix + weibouesr);
+		OAuthAccessor at = (OAuthAccessor) weiboUser.getUserConnectorAuth().getAccessToken();
+		String password = createPassword(at.accessToken);
+		account.setPassword(password);
+		account.setEmail(weibouesr + GoolgeOAuthParamVO.EMAIL_URL_Suffix);
+		account.setEmailVisible(false);
+		// different with normal user :Role.user
+		account.setRoleName(Role.OAuthUSER);
+		return account;
+	}
+
+	public void saveWeiboAuth(UserConnectorAuth userConnectorAuth) {
+		if (userConnectorAuth.getAccessToken() != null) {
+			userconnector.saveUserConnectorAuth(userConnectorAuth);
+		}
+
+	}
+}
