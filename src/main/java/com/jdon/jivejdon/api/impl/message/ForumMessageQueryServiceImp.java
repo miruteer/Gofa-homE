@@ -102,4 +102,121 @@ public class ForumMessageQueryServiceImp implements ForumMessageQueryService {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * co
+	 * com.jdon.jivejdon.api.ForumMessageService#getMessages(java.lang.String
+	 * , int, int)
+	 */
+	public PageIterator getMessages(Long threadId, int start, int count) {
+		logger.debug("enter getMessages");
+		if ((threadId == null) || (threadId.longValue() == 0))
+			return new PageIterator();
+		return messageQueryDao.getMessages(threadId, start, count);
+	}
+
+	public PageIterator getMessages(int start, int count) {
+		return messageQueryDao.getMessages(start, count);
+	}
+
+	public PageIterator searchMessages(String query, int start, int count) {
+		logger.debug("enter searchMessages");
+		PageIterator pi = new PageIterator();
+		try {
+			List messageSearchSpecs = (List) messageQueryDao.find(query, start, count);
+			int allCount = 0;
+			if (messageSearchSpecs.size() > 0) {
+				logger.debug("enter package  PageIterator");
+				Iterator iter = messageSearchSpecs.iterator();
+				while (iter.hasNext()) {
+					MessageSearchSpec mss = (MessageSearchSpec) iter.next();
+					ForumMessage message = forumBuilder.getMessage(mss.getMessageId());
+					mss.setMessage(message);
+					allCount = mss.getResultAllCount();
+				}
+				pi = new PageIterator(allCount, messageSearchSpecs.toArray());
+				// this will let ModelListAction not call getmessageSearchSpecs
+				// method
+				pi.setElementsTypeIsKey(false);
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return pi;
+	}
+
+	/**
+	 * not used
+	 */
+	public PageIterator searchThreads(String query, int start, int count) {
+		logger.debug("enter searchThreads");
+		PageIterator pi = new PageIterator();
+		try {
+			List messageSearchSpecs = (List) messageQueryDao.findThread(query, start, count);
+			int allCount = 0;
+			if (messageSearchSpecs.size() > 0) {
+				logger.debug("enter package  PageIterator");
+				Iterator iter = messageSearchSpecs.iterator();
+				while (iter.hasNext()) {
+					MessageSearchSpec mss = (MessageSearchSpec) iter.next();
+					ForumMessage message = forumBuilder.getMessage(mss.getMessageId());
+					mss.setMessage(message);
+					allCount = mss.getResultAllCount();
+				}
+				pi = new PageIterator(allCount, messageSearchSpecs.toArray());
+				// this will let ModelListAction not call getmessageSearchSpecs
+				// method
+				pi.setElementsTypeIsKey(false);
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return pi;
+	}
+
+	/**
+	 * return query result for FourmMessage, it sorted by modifidate.
+	 */
+	public PageIterator getMessages(QueryCriteria qc, int start, int count) {
+		logger.debug("enter getMessages for QueryCriteria");
+		if (qc instanceof MultiCriteria) {
+			// transfer msc username to userId;
+			MultiCriteria mc = (MultiCriteria) qc;
+			String username = mc.getUsername();
+			if (username != null) {
+				Account accountIn = new Account();
+				accountIn.setUsername(username);
+				Account account = accountFactory.getFullAccount(accountIn);
+				if (account != null)
+					mc.setUserID(account.getUserId());
+				else
+					mc.setUserID(username);
+			}
+			return messageQueryDao.getMessages(qc, start, count);
+		} else {
+			logger.error("it is not MultiCriteria");
+			return new PageIterator();
+		}
+	}
+
+	public PageIterator getMessageReplys(QueryCriteria qc, int start, int count) {
+		logger.debug("enter getMessages for QueryCriteria");
+		if (qc instanceof MultiCriteria) {
+			// transfer msc username to userId;
+			MultiCriteria mc = (MultiCriteria) qc;
+			String username = mc.getUsername();
+			if (username != null) {
+				Account accountIn = new Account();
+				accountIn.setUsername(username);
+				Account account = accountFactory.getFullAccount(accountIn);
+				if (account != null)
+					mc.setUserID(account.getUserId());
+				else
+					mc.setUserID(username);
+			}
+			return messageQueryDao.getMessageReplys(qc, start, count);
+		} else {
+			logger.error("it is not MultiCriteria");
+			return new PageIterator();
+		}
+	}
+
+	public PageIterator getThreads(QueryCriteria qc, int start, int count) {
+		logger.debug("enter getMessages for QueryCrit
