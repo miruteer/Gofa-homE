@@ -104,4 +104,134 @@ public abstract class AccountServiceImp implements AccountService {
 		Account account = (Account) em.getModelIF();
 		Debug.logVerbose("createAccount username=" + account.getUsername(), module);
 		try {
-			if (accountFactory
+			if (accountFactory.getFullAccountForEmail(account.getEmail()) != null) {
+				em.setErrors(Constants.EMAIL_EXISTED);
+				return;
+			}
+			if (accountFactory.getFullAccountForUsername(account.getUsername()) != null) {
+				em.setErrors(Constants.USERNAME_EXISTED);
+				return;
+			}
+			jtaTransactionUtil.beginTransaction();
+			Long userIDInt = sequenceDao.getNextId(Constants.USER);
+			Debug.logVerbose("new userIDInt =" + userIDInt, module);
+			account.setUserId(userIDInt.toString().trim());
+
+			// setup the role is User
+			account.setRoleName(Role.USER);
+
+			accountRepository.createAccount(account);
+			jtaTransactionUtil.commitTransaction();
+		} catch (Exception e) {
+			Debug.logError(" createAccount error : " + e, module);
+			em.setErrors(Constants.ERRORS);
+			jtaTransactionUtil.rollback();
+		}
+	}
+
+	public PasswordassitVO getPasswordassit(String userId) {
+		return this.accountRepository.getPasswordassit(userId);
+	}
+
+	public void insertPasswordassit(PasswordassitVO passwordassitVO) throws Exception {
+		this.accountRepository.insertPasswordassit(passwordassitVO);
+	}
+
+	public void updatePasswordassit(PasswordassitVO passwordassitVO) throws Exception {
+		this.accountRepository.updatePasswordassit(passwordassitVO);
+	}
+
+	public void deletePasswordassit(String userId) throws Exception {
+		this.accountRepository.deletePasswordassit(userId);
+	}
+
+	public boolean checkUser(String username) {
+		boolean exist = true;
+		if (username.indexOf("@") != -1) {
+			if (accountFactory.getFullAccountForEmail(username) == null) {
+				if (!EmailValidator.getInstance().isValid(username))
+					exist = true;
+				else
+					exist = false;
+
+			}
+		} else {
+			if (accountFactory.getFullAccountForUsername(username) == null) {
+				if (!username.matches("(\\w+|\\d+)"))
+					exist = true;
+				else
+					exist = false;
+			}
+		}
+		return exist;
+	}
+
+	public void updateAccount(Account accountInput) throws Exception {
+		Debug.logVerbose("enter updateAccount", module);
+
+		try {
+			Account checkAccount = getAccount(accountInput.getUserIdLong());
+			if (checkAccount == null)
+				return;
+			if (checkAccount.isEmailValidate()) {
+				accountInput.setEmail(checkAccount.getEmail());
+			}
+
+			jtaTransactionUtil.beginTransaction();
+			accountRepository.updateAccount(accountInput);
+			jtaTransactionUtil.commitTransaction();
+		} catch (Exception e) {
+			Debug.logError(" updateAccount error : " + e, module);
+			jtaTransactionUtil.rollback();
+			throw new Exception(e);
+		}
+	}
+
+	public void deleteAccount(Account account) throws Exception {
+		try {
+			jtaTransactionUtil.beginTransaction();
+			accountRepository.deleteAccount(account);
+			// delete account profile
+			propertyFactory.saveUserPropertys(account.getUserIdLong(), new ArrayList());
+			// delete weibo info
+			userconnector.deleteWeiboUserVO(account.getUserId());
+			jtaTransactionUtil.commitTransaction();
+		} catch (Exception e) {
+			Debug.logError(" deleteAccount error : " + e, module);
+			jtaTransactionUtil.rollback();
+			throw new Exception(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.api.account.AccountService#getAccounts(int, int)
+	 */
+	public PageIterator getAccounts(int start, int count) {
+		return accountRepository.getAccounts(start, count);
+	}
+
+	public void updateAccountEmailValidate(Account account) {
+		try {
+			accountRepository.updateAccountEmailValidate(account);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Collection getUserpropertys(String userId) {
+		return propertyFactory.getUserPropertys(Long.parseLong(userId));
+	}
+
+	public void saveUserpropertys(String userId, Collection props) {
+		propertyFactory.saveUserPropertys(Long.parseLong(userId), props);
+	}
+
+	public void update() {
+		TaskEngine.addTask(oldUpdateNewUtil);
+		Debug.logVerbose("work is over", module);
+		Debug.logVerbose("work is over", module);
+	}
+
+}
