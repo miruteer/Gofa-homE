@@ -219,4 +219,120 @@ public class ForumMessageQueryServiceImp implements ForumMessageQueryService {
 	}
 
 	public PageIterator getThreads(QueryCriteria qc, int start, int count) {
-		logger.debug("enter getMessages for QueryCrit
+		logger.debug("enter getMessages for QueryCriteria");
+		if (qc instanceof MultiCriteria) {
+			// transfer msc username to userId;
+			MultiCriteria mc = (MultiCriteria) qc;
+			String username = mc.getUsername();
+			if (username != null) {
+				Account accountIn = new Account();
+				accountIn.setUsername(username);
+				Account account = accountFactory.getFullAccount(accountIn);
+				if (account != null)
+					mc.setUserID(account.getUserId());
+				else
+					mc.setUserID(username);
+			}
+			return messageQueryDao.getThreads(qc, start, count);
+		} else {
+			logger.error("it is not MultiCriteria");
+			return new PageIterator();
+		}
+	}
+
+	/*
+	 * return query result for FourmThread, it sorted by thread modifidate.
+	 */
+	public PageIterator getThreads(Long forumId, int start, int count, ResultSort resultSort) {
+		logger.debug("enter getThreads");
+		return messageQueryDao.getThreads(forumId, start, count, resultSort);
+	}
+
+	public PageIterator getThreads(int start, int count, ThreadListSpec threadListSpec) {
+		return messageQueryDao.getThreads(start, count, threadListSpec);
+	}
+
+	public ForumThread getThread(Long threadId) {
+		return forumBuilder.getThread(threadId).orElse(null);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.api.ForumMessageService#getThreadsPrevNext(java
+	 * .lang.String, int)
+	 */
+	public List getThreadsPrevNext(Long currentThreadId) {
+		List threads = new ArrayList();
+		logger.debug("enter getThreadsPrevNext");
+		try {
+			ForumThread thread = getThread(currentThreadId);
+			if (thread == null) {
+				return new ArrayList();
+			}
+			List resultIds = messageQueryDao.getThreadsPrevNext(thread.getForum().getForumId(), currentThreadId);
+
+			int index = resultIds.indexOf(currentThreadId);
+			logger.debug(" found the block ,size:" + resultIds.size() + " the index=" + index);
+			if (index == -1)
+				return new ArrayList();
+
+			// transfer the forumThread from threadId Collection from the
+			// resultIds;
+
+			if (index >= 1) {
+				Long prevThreadId = (Long) resultIds.get(index - 1);
+				logger.debug(" prevThreadId=" + prevThreadId);
+				threads.add(getThread(prevThreadId));
+			}
+			threads.add(getThread(currentThreadId));
+			if (index < (resultIds.size() - 1)) {
+				Long nextThreadId = (Long) resultIds.get(index + 1);
+				logger.debug(" nextThreadId=" + nextThreadId);
+				threads.add(getThread(nextThreadId));
+			}
+		} catch (Exception e) {
+			logger.error(currentThreadId + "" + e);
+		}
+		return threads;
+	}
+
+	/**
+	 * return query result for FourmThread, it sorted by message replies. call
+	 * from ThreadHotAction getHotThreads is in object sorted not by SQL.
+	 * 
+	 */
+
+	public PageIterator getHotThreads(QueryCriteria qc, int start, int count) {
+		logger.debug("enter getThreads for QueryCriteria, messageReplyCountWindow =" + qc.getMessageReplyCountWindow());
+		return queryManager.getHotThreadPageKeys(qc, start, count);
+	}
+
+	/**
+	 * call from ThreadPopularAction this method is simple than getHotThreads,
+	 * only for one page , no multi pages. no messageReplyCountWindow, donot
+	 * need sorted by message replies popularThreads will get result from SQL.
+	 * 
+	 */
+	public PageIterator popularThreads(int popularThreadsWindow, int count) {
+		PageIterator pi = messageQueryDao.popularThreads(getQueryCriteria(popularThreadsWindow), count);
+		try {
+			if (pi.getAllCount() < count) {// reload before 30 days
+				int lastcount = count - pi.getAllCount();
+				PageIterator pi2 = messageQueryDao.popularThreads(getQueryCriteria(popularThreadsWindow), lastcount);//
+				Object[] keys = pi.getKeys();
+				Object[] keys2 = pi2.getKeys();
+				Object[] newkeys = new Object[keys.length + keys2.length];
+				System.arraycopy(keys, 0, newkeys, 0, keys.length);
+				System.arraycopy(keys2, 0, newkeys, keys.length, keys2.length);
+				pi = new PageIterator(newkeys.length, newkeys);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return pi;
+	}
+
+	private QueryCriteria getQueryCriteria(int popularThread
