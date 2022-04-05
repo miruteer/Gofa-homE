@@ -335,4 +335,26 @@ public class ForumMessageQueryServiceImp implements ForumMessageQueryService {
 		return pi;
 	}
 
-	private QueryCriteria getQueryCriteria(int popularThread
+	private QueryCriteria getQueryCriteria(int popularThreadsWindow) {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_YEAR, -popularThreadsWindow);
+
+		QueryCriteria queryCriteria = new QueryCriteria();
+		String year = Integer.toString(cal.get(Calendar.YEAR));
+		String month = Integer.toString(cal.get(Calendar.MONTH) + 1);
+		String day = Integer.toString(cal.get(Calendar.DAY_OF_MONTH));
+		queryCriteria.setFromDate(year, month, day);
+		return queryCriteria;
+	}
+
+
+	public PageIterator getThreadListByUser(String userId, int start, int count) {
+		return messageQueryDao.getThreadListByUser(userId, start, count);
+	}
+
+	public PageIterator getMesageListByUser(String userId, int start, int count) {
+		return messageQueryDao.getMesageListByUser(userId, start, count);
+
+	}
+
+}
