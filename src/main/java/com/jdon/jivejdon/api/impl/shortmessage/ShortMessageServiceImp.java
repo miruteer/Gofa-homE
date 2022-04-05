@@ -216,4 +216,146 @@ public class ShortMessageServiceImp implements ShortMessageService {
 	 * 编辑消息
 	 */
 	public void updateShortMessage(EventModel em) {
-		logger.debug("Sho
+		logger.debug("ShortMessageServiceImp");
+
+	}
+
+	/**
+	 * 查找消息 根据PageIterator结果进行查找
+	 */
+	public FromShortMessage getFromShortMessage(Long msgId) {
+		logger.debug("ShortMessageServiceImp getFromShortMessage");
+		ShortMessage smsg = this.factory.findShortMessage(msgId);
+		Account loginaccount = this.sessionContextUtil.getLoginAccount(sessionContext);
+		// check auth
+		if (!smsg.getMessageFrom().equals(loginaccount.getUsername())) {
+			logger.error("msgId=" + msgId + " is not this user's =" + loginaccount.getUserId());
+			return null;
+		}
+		FromShortMessage fromsmsg = new FromShortMessage();
+		try {
+			PropertyUtils.copyProperties(fromsmsg, smsg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return fromsmsg;
+	}
+
+	public ToShortMessage getToShortMessage(Long msgId) {
+		logger.debug("ShortMessageServiceImp getToShortMessage");
+		ShortMessage smsg = this.factory.findShortMessage(msgId);
+		Account loginaccount = this.sessionContextUtil.getLoginAccount(sessionContext);
+		// check auth
+		if (!smsg.getMessageTo().equals(loginaccount.getUsername())) {
+			logger.error("msgId=" + msgId + " is not this user's =" + loginaccount.getUserId());
+			return null;
+		}
+		ToShortMessage tosmsg = new ToShortMessage();
+		try {
+			PropertyUtils.copyProperties(tosmsg, smsg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return tosmsg;
+	}
+
+	public ToShortMessage initShortMessage(EventModel em) {
+		logger.debug("enter initShortMessage");
+		ToShortMessage smf = (ToShortMessage) em.getModelIF();
+		if (smf.getMsgId() == null) {
+			return smf;
+		}
+		String sendTo = smf.getMessageFrom();
+		smf.setMessageTo(sendTo);
+		smf.setMessageBody("");
+		return smf;
+	}
+
+	/**
+	 * 
+	 */
+	public PageIterator getShortMessages(int start, int count) {
+		PageIterator pageIterator = new PageIterator();
+		Account loginaccount = this.sessionContextUtil.getLoginAccount(sessionContext);
+		try {
+			pageIterator = this.repository.getShortMessages(start, count, loginaccount.getUserIdLong());
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return pageIterator;
+	}
+
+	/**
+	 * 获取接收的消息
+	 */
+	public PageIterator getReceiveShortMessages(int start, int count) {
+		Account account = sessionContextUtil.getLoginAccount(sessionContext);
+		PageIterator pageIterator = new PageIterator();
+		try {
+			pageIterator = this.repository.getReceiveShortMessages(start, count, account);
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return pageIterator;
+	}
+
+	// accept pubsub from LazyLoaderRole's @Send("loadNewShortMessageCount")
+	@OnEvent("loadNewShortMessageCount")
+	public int loadNewShortMessageCount(String userId) {
+		Account account = this.accountFactory.getFullAccount(userId);
+		int count = checkReceiveShortMessages(account);
+		return count;
+	}
+
+	public int checkReceiveShortMessages() {
+		int count = 0;
+		Account account = sessionContextUtil.getLoginAccount(sessionContext);
+		if (account == null)
+			return count;
+
+		count = checkReceiveShortMessages(account);
+		return count;
+	}
+
+	public int checkReceiveShortMessages(Account account) {
+		int count = 0;
+		try {
+			PageIterator pi = this.repository.getReceiveShortMessages(0, 50, account);
+			if ((pi == null) || (pi.getAllCount() == 0))
+				return count;
+			while (pi.hasNext()) {
+				Long msgId = (Long) pi.next();
+				ShortMessage shortMessage = this.factory.findShortMessage(msgId);
+				if (shortMessage == null)
+					return count;
+				if (!shortMessage.getShortMessageState().isHasRead()) {
+					count++;
+				}
+			}
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return count;
+	}
+
+	/**
+	 * 获取没有发送的消息
+	 */
+	public PageIterator getSaveShortMessages(int start, int count) {
+		Account account = sessionContextUtil.getLoginAccount(sessionContext);
+		PageIterator pageIterator = new PageIterator();
+		try {
+			pageIterator = this.repository.getSaveShortMessages(start, count, account);
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return pageIterator;
+	}
+
+	/**
+	 * 获取已发送的消息
+	 */
+	public PageIterator getSendShortMessages(int start, int count) {
+		Account account = sessionContextU
