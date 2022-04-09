@@ -78,4 +78,110 @@ public class TagServiceImp implements TagService, Poolable {
 		return tagRepository.getTaggedThread(taggedThreadListSpec, start, count);
 	}
 
-	public PageIterator getTaggedRandomThreads(TaggedThreadListSpec taggedThreadListSpec, int start, int c
+	public PageIterator getTaggedRandomThreads(TaggedThreadListSpec taggedThreadListSpec, int start, int count) {
+		PageIterator pi = tagRepository.getTaggedThread(taggedThreadListSpec, start, count);
+		if ((pi.getAllCount() == 0) || (count == 0))
+			return new PageIterator();
+		int pageCount = pi.getAllCount() / count;
+		int nowPage = (int) (Math.random() * pageCount);
+		start = nowPage * count;
+		return tagRepository.getTaggedThread(taggedThreadListSpec, start, count);
+	}
+
+	public void updateThreadTag(EventModel em) {
+		ThreadTag threadTag = (ThreadTag) em.getModelIF();
+		if (threadTag == null)
+			return;
+		ThreadTag threadTagOld = tagRepository.getThreadTag(threadTag.getTagID());
+		try {
+			threadTagOld.setTitle(threadTag.getTitle());
+			tagRepository.updateThreadTag(threadTagOld);
+		} catch (Exception e) {
+			logger.error(e);
+			em.setErrors(Constants.ERRORS);
+
+		}
+	}
+
+	public void deleteThreadTag(EventModel em) {
+		ThreadTag threadTag = (ThreadTag) em.getModelIF();
+		threadTag = tagRepository.getThreadTag(threadTag.getTagID());
+		if (threadTag == null)
+			return;
+		try {
+			tagRepository.deleteThreadTag(threadTag);
+		} catch (Exception e) {
+			logger.error(e);
+			em.setErrors(Constants.ERRORS);
+
+		}
+	}
+
+	public PageIterator getThreadTags(int start, int count) {
+
+		return tagRepository.getThreadTags(start, count);
+	}
+
+	public ThreadTag getThreadTag(Long tagID) {
+		return tagRepository.getThreadTag(tagID);
+	}
+
+	public void saveTag(Long threadId, String[] tagTitles) {
+		if ((tagTitles == null) || (tagTitles.length == 0)) {
+			return;
+		}
+		try {
+			tagRepository.saveTagTitle(threadId, tagTitles);
+			Optional<ForumThread> forumThreadOptional = messageRepository.getForumBuilder().getThread(threadId);
+			Collection<ThreadTag> newtags = tagRepository.getThreadTags(forumThreadOptional.get());
+			ThreadTagsVO threadTagsVO = new ThreadTagsVO(forumThreadOptional.get(), newtags);
+			// this is update thread in memory cache
+			forumThreadOptional.get().changeTags(threadTagsVO);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+	}
+
+	public void saveHotKeys(HotKeys hotKeys) {
+		hotKeysRepository.saveHotKeys(hotKeys);
+	}
+
+	public HotKeys getHotKeys() {
+		return hotKeysRepository.getHotKeys();
+	}
+
+	public void saveReBlogLink(OneOneDTO oneOneDTO) {
+		try {
+			messageRepository.saveReBlog(oneOneDTO);
+			refreshReblog((Long) oneOneDTO.getParent());
+			refreshReblog((Long) oneOneDTO.getChild());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void refreshReblog(Long Id) {
+		Optional<ForumThread> forumThreadOptional = messageRepository.getForumBuilder().getThread(Id);
+		forumThreadOptional.get().getRootMessage().getReBlogVO().refresh();
+	}
+
+	public void deleteReBlogLink(Long fromId) {
+		try {
+			messageRepository.delReBlog(fromId);
+			refreshReblog(fromId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Collection<Long> getReBlogLink(Long messageId) {
+		try {
+			return messageRepository.getReBlogByFrom(messageId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
+}
