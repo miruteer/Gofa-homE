@@ -16,4 +16,132 @@ import com.jdon.jivejdon.domain.model.account.Account;
 import com.jdon.jivejdon.domain.model.attachment.UploadFile;
 import com.jdon.jivejdon.infrastructure.repository.acccount.AccountFactory;
 import com.jdon.jivejdon.infrastructure.repository.property.UploadRepository;
-import com.jdon.jivejdon.infrastructure.repository.dao.Seque
+import com.jdon.jivejdon.infrastructure.repository.dao.SequenceDao;
+import com.jdon.jivejdon.api.property.UploadService;
+import com.jdon.util.UtilValidate;
+
+@Poolable
+public class UploadServiceShell implements UploadService {
+	private final static Logger logger = LogManager.getLogger(UploadServiceShell.class);
+
+	private final static String UPLOAD_NAME = "UPLOAD";
+
+	private final static int UPLOAD_QTY = 3;
+
+	protected final UploadRepository uploadRepository;
+
+	protected final AccountFactory accountFactory;
+
+	private final SequenceDao sequenceDao;
+
+	protected SessionContext sc;
+
+	public UploadServiceShell(UploadRepository uploadRepository, AccountFactory accountFactory, SequenceDao sequenceDao) {
+		this.uploadRepository = uploadRepository;
+		this.accountFactory = accountFactory;
+		this.sequenceDao = sequenceDao;
+
+	}
+
+	/*
+	 * save the uploadfile to session becuase the messageId has not produce,
+	 * when the message create operation is active, will call saveUploadFileToDB
+	 * method
+	 */
+	public void saveUploadFile(EventModel em) {
+		UploadFile uploadFile = (UploadFile) em.getModelIF();
+		logger.debug("UploadFile size =" + uploadFile.getSize());
+
+		Long parentId = null;
+		if (!UtilValidate.isEmpty(uploadFile.getParentId()))
+			parentId = Long.parseLong(uploadFile.getParentId());
+
+		addUploadFileSession(parentId, uploadFile, UPLOAD_QTY);
+	}
+
+	protected void addUploadFileSession(Long parentId, UploadFile uploadFile, int maxCount) {
+		try {
+			Long mIDInt = sequenceDao.getNextId(Constants.OTHERS);
+			uploadFile.setId(mIDInt.toString());
+			Collection<UploadFile> uploads = getUploadFilesFromSession(this.sc);
+			if (uploads == null) {
+				initSession(parentId, this.sc);
+				uploads = getUploadFilesFromSession(this.sc);
+			}
+
+			if (uploads.size() != 0 && uploads.size() >= maxCount) {
+				uploads.remove(uploads.size() - 1);
+			}
+			uploads.add(uploadFile);
+		} catch (Exception e) {
+			logger.error("addUploadFileSession error:" + e);
+		}
+	}
+
+	public void saveUploadFileNow(EventModel em) {
+		UploadFile uploadFile = (UploadFile) em.getModelIF();
+		String pid = uploadFile.getParentId();
+		Long parentId = Long.parseLong(pid);
+		addUploadFileSession(parentId, uploadFile, 1);
+		Collection uploads = getAllUploadFiles(parentId);
+		try {
+			uploadRepository.saveAllUploadFiles(pid, uploads);
+			clearSession();
+		} catch (Exception e) {
+			em.setErrors(Constants.ERRORS);
+		}
+		em.setModelIF(uploadFile);
+	}
+
+	public void saveAccountFaceFile(EventModel em) {
+		UploadFile uploadFile = (UploadFile) em.getModelIF();
+		String pid = uploadFile.getParentId();
+		Long parentId = Long.parseLong(pid);
+		Account account = accountFactory.getFullAccount(pid);
+		if (account.isAnonymous())
+			return;
+		addUploadFileSession(parentId, uploadFile, 1);
+		Collection uploads = getAllUploadFiles(parentId);
+		try {
+			uploadRepository.saveAllUploadFiles(pid, uploads);
+			clearSession();
+			account.getAttachment().setUploadFile(uploadFile);
+		} catch (Exception e) {
+			logger.error("saveAccountFaceFile error:" + e);
+
+		}
+
+	}
+
+	public Collection getAllUploadFiles(Long messageId) {
+		Collection<UploadFile> uploads = getUploadFilesFromSession(this.sc);
+		if (uploads == null) {
+			initSession(messageId, this.sc);
+			uploads = getUploadFilesFromSession(this.sc);
+		}
+		return uploads;
+	}
+
+	/**
+	 * get all UploadFiles include session but not exclude the old
+	 */
+	public Collection getAllUploadFiles(SessionContext sessionContext) {
+		logger.debug(" loadUploadFiles ");
+		Collection re = getUploadFilesFromSession(sessionContext);
+		return re;
+	}
+
+	public Collection loadAllUploadFilesOfMessage(Long messageId, SessionContext sessionContext) {
+		logger.debug(" loadUploadFiles ");
+		Collection re = getUploadFilesFromSession(sessionContext);
+		if (re != null)
+			for (Object o : re) {
+				UploadFile uploadFile = (UploadFile) o;
+				uploadFile.setParentId(Long.toString(messageId));
+			}
+		return re;
+	}
+
+	public void removeUploadFile(EventModel em) {
+		logger.debug(" uploadService.removeUploadFile ");
+		UploadFile newuploadFile = (UploadFile) em.getModelIF();
