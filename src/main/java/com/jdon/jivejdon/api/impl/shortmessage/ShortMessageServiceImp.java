@@ -358,4 +358,31 @@ public class ShortMessageServiceImp implements ShortMessageService {
 	 * 获取已发送的消息
 	 */
 	public PageIterator getSendShortMessages(int start, int count) {
-		Account account = sessionContextU
+		Account account = sessionContextUtil.getLoginAccount(sessionContext);
+		PageIterator pageIterator = new PageIterator();
+		try {
+			pageIterator = this.repository.getSendShortMessages(start, count, account);
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return pageIterator;
+	}
+
+	/**
+	 * @return Returns the sessionContext.
+	 */
+	public SessionContext getSessionContext() {
+		return sessionContext;
+	}
+
+	/**
+	 * @param sessionContext
+	 *            The sessionContext to set.
+	 */
+	@SessionContextAcceptable
+	public void setSessionContext(SessionContext sessionContext) {
+		logger.debug(":void setSessionContext(SessionContext sessionContext)");
+		this.sessionContext = sessionContext;
+	}
+
+}
