@@ -145,3 +145,85 @@ public class UploadServiceShell implements UploadService {
 	public void removeUploadFile(EventModel em) {
 		logger.debug(" uploadService.removeUploadFile ");
 		UploadFile newuploadFile = (UploadFile) em.getModelIF();
+		Collection<UploadFile> uploads = getUploadFilesFromSession(this.sc);
+		if (uploads == null)
+			return;
+
+		Iterator iter = uploads.iterator();
+		while (iter.hasNext()) {
+			UploadFile uploadFile = (UploadFile) iter.next();
+			if (uploadFile.getId().equals(newuploadFile.getId()))
+				iter.remove();
+		}
+
+	}
+
+	public UploadFile getUploadFile(String objectId) {
+		logger.debug("getUploadFile for id=" + objectId);
+		UploadFile uf = getUploadFileFromSession(objectId);
+		if (uf == null)
+			uf = uploadRepository.getUploadFile(objectId);
+		return uf;
+	}
+
+	private UploadFile getUploadFileFromSession(String objectId) {
+		Collection<UploadFile> uploads = getUploadFilesFromSession(this.sc);
+		if (uploads == null)
+			return null;
+
+		for (UploadFile uploadFile : uploads) {
+			if (uploadFile.getId().equals(objectId))
+				return uploadFile;
+		}
+
+		return null;
+	}
+
+	private Collection<UploadFile> getUploadFilesFromSession(SessionContext sessionContext) {
+		if (sessionContext == null)
+			return null;
+		return (Collection) sessionContext.getArrtibute(UPLOAD_NAME);
+	}
+
+	private void initSession(Long parentId, SessionContext sessionContext) {
+		Collection<UploadFile> uploads = new TreeSet();
+		sessionContext.setArrtibute(UPLOAD_NAME, uploads);
+		logger.debug("first time init ");
+		if ((parentId != null) && (parentId.longValue() != 0)) {
+			Collection dbList = uploadRepository.getUploadFiles(parentId.toString());
+			Iterator iter = dbList.iterator();
+			while (iter.hasNext()) {
+				UploadFile uploadFile = (UploadFile) iter.next();
+				uploads.add(uploadFile);
+			}
+		}
+	}
+
+	public void clearSession(SessionContext sessionContext) {
+		if (sessionContext != null)
+			sessionContext.remove(UPLOAD_NAME);
+	}
+
+	public void clearSession() {
+		if (this.sc != null)
+			this.sc.remove(UPLOAD_NAME);
+	}
+
+	/**
+	 * @return Returns the sessionContext.
+	 */
+	public SessionContext getSessionContext() {
+		return sc;
+	}
+
+	/**
+	 * @param sessionContext
+	 *            The sessionContext to set.
+	 */
+	@SessionContextAcceptable
+	public void setSessionContext(SessionContext sessionContext) {
+		if (sessionContext != null)
+			this.sc = sessionContext;
+	}
+
+}
