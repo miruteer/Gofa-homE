@@ -52,4 +52,6 @@ public interface TagService {
 
 	public void saveReBlogLink(OneOneDTO oneOneDTO);
 
-	public Collection<Lon
+	public Collection<Long> getReBlogLink(Long messageId);
+
+}
