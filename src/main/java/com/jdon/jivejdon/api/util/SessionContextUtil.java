@@ -36,4 +36,82 @@ public class SessionContextUtil {
 	private ContainerUtil containerUtil;
 
 	/**
-	
+	 * @param accountDao
+	 */
+	public SessionContextUtil(ContainerUtil containerUtil, AccountFactory accountFactory) {
+		this.containerUtil = containerUtil;
+		this.accountFactory = accountFactory;
+	}
+
+	public boolean isLogin(SessionContext sessionContext) {
+		if (sessionContext == null)
+			return false;
+		Account account = (Account) sessionContext.getArrtibute(ACCOUNT);
+		if (account == null)
+			return false;
+		else
+			return true;
+	}
+
+	public Account getLoginAccount(SessionContext sessionContext) {
+		if (sessionContext == null)
+			return null;
+		Account account = null;
+		try {
+			account = (Account) sessionContext.getArrtibute(ACCOUNT);
+			if (account == null) {
+				account = loadAccount(sessionContext);
+				if (account != null) {
+					sessionContext.setArrtibute(ACCOUNT, account);
+					logger.debug("save Account to session: accout.userId" + account.getUserId());
+
+					account.setPostIP(getClientIP(sessionContext));
+					// set user IP
+					logger.debug(" got the account, userId:" + account.getUserId() + " " + ACCOUNT.hashCode() + " role=" + account.getRoleName());
+
+					// preload
+					account.getMessageCount();
+				}
+			}
+
+			if (account == null)
+				return account;
+
+			// refresh account in cache is same as that in session.
+			this.containerUtil.addModeltoCache(account.getUserId(), account);
+
+		} catch (Exception e) {
+			logger.debug(" getLoginAccount error: " + e);
+		}
+
+		return account;
+	}
+
+	protected Account loadAccount(SessionContext sessionContext) {
+		Account account = null;
+		String username = getPrinciple(sessionContext);
+		if (username != null) {
+			account = new Account();
+			account.setUsername(username);
+			account = accountFactory.getFullAccount(account);
+		}
+		return account;
+
+	}
+
+	public String getClientIP(SessionContext sessionContext) {
+		SessionContextSetup sessionContextSetup = containerUtil.getSessionContextSetup();
+		return (String) sessionContextSetup.getArrtibute(SessionContextSetup.REMOTE_ADDRESS, sessionContext);
+	}
+
+	private String getPrinciple(SessionContext sessionContext) {
+		SessionContextSetup sessionContextSetup = containerUtil.getSessionContextSetup();
+		String principleName = (String) sessionContextSetup.getArrtibute(SessionContextSetup.PRINCIPAL_NAME, sessionContext);
+		if (principleName == null) {
+			logger.debug("the login principle name is null");
+		} else
+			logger.debug(" the login name is:" + principleName);
+		return principleName;
+	}
+
+}
