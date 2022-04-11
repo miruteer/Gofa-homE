@@ -39,4 +39,90 @@ import java.lang.reflect.Method;
  * @author banq
  * 
  */
-public class CUDInputInterceptor implements MethodInterceptor 
+public class CUDInputInterceptor implements MethodInterceptor {
+
+	private final static Logger logger = LogManager.getLogger(CUDInputInterceptor.class);
+
+	protected final SessionContextUtil sessionContextUtil;
+
+	protected final Throttler throttler;
+
+	protected final InputSwitcherIF inputSwitcherIF;
+
+	private final TargetMetaRequestsHolder targetMetaRequestsHolder;
+
+	private final ErrorBlockerIF errorBlockerIF;
+
+	public CUDInputInterceptor(Throttler throttler, TargetMetaRequestsHolder targetMetaRequestsHolder, SessionContextUtil sessionContextUtil,
+			InputSwitcherIF inputSwitcherIF, ErrorBlockerIF errorBlockerIF) {
+		this.throttler = throttler;
+		this.sessionContextUtil = sessionContextUtil;
+		this.inputSwitcherIF = inputSwitcherIF;
+		this.targetMetaRequestsHolder = targetMetaRequestsHolder;
+		this.errorBlockerIF = errorBlockerIF;
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept
+	 * .MethodInvocation)
+	 */
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		logger.debug("enter PermissionInterceptor");
+
+		Method method = invocation.getMethod();
+		String methodNameNow = method.getName();
+
+		TargetMetaRequest targetMetaRequest = targetMetaRequestsHolder.getTargetMetaRequest();
+		SessionContext sessionContext = targetMetaRequest.getSessionContext();
+
+		// only Intercept those users who has login.
+		if (!sessionContextUtil.isLogin(sessionContext)) {
+			return invocation.proceed();
+		}
+
+		// only Intercept those create or update or delete methods, only permit
+		// read only
+		if (!methodNameNow.contains("create") && !methodNameNow.contains("update") && !methodNameNow.contains("delete"))
+			return invocation.proceed();
+
+		if (isInputPermit(invocation)) {
+			logger.error(Constants.INPUT_PERMITTED);
+			return null;
+		}
+
+		Account account = sessionContextUtil.getLoginAccount(sessionContext);
+		if (account == null)
+			return false;
+		if (account.postIsAllowed(methodNameNow, throttler))
+			return invocation.proceed();
+		else {
+			errorBlockerIF.checkCount(account.getPostIP(), 5);
+			setErrors(invocation, Constants.IP_PERMITTED);
+			logger.error(Constants.IP_PERMITTED + account.getPostIP());
+			return null;
+		}
+	}
+
+	private void setErrors(MethodInvocation invocation, String info) {
+		Object arg = invocation.getArguments()[0];
+		if ((arg != null) && arg.getClass().isAssignableFrom(EventModel.class)) {
+			EventModel em = (EventModel) arg;
+			em.setErrors(info);
+		}
+	}
+
+	private boolean isInputPermit(MethodInvocation invocation) {
+		boolean isPermit = false;
+		if (inputSwitcherIF.isInputPermit()) {
+			setErrors(invocation, Constants.INPUT_PERMITTED);
+			isPermit = true;
+		}
+		return isPermit;
+	}
+
+
+}
