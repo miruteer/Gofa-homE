@@ -8,4 +8,14 @@ public class OperationAuthorization {
 	private PermissionXmlParser permissionXmlParser;
 
 	public OperationAuthorization(PermissionXmlParser permissionXmlParser) {
-		this.permiss
+		this.permissionXmlParser = permissionXmlParser;
+	}
+
+	public PermissionRule getPermissionRule() {
+		if (permissionRule == null) {
+			permissionRule = permissionXmlParser.parse();
+		}
+		return permissionRule;
+	}
+
+}
