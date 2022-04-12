@@ -65,4 +65,30 @@ public class JiveJdonLoginMoudle implements LoginModule {
 	}
 
 	public boolean logout() {
-		_subject.getP
+		_subject.getPrincipals().clear();
+		return true;
+	}
+
+	private void authenticate() throws IOException, UnsupportedCallbackException {
+
+		NameCallback nameCallback = new NameCallback("name: ");
+		PasswordCallback passwordCallback = new PasswordCallback("password: ", false);
+
+		_callbackHandler.handle(new Callback[] { nameCallback, passwordCallback });
+
+		username = nameCallback.getName();
+
+		String password = null;
+		char[] passwordChar = passwordCallback.getPassword();
+
+		if (passwordChar != null) {
+			password = new String(passwordChar);
+			roles = rolesProvider.provideRoles(username, DigestUtil.hash(password));
+		}
+
+		if (roles.size() > 0)
+			succeeded = true;
+
+	}
+
+}
