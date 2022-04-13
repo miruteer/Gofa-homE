@@ -27,4 +27,31 @@ public class PostTopicMessageCommand {
         this.tagTitle = tagTitle;
     }
 
-    public Lo
+    public Long getMessageId() {
+        return messageId;
+    }
+
+    public Forum getForum() {
+        return forum;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public MessageVO getMessageVO() {
+        return messageVO;
+    }
+
+    public AttachmentsVO getAttachment() {
+        return attachment;
+    }
+
+    public MessagePropertysVO getMessagePropertysVO() {
+        return messagePropertysVO;
+    }
+
+    public String[] getTagTitle() {
+        return tagTitle;
+    }
+}
