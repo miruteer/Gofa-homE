@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,26 +16,18 @@
  */
 package com.jdon.jivejdon.domain.event;
 
-import java.util.Collection;
+import com.jdon.jivejdon.domain.model.ForumMessage;
 
-public class MessagePropertiesRevisedEvent {
+public class TopicMessagePostedEvent {
 
-	private final long messageId;
+	private final ForumMessage forumMessage;
 
-	private final Collection properties;
-
-	public MessagePropertiesRevisedEvent(long messageId, Collection properties) {
+	public TopicMessagePostedEvent( ForumMessage forumMessage) {
 		super();
-		this.messageId = messageId;
-		this.properties = properties;
+		this.forumMessage = forumMessage;
 	}
 
-	public long getMessageId() {
-		return messageId;
+	public ForumMessage getForumMessage() {
+		return forumMessage;
 	}
-
-	public Collection getProperties() {
-		return properties;
-	}
-
 }

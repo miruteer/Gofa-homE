@@ -15,26 +15,18 @@
  */
 package com.jdon.jivejdon.domain.event;
 
-import java.util.Collection;
+import com.jdon.jivejdon.domain.command.ReviseForumMessageCommand;
 
-public class MessagePropertiesRevisedEvent {
+public class MessageRevisedEvent {
 
-	private final long messageId;
+	private final ReviseForumMessageCommand reviseForumMessageCommand;
 
-	private final Collection properties;
-
-	public MessagePropertiesRevisedEvent(long messageId, Collection properties) {
+	public MessageRevisedEvent(ReviseForumMessageCommand reviseForumMessageCommand) {
 		super();
-		this.messageId = messageId;
-		this.properties = properties;
+		this.reviseForumMessageCommand = reviseForumMessageCommand;
 	}
 
-	public long getMessageId() {
-		return messageId;
+	public ReviseForumMessageCommand getReviseForumMessageCommand() {
+		return reviseForumMessageCommand;
 	}
-
-	public Collection getProperties() {
-		return properties;
-	}
-
 }

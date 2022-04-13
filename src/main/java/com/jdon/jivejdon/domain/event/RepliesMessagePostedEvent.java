@@ -15,26 +15,18 @@
  */
 package com.jdon.jivejdon.domain.event;
 
-import java.util.Collection;
+import com.jdon.jivejdon.domain.command.PostRepliesMessageCommand;
 
-public class MessagePropertiesRevisedEvent {
+public class RepliesMessagePostedEvent {
 
-	private final long messageId;
+	private final PostRepliesMessageCommand postRepliesMessageCommand;
 
-	private final Collection properties;
-
-	public MessagePropertiesRevisedEvent(long messageId, Collection properties) {
+	public RepliesMessagePostedEvent(PostRepliesMessageCommand postRepliesMessageCommand) {
 		super();
-		this.messageId = messageId;
-		this.properties = properties;
+		this.postRepliesMessageCommand = postRepliesMessageCommand;
 	}
 
-	public long getMessageId() {
-		return messageId;
+	public PostRepliesMessageCommand getPostRepliesMessageCommand() {
+		return postRepliesMessageCommand;
 	}
-
-	public Collection getProperties() {
-		return properties;
-	}
-
 }

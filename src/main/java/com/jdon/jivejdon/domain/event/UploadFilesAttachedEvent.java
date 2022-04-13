@@ -15,26 +15,12 @@
  */
 package com.jdon.jivejdon.domain.event;
 
+import com.jdon.jivejdon.domain.model.attachment.UploadFile;
+
 import java.util.Collection;
 
-public class MessagePropertiesRevisedEvent {
+public class UploadFilesAttachedEvent {
 
-	private final long messageId;
+	private final Long messageId;
 
-	private final Collection properties;
-
-	public MessagePropertiesRevisedEvent(long messageId, Collection properties) {
-		super();
-		this.messageId = messageId;
-		this.properties = properties;
-	}
-
-	public long getMessageId() {
-		return messageId;
-	}
-
-	public Collection getProperties() {
-		return properties;
-	}
-
-}
+	private final Collec
