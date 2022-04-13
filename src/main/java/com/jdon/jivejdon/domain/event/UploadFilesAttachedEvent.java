@@ -23,4 +23,20 @@ public class UploadFilesAttachedEvent {
 
 	private final Long messageId;
 
-	private final Collec
+	private final Collection<UploadFile> uploads;
+
+	public UploadFilesAttachedEvent(Long messageId, Collection<UploadFile> uploads) {
+		super();
+		this.messageId = messageId;
+		this.uploads = uploads;
+	}
+
+	public Long getMessageId() {
+		return messageId;
+	}
+
+	public Collection<UploadFile> getUploads() {
+		return uploads;
+	}
+
+}
