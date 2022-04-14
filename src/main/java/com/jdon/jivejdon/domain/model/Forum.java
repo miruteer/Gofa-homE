@@ -112,3 +112,125 @@ public class Forum {
 	 * @return Returns the creationDate.
 	 */
 	public String getCreationDate() {
+		return creationDate;
+	}
+
+	/**
+	 * @param creationDate The creationDate to set.
+	 */
+	public void setCreationDate(String creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	/**
+	 * @return Returns the description.
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @param description The description to set.
+	 */
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	/**
+	 * @return Returns the forumId.
+	 */
+	public Long getForumId() {
+		return forumId;
+	}
+
+	/**
+	 * @param forumId The forumId to set.
+	 */
+	public void setForumId(Long forumId) {
+		this.forumId = forumId;
+	}
+
+	/**
+	 * @return Returns the modifiedDate.
+	 */
+	public String getModifiedDate() {
+		if (getForumState().getLatestPost() != null)
+			return getForumState().getModifiedDate();
+		else
+			return this.creationDate;
+	}
+
+	public long getModifiedDate2() {
+		if (modifiedDate == null)
+			return 0;
+		Date mdate = Constants.parseDateTime(modifiedDate);
+		return mdate.getTime();
+	}
+
+	public void setModifiedDate(String modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Collection getPropertys() {
+		return propertys;
+	}
+
+	public void setPropertys(Collection propertys) {
+		this.propertys = propertys;
+	}
+
+	public ForumState getForumState() {
+		try {
+			return forumState.get();
+		} finally {
+		}
+	}
+	//
+	// public void setForumState(ForumState forumState) {
+	// if (forumState != null)
+	// this.forumState.lazySet(forumState);
+	// }
+
+	public void addNewMessage(ForumMessageReply forumMessageReply) {
+		forumState.get().addMessageCount();
+		forumState.get().setLatestPost(forumMessageReply);
+
+		// Date olddate = Constants.parseDateTime(oldmessage.getCreationDate());
+		// if (Constants.timeAfter(1, olddate)) {// a pubsub per one hour
+		// this.publisherRole.subscriptionNotify(new
+		// ForumSubscribedNotifyEvent(this.getForumId(), forumMessageReply));
+		// }
+	}
+
+	public void updateNewMessage(ForumMessage forumMessage) {
+		forumState.get().setLatestPost(forumMessage);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Forum forum = (Forum) o;
+		if (forum.getForumId() == null || this.forumId == null)
+			return false;
+		return this.forumId.longValue() == forum.getForumId().longValue();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.forumId);
+	}
+
+}
