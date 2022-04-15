@@ -43,4 +43,15 @@ public class PermissionRule {
 		StringBuilder bf = new StringBuilder(serviceName);
 		bf.append(methodName);
 		bf.append(roleName);
-		return opera
+		return operationAuthenticatedByRoles.contains(bf.toString().intern());
+	}
+
+	public void putRule(String serviceName, String methodName, String roleName) {
+		StringBuilder bf = new StringBuilder(serviceName);
+		bf.append(methodName);
+		operationAuthenticated.add(bf.toString().intern());
+		bf.append(roleName);
+		operationAuthenticatedByRoles.add(bf.toString().intern());
+	}
+
+}
