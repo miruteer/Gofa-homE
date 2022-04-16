@@ -52,4 +52,16 @@ public class MessageDigVo {
 
 	}
 
-	public
+	public long getMessageId() {
+		return messageId;
+	}
+
+	public int getNumber() {
+		return number;
+	}
+
+	public void setNumber(int number) {
+		this.number = number;
+	}
+
+}
