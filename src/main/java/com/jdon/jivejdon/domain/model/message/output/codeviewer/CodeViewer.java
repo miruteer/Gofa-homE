@@ -393,4 +393,18 @@ public class CodeViewer {
 		reservedWords.put("class", "class");
 		reservedWords.put("generic", "generic");
 		reservedWords.put("outer", "outer");
-		reservedWords.put("sw
+		reservedWords.put("switch", "switch");
+		reservedWords.put("const", "const");
+		reservedWords.put("goto", "goto");
+		reservedWords.put("package", "package");
+		reservedWords.put("throw", "throw");
+		reservedWords.put("double", "double");
+		reservedWords.put("if", "if");
+		reservedWords.put("private", "private");
+		reservedWords.put("true", "true");
+		reservedWords.put("default", "default");
+		reservedWords.put("import", "import");
+		reservedWords.put("protected", "protected");
+		reservedWords.put("try", "try");
+	}
+}
