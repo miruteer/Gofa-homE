@@ -267,4 +267,130 @@ public class CodeViewer {
 	}
 
 	/*
-	 * Filte
+	 * Filters keywords from a line of text and formats them properly.
+	 */
+	private String keywordFilter(String line) {
+		if (line == null || line.equals("")) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		HashMap usedReservedWords = new HashMap(); // >= Java2 only (not
+													// thread-safe)
+		// Hashtable usedReservedWords = new Hashtable(); // < Java2
+		// (thread-safe)
+		int i = 0;
+
+		char ch;
+		StringBuilder temp = new StringBuilder();
+		while (i < line.length()) {
+			temp.setLength(0);
+			ch = line.charAt(i);
+
+			// 65-90, uppercase letters
+			// 97-122, lowercase letters
+			while (i < line.length() && ((ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122))) {
+				temp.append(ch);
+				i++;
+				if (i < line.length()) {
+					ch = line.charAt(i);
+				}
+			}
+			String tempString = temp.toString();
+			if (reservedWords.containsKey(tempString) && !usedReservedWords.containsKey(tempString)) {
+				usedReservedWords.put(tempString, tempString);
+				line = replace(line, tempString, (reservedWordStart + tempString + reservedWordEnd));
+				i += (reservedWordStart.length() + reservedWordEnd.length());
+			} else {
+				i++;
+			}
+		}
+		buf.append(line);
+		return buf.toString().intern();
+	}
+
+	/*
+	 * All important replace method. Replaces all occurences of oldString in
+	 * line with newString.
+	 */
+	private String replace(String line, String oldString, String newString) {
+		int i = 0;
+		while ((i = line.indexOf(oldString, i)) >= 0) {
+			line = (new StringBuilder().append(line.substring(0, i)).append(newString).append(line.substring(i + oldString.length()))).toString().intern();
+			i += newString.length();
+		}
+		return line;
+	}
+
+	/*
+	 * Checks to see if some position in a line is between String start and
+	 * ending characters. Not yet used in code or fully working :)
+	 */
+	private boolean isInsideString(String line, int position) {
+		if (line.indexOf("\"") < 0) {
+			return false;
+		}
+		int index;
+		String left = line.substring(0, position);
+		String right = line.substring(position);
+		int leftCount = 0;
+		int rightCount = 0;
+		while ((index = left.indexOf("\"")) > -1) {
+			leftCount++;
+			left = left.substring(index + 1);
+		}
+		while ((index = right.indexOf("\"")) > -1) {
+			rightCount++;
+			right = right.substring(index + 1);
+		}
+		if (rightCount % 2 != 0 && leftCount % 2 != 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/*
+	 * Load Hashtable (or HashMap) with Java reserved words.
+	 */
+	private static void loadHash() {
+		reservedWords.put("abstract", "abstract");
+		reservedWords.put("do", "do");
+		reservedWords.put("inner", "inner");
+		reservedWords.put("public", "public");
+		reservedWords.put("var", "var");
+		reservedWords.put("boolean", "boolean");
+		reservedWords.put("continue", "continue");
+		reservedWords.put("int", "int");
+		reservedWords.put("return", "return");
+		reservedWords.put("void", "void");
+		reservedWords.put("break", "break");
+		reservedWords.put("else", "else");
+		reservedWords.put("interface", "interface");
+		reservedWords.put("short", "short");
+		reservedWords.put("volatile", "volatile");
+		reservedWords.put("byvalue", "byvalue");
+		reservedWords.put("extends", "extends");
+		reservedWords.put("long", "long");
+		reservedWords.put("static", "static");
+		reservedWords.put("while", "while");
+		reservedWords.put("case", "case");
+		reservedWords.put("final", "final");
+		reservedWords.put("naive", "naive");
+		reservedWords.put("super", "super");
+		reservedWords.put("transient", "transient");
+		reservedWords.put("cast", "cast");
+		reservedWords.put("float", "float");
+		reservedWords.put("new", "new");
+		reservedWords.put("rest", "rest");
+		reservedWords.put("catch", "catch");
+		reservedWords.put("for", "for");
+		reservedWords.put("null", "null");
+		reservedWords.put("synchronized", "synchronized");
+		reservedWords.put("char", "char");
+		reservedWords.put("finally", "finally");
+		reservedWords.put("operator", "operator");
+		reservedWords.put("this", "this");
+		reservedWords.put("class", "class");
+		reservedWords.put("generic", "generic");
+		reservedWords.put("outer", "outer");
+		reservedWords.put("sw
