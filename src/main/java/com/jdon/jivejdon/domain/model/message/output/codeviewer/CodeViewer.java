@@ -143,4 +143,128 @@ public class CodeViewer {
 		}
 
 		// replace ampersands with HTML escape sequence for ampersand;
-		line = replace(line, "&", "&#
+		line = replace(line, "&", "&#38;");
+
+		// replace the \\ with HTML escape sequences. fixes a problem when
+		// backslashes preceed quotes.
+		line = replace(line, "\\\\", "&#92;&#92;");
+
+		// replace \" sequences with HTML escape sequences;
+		line = replace(line, "" + (char) 92 + (char) 34, "&#92;&#34");
+
+		// replace less-than signs which might be confused
+		// by HTML as tag angle-brackets;
+		line = replace(line, "<", "&#60;");
+		// replace greater-than signs which might be confused
+		// by HTML as tag angle-brackets;
+		line = replace(line, ">", "&#62;");
+
+		return multiLineCommentFilter(line);
+	}
+
+	/*
+	 * Filter out multiLine comments. State is kept with a private boolean
+	 * variable.
+	 */
+	private String multiLineCommentFilter(String line) {
+		if (line == null || line.equals("")) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		int index;
+		// First, check for the end of a multi-line comment.
+		if (inMultiLineComment && (index = line.indexOf("*/")) > -1 && !isInsideString(line, index)) {
+			inMultiLineComment = false;
+			buf.append(line.substring(0, index));
+			buf.append("*/").append(commentEnd);
+			if (line.length() > index + 2) {
+				buf.append(inlineCommentFilter(line.substring(index + 2)));
+			}
+			return buf.toString().intern();
+		}
+		// If there was no end detected and we're currently in a multi-line
+		// comment, we don't want to do anymore work, so return line.
+		else if (inMultiLineComment) {
+			return line;
+		}
+		// We're not currently in a comment, so check to see if the start
+		// of a multi-line comment is in this line.
+		else if ((index = line.indexOf("/*")) > -1 && !isInsideString(line, index)) {
+			inMultiLineComment = true;
+			// Return result of other filters + everything after the start
+			// of the multiline comment. We need to pass the through the
+			// to the multiLineComment filter again in case the comment ends
+			// on the same line.
+			buf.append(inlineCommentFilter(line.substring(0, index)));
+			buf.append(commentStart).append("/*");
+			buf.append(multiLineCommentFilter(line.substring(index + 2)));
+			return buf.toString().intern();
+		}
+		// Otherwise, no useful multi-line comment information was found so
+		// pass the line down to the next filter for processesing.
+		else {
+			return inlineCommentFilter(line);
+		}
+	}
+
+	/*
+	 * Filter inline comments from a line and formats them properly.
+	 */
+	private String inlineCommentFilter(String line) {
+		if (line == null || line.equals("")) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		int index;
+		if ((index = line.indexOf("//")) > -1 && !isInsideString(line, index)) {
+			buf.append(stringFilter(line.substring(0, index)));
+			buf.append(commentStart);
+			buf.append(line.substring(index));
+			buf.append(commentEnd);
+		} else {
+			buf.append(stringFilter(line));
+		}
+		return buf.toString().intern();
+	}
+
+	/*
+	 * Filters strings from a line of text and formats them properly.
+	 */
+	private String stringFilter(String line) {
+		if (line == null || line.equals("")) {
+			return "";
+		}
+		StringBuilder buf = new StringBuilder();
+		if (line.indexOf("\"") <= -1) {
+			return keywordFilter(line);
+		}
+		int start = 0;
+		int startStringIndex = -1;
+		int endStringIndex = -1;
+		int tempIndex;
+		// Keep moving through String characters until we want to stop...
+		while ((tempIndex = line.indexOf("\"")) > -1) {
+			// We found the beginning of a string
+			if (startStringIndex == -1) {
+				startStringIndex = 0;
+				buf.append(stringFilter(line.substring(start, tempIndex)));
+				buf.append(stringStart).append("\"");
+				line = line.substring(tempIndex + 1);
+			}
+			// Must be at the end
+			else {
+				startStringIndex = -1;
+				endStringIndex = tempIndex;
+				buf.append(line.substring(0, endStringIndex + 1));
+				buf.append(stringEnd);
+				line = line.substring(endStringIndex + 1);
+			}
+		}
+
+		buf.append(keywordFilter(line));
+
+		return buf.toString().intern();
+	}
+
+	/*
+	 * Filte
