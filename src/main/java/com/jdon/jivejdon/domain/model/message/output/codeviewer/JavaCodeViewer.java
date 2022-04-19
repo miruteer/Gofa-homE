@@ -166,4 +166,169 @@ public class JavaCodeViewer {
 	}
 
 	/**
-	 * Sets the
+	 * Sets the html for the end of a method.
+	 */
+	public void setMethodEnd(String methodEnd) {
+		this.methodEnd = methodEnd.toCharArray();
+	}
+
+	/**
+	 * Gets the html for the start of a character.
+	 */
+	public String getCharacterStart() {
+		return String.valueOf(characterStart);
+	}
+
+	/**
+	 * Sets the html for the start of a character.
+	 */
+	public void setCharacterStart(String characterStart) {
+		this.characterStart = characterStart.toCharArray();
+	}
+
+	/**
+	 * Gets the html for the end of a character.
+	 */
+	public String getCharacterEnd() {
+		return String.valueOf(characterEnd);
+	}
+
+	/**
+	 * Sets the html for the end of a character.
+	 */
+	public void setCharacterEnd(String characterEnd) {
+		this.characterEnd = characterEnd.toCharArray();
+	}
+
+	/**
+	 * Gets the html for the start of a bracket.
+	 */
+	public String getBracketStart() {
+		return String.valueOf(bracketStart);
+	}
+
+	/**
+	 * Sets the html for the start of a bracket.
+	 */
+	public void setBracketStart(String bracketStart) {
+		this.bracketStart = bracketStart.toCharArray();
+	}
+
+	/**
+	 * Gets the html for the end of a bracket.
+	 */
+	public String getBracketEnd() {
+		return String.valueOf(bracketEnd);
+	}
+
+	/**
+	 * Sets the html for the end of a bracket.
+	 */
+	public void setBracketEnd(String bracketEnd) {
+		this.bracketEnd = bracketEnd.toCharArray();
+	}
+
+	/**
+	 * Gets the html for the start of a number
+	 */
+	public String getNumberStart() {
+		return String.valueOf(numberStart);
+	}
+
+	/**
+	 * Sets the html for the start of a number.
+	 */
+	public void setNumberStart(String numberStart) {
+		this.numberStart = numberStart.toCharArray();
+	}
+
+	/**
+	 * Gets the html for the end of a number.
+	 */
+	public String getNumberEnd() {
+		return String.valueOf(numberEnd);
+	}
+
+	/**
+	 * Sets the html for the end of a number.
+	 */
+	public void setNumberEnd(String numberEnd) {
+		this.numberEnd = numberEnd.toCharArray();
+	}
+
+	/**
+	 * See if method filtering is enabled.
+	 */
+	public boolean getFilterMethod() {
+		return filterMethod;
+	}
+
+	/**
+	 * Enables or disables method filtering.
+	 */
+	public void setFilterMethod(boolean filterMethod) {
+		this.filterMethod = filterMethod;
+	}
+
+	/**
+	 * See if number filtering is enabled.
+	 */
+	public boolean getFilterNumber() {
+		return filterNumber;
+	}
+
+	/**
+	 * Enables or disables number filtering.
+	 */
+	public void setFilterNumber(boolean filterNumber) {
+		this.filterNumber = filterNumber;
+	}
+
+	/**
+	 * Syntax highlights any java code in the input. In working with this method
+	 * it is helpful to know how lexers work in general.
+	 * <p>
+	 * The overall strategy is as follows: The input is processed a character at
+	 * a time, accompanied by a state update. When a valid Java token is
+	 * detected, such as a keyword, a string, a comment block, etc, said token
+	 * gets "wrapped" by htmlStart and htmlEnd tags. Not everything is
+	 * implemented according to the Java Language Specifications. For example,
+	 * the length of a valid number is left unchecked.
+	 * <p>
+	 * 
+	 * @param input
+	 *            string possibly containing Java code
+	 * @return the output string containing html formatted Java code
+	 */
+	public final String javaCodeFilter(String line) {
+		final int ENTRY = 0;
+		final int INTERIM = 1;
+		final int ACCEPT = 2;
+		final int IGNORE_BEGIN = 3;
+		final int INLINE_IGNORE = 4;
+		final int MULTILINE_IGNORE = 5;
+		final int MULTILINE_EXIT = 6;
+		final int STRING_ENTRY = 7;
+		final int CHARACTER_ENTRY = 8;
+		final int NEWLINE_ENTRY = 9;
+		final int NUMBER_BIN_INT_FLOAT_OCTAL = 10;
+		final int NUMBER_HEX_BEGIN = 11;
+		final int NUMBER_HEX_REST = 12;
+		int state = ENTRY;
+		char[] char_line;
+		char curr_char;
+		String token;
+		StringBuilder buffer;
+
+		if (line == null || line.equals("")) {
+			return "";
+		} else {
+			char_line = line.toCharArray();
+			buffer = new StringBuilder(char_line.length);
+		}
+
+		int i = 0;
+		int head_idx = 0;
+		int tail_idx = 0;
+
+		while (i < char_line.length
