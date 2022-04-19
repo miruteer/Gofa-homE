@@ -331,4 +331,133 @@ public class JavaCodeViewer {
 		int head_idx = 0;
 		int tail_idx = 0;
 
-		while (i < char_line.length
+		while (i < char_line.length) {
+			curr_char = char_line[i];
+			switch (state) {
+			case ENTRY:
+				if (Character.isJavaIdentifierPart(curr_char)) { // keyword, id,
+																	// number
+																	// literal
+					head_idx = i;
+					if (Character.isDigit(curr_char)) {
+						if (curr_char == '0') {
+							state = NUMBER_HEX_BEGIN;
+						} else {
+							state = NUMBER_BIN_INT_FLOAT_OCTAL;
+						}
+					} else {
+						state = INTERIM;
+					}
+				} else if (curr_char == '+' || curr_char == '-') { // number
+																	// literals
+					if (i < char_line.length - 1) {
+						if (!Character.isDigit(char_line[i + 1])) { // +0x43 <--
+																	// this
+																	// cannot be
+																	// hex
+							buffer.append(curr_char);
+							state = ENTRY;
+						} else {
+							head_idx = i;
+							state = NUMBER_BIN_INT_FLOAT_OCTAL;
+						}
+					} else {
+						buffer.append(curr_char);
+						state = NUMBER_BIN_INT_FLOAT_OCTAL;
+					}
+				} else if (curr_char == '/') { // comment
+					head_idx = i;
+					state = IGNORE_BEGIN;
+				} else if (curr_char == '\"') { // string
+					head_idx = i;
+					state = STRING_ENTRY;
+				} else if (curr_char == '\'') { // character
+					head_idx = i;
+					state = CHARACTER_ENTRY;
+				} else if (curr_char == '{' || curr_char == '}') { // scope
+																	// bracket
+					buffer.append(bracketStart);
+					buffer.append(curr_char);
+					buffer.append(bracketEnd);
+					state = ACCEPT;
+				} else if (curr_char == '\n') { // in case of multiple newlines
+					buffer.append(curr_char);
+					state = NEWLINE_ENTRY;
+				} else { // space, =, >, <, \t, white_space, etc
+					buffer.append(curr_char);
+					state = ENTRY;
+				}
+				break;
+			case NUMBER_BIN_INT_FLOAT_OCTAL:
+				if (Character.isJavaIdentifierPart(curr_char)) {
+					// 1f 1xf 67.6 1. -1 +2 0l
+					if (Character.isDigit(curr_char)) {
+						// 87 10 12 00-0L
+						state = NUMBER_BIN_INT_FLOAT_OCTAL;
+					} else if (curr_char == 'l' || curr_char == 'L') { // cheating...
+																		// +l +L
+						tail_idx = i;
+						if (filterNumber) {
+							buffer.append(numberStart);
+						}
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						if (filterNumber) {
+							buffer.append(numberEnd);
+						}
+						state = ACCEPT;
+					} else {
+						// -E +f 5e 1x 34234x 7979/7897 79+897 890-7989
+						if (char_line[i - 1] == '-' || char_line[i - 1] == '+') {
+							// -E +f -l -0l
+							tail_idx = i;
+							buffer.append(char_line, head_idx, (tail_idx - head_idx));
+							state = ACCEPT;
+						} else { // must be numbers infront
+							// 5e 1x 34234x 2342static 243} 243;
+							tail_idx = i;
+							if (filterNumber) {
+								buffer.append(numberStart);
+							}
+							buffer.append(char_line, head_idx, (tail_idx - head_idx));
+							if (filterNumber) {
+								buffer.append(numberEnd);
+							}
+							state = ACCEPT;
+							i--;
+						}
+					}
+				} else {
+					// 12324\ 23423\n 23432. 2432\r 2423\t 2421{ 423: 2342~ 242&
+					// 6868- 768+
+					tail_idx = i;
+					if (filterNumber) {
+						buffer.append(numberStart);
+					}
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					if (filterNumber) {
+						buffer.append(numberEnd);
+					}
+					state = ACCEPT;
+					i--;
+				}
+				break;
+			case NUMBER_HEX_BEGIN:
+				if (Character.isJavaIdentifierPart(curr_char)) {
+					// 0X 0B 05 0i 0x 00x3 0x0x0 0x00x 0x0005fg
+					if (curr_char == 'x') { // this accounts for proper case
+						// 0xn 0xf 0xl
+						state = NUMBER_HEX_REST;
+					} else if (Character.isDigit(curr_char)) {
+						// 0000.0 05 078799
+						state = NUMBER_BIN_INT_FLOAT_OCTAL;
+					} else { // upper case letters, lower case minus 'x'
+						// 0X 0b 0static 0case
+						tail_idx = i;
+						if (filterNumber) {
+							buffer.append(numberStart);
+						}
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						if (filterNumber) {
+							buffer.append(numberEnd);
+						}
+						
