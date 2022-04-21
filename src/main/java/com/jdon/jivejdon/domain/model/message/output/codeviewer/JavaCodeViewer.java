@@ -460,4 +460,122 @@ public class JavaCodeViewer {
 						if (filterNumber) {
 							buffer.append(numberEnd);
 						}
-						
+						state = ACCEPT;
+						i--;
+					}
+				} else {
+					// 0. 0\n 0\t 0\r 0' '
+					tail_idx = i;
+					if (filterNumber) {
+						buffer.append(numberStart);
+					}
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					if (filterNumber) {
+						buffer.append(numberEnd);
+					}
+					state = ACCEPT;
+					i--;
+				}
+				break;
+			case NUMBER_HEX_REST:
+				if (Character.isDigit(curr_char)) {
+					state = NUMBER_HEX_REST;
+				} else if (((int) curr_char >= 97 && (int) curr_char <= 102) || ((int) curr_char >= 65 && (int) curr_char <= 70)) {
+					// else if (curr_char == 'a' || curr_char == 'b' ||
+					// curr_char == 'c' || curr_char == 'd' || curr_char == 'e'
+					// || curr_char == 'f' || curr_char == 'A' || curr_char ==
+					// 'B' || curr_char == 'C' || curr_char == 'D' || curr_char
+					// == 'E' || curr_char == 'F') {
+					// 0x0 -> 0xf 0xFEef
+					state = NUMBER_HEX_REST;
+				} else if (curr_char == 'l' || curr_char == 'L') {
+					tail_idx = i;
+					if (filterNumber) {
+						buffer.append(numberStart);
+					}
+					buffer.append(char_line, head_idx, (tail_idx - head_idx + 1));
+					if (filterNumber) {
+						buffer.append(numberEnd);
+					}
+					state = ACCEPT;
+				} else {
+					// 0xg 0x~ 0x\n 0x\t 0x{
+					tail_idx = i;
+					if (filterNumber) {
+						buffer.append(numberStart);
+					}
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					if (filterNumber) {
+						buffer.append(numberEnd);
+					}
+					state = ACCEPT;
+					i--;
+				}
+				break;
+			// this is only for iterating through a sequence of \n's until we
+			// read something else
+			case NEWLINE_ENTRY: // to be in here, we've got to have read at
+								// least 1 newline already
+				if (curr_char == '\n') { // definitely have at least 2
+											// consecutive newlines now
+					// just keep on adding &nbsp;'s until we read something else
+					buffer.append(nbsp);
+					buffer.append(curr_char);
+					state = NEWLINE_ENTRY;
+				} else { // anything else we process next time
+					state = ACCEPT;
+					i--;
+				}
+				break;
+			case STRING_ENTRY: // tabs are caught also
+				if (curr_char != '\"' && curr_char != '\n' && curr_char != '\r') {
+					state = STRING_ENTRY; // still reading a string
+				} else if (curr_char == '\"') {
+					if (char_line[i - 1] != stringEscape) {
+						tail_idx = i;
+						buffer.append(stringStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx + 1));
+						buffer.append(stringEnd);
+						state = ACCEPT;
+					} else { // escape this character's usual meaning
+						state = STRING_ENTRY;
+					}
+				} else if (curr_char == '\n') { // chop it off at previous char
+					tail_idx = i;
+					buffer.append(stringStart);
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					buffer.append(stringEnd);
+					state = ACCEPT;
+					i--;
+				} else if (curr_char == '\r') { // shouldn't happen, as carriage
+												// returns were erased
+					// but ignore it just in case
+					tail_idx = i;
+					buffer.append(stringStart);
+					buffer.append(char_line, head_idx, (tail_idx - head_idx + 1));
+					buffer.append(stringEnd);
+					state = ACCEPT;
+					i--;
+				} else { // what did we miss
+					;
+				}
+				break;
+			case CHARACTER_ENTRY:
+				if (curr_char != '\'' && curr_char != '\n' && curr_char != '\r') { // tabs
+																					// are
+																					// caught
+																					// also
+					state = CHARACTER_ENTRY; // still reading a string
+				} else if (curr_char == '\'') {
+					if (char_line[i - 1] != characterEscape) {
+						tail_idx = i;
+						buffer.append(characterStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx + 1));
+						buffer.append(characterEnd);
+						state = ACCEPT;
+					} else { // escape this character's usual meaning
+						state = CHARACTER_ENTRY;
+					}
+				} else if (curr_char == '\n') {
+					tail_idx = i;
+					buffer.append(cha
