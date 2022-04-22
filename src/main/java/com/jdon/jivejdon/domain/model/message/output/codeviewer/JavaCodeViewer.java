@@ -578,4 +578,121 @@ public class JavaCodeViewer {
 					}
 				} else if (curr_char == '\n') {
 					tail_idx = i;
-					buffer.append(cha
+					buffer.append(characterStart);
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					buffer.append(characterEnd);
+					state = ACCEPT;
+					i--;
+				} else if (curr_char == '\r') { // shouldn't happen, as carriage
+												// returns were erased
+					tail_idx = i;
+					buffer.append(characterStart);
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					buffer.append(characterEnd);
+					state = ACCEPT;
+					i--;
+				} else { // what did we miss
+					; // stay in character_entry
+				}
+				break;
+			case INTERIM:
+				if (Character.isJavaIdentifierPart(curr_char) || curr_char == '.') {
+					state = INTERIM;
+				} else if (curr_char == '(') {
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) { // keyword
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+					} else { // method
+						if (filterMethod) {
+							buffer.append(methodStart);
+						}
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						if (filterMethod) {
+							buffer.append(methodEnd);
+						}
+					}
+					buffer.append(curr_char);
+					state = ACCEPT;
+				} else if (curr_char == ')') {
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) { // keyword
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						buffer.append(curr_char);
+						state = ACCEPT;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(curr_char);
+						state = ENTRY;
+					}
+				} else if (curr_char == ':') {
+					// eg: default: etc
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						buffer.append(curr_char);
+						state = ACCEPT;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(curr_char);
+						state = ENTRY;
+					}
+				} else if (curr_char == ';') {
+					// eg: break; return; etc
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						buffer.append(curr_char);
+						state = ACCEPT;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(curr_char);
+						state = ENTRY;
+					}
+				} else if (curr_char == '[' || curr_char == ']') {
+					// eg: char[], etc
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						buffer.append(curr_char);
+						state = ACCEPT;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(curr_char);
+						state = ENTRY;
+					}
+				} else if (curr_char == '{' || curr_char == '}') {
+					// eg: static{, etc
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						state = ACCEPT;
+						i--;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						state = ENTRY;
+						i--;
+					}
+				} else if (curr_char == '/') { // should check for keyword
+					tail_idx = i;
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					state = ENTRY;
+					i--;
+				} else if (curr_char == '\"')
