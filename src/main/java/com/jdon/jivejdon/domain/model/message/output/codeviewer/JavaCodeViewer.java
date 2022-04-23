@@ -695,4 +695,129 @@ public class JavaCodeViewer {
 					buffer.append(char_line, head_idx, (tail_idx - head_idx));
 					state = ENTRY;
 					i--;
-				} else if (curr_char == '\"')
+				} else if (curr_char == '\"') { // should check for keyword
+					tail_idx = i;
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					state = ENTRY;
+					i--;
+					// head_idx = i;
+					// state = string_entry; // should go to accept and not
+					// assign head_idx
+				} else if (curr_char == '\'') { // should check for keyword
+					tail_idx = i;
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					state = ENTRY;
+					i--;
+					// head_idx = i;
+					// state = character_entry; // should go to accept and not
+					// assign head_idx
+				} else if (curr_char == ' ') {
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						state = ACCEPT;
+						i--;
+					} else { // can also do some highlighing in here, seeing as
+								// we have an identifier
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						state = ENTRY;
+						i--;
+					}
+				} else if (curr_char == '\n') { // possible multiple newlines
+					// check if a keyword is matched
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						state = ACCEPT;
+						i--;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						state = ACCEPT;
+						i--;
+					}
+				} else if (curr_char == '\t') { // this recognizes keyword\t
+					// eg: else\t...
+					tail_idx = i;
+					token = new String(char_line, head_idx, (tail_idx - head_idx));
+					if (reservedWords.containsKey(token)) {
+						buffer.append(reservedWordStart);
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						buffer.append(reservedWordEnd);
+						state = ACCEPT;
+						i--;
+					} else {
+						buffer.append(char_line, head_idx, (tail_idx - head_idx));
+						state = ACCEPT;
+						i--;
+					}
+				} else { // so int+, int;, public+, etc, are ignored :)
+					tail_idx = i;
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					state = ENTRY;
+					i--;
+				}
+				break;
+			case ACCEPT:
+				if (Character.isJavaIdentifierPart(curr_char)) { // keyword, id,
+																	// num
+																	// literal
+					head_idx = i;
+					if (Character.isDigit(curr_char)) {
+						if (curr_char == '0') {
+							state = NUMBER_HEX_BEGIN;
+						} else {
+							state = NUMBER_BIN_INT_FLOAT_OCTAL;
+						}
+					} else {
+						state = INTERIM;
+					}
+				} else if (curr_char == '+' || curr_char == '-') { // number
+																	// literals
+					if (i < char_line.length - 1) {
+						if (!Character.isDigit(char_line[i + 1])) { // +0x43 <--
+																	// this
+																	// cannot be
+																	// hex
+							buffer.append(curr_char);
+							state = ENTRY;
+						} else {
+							head_idx = i;
+							state = NUMBER_BIN_INT_FLOAT_OCTAL;
+						}
+					} else {
+						buffer.append(curr_char);
+						state = NUMBER_BIN_INT_FLOAT_OCTAL;
+					}
+				} else if (curr_char == '/') {
+					head_idx = i;
+					state = IGNORE_BEGIN;
+				} else if (curr_char == '\"') {
+					head_idx = i;
+					state = STRING_ENTRY;
+				} else if (curr_char == '{' || curr_char == '}') {
+					buffer.append(bracketStart);
+					buffer.append(curr_char);
+					buffer.append(bracketEnd);
+					state = ACCEPT;
+				} else {
+					state = ENTRY;
+					i--;
+				}
+				break;
+			case IGNORE_BEGIN:
+				if (curr_char == '/') {
+					state = INLINE_IGNORE;
+				} else if (curr_char == '*') {
+					state = MULTILINE_IGNORE;
+				} else if (Character.isJavaIdentifierPart(curr_char)) {
+					head_idx = i;
+					if (Character.isDigit(curr_char)) {
+						buffer.append('/');
+						if (curr_char == '0') {
+							state = NUMBER_HEX_B
