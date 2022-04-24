@@ -820,4 +820,178 @@ public class JavaCodeViewer {
 					if (Character.isDigit(curr_char)) {
 						buffer.append('/');
 						if (curr_char == '0') {
-							state = NUMBER_HEX_B
+							state = NUMBER_HEX_BEGIN;
+							i--;
+						} else {
+							state = NUMBER_BIN_INT_FLOAT_OCTAL;
+							i--;
+						}
+					} else {
+						buffer.append('/');
+						state = ENTRY;
+						i--;
+					}
+				} else if (curr_char == '\n') {
+					buffer.append('/');
+					state = NEWLINE_ENTRY;
+					i--;
+				} else { // space, \t, etc
+					buffer.append('/');
+					state = ENTRY;
+					i--;
+				}
+				break;
+			case INLINE_IGNORE:
+				if (curr_char != '\n') {
+					state = INLINE_IGNORE;
+				} else if (curr_char == '\n') {
+					tail_idx = i;
+					buffer.append(commentStart);
+					buffer.append(char_line, head_idx, (tail_idx - head_idx));
+					buffer.append(commentEnd);
+					i--;
+					state = ACCEPT;
+				} else { // what did we miss
+					;
+				}
+				break;
+			case MULTILINE_IGNORE:
+				if (curr_char == '*') {
+					state = MULTILINE_EXIT;
+				} else {
+					state = MULTILINE_IGNORE;
+				}
+				break;
+			case MULTILINE_EXIT:
+				if (curr_char == '/') {
+					tail_idx = i;
+					buffer.append(commentStart);
+					buffer.append(char_line, head_idx, (tail_idx - head_idx + 1));
+					buffer.append(commentEnd);
+					state = ACCEPT;
+				} else if (curr_char == '*') {
+					state = MULTILINE_EXIT;
+				} else {
+					state = MULTILINE_IGNORE;
+				}
+				break;
+			default:
+				break;
+			}
+			i++;
+		}
+		return buffer.toString().intern();
+	}
+
+	public static HashMap getReservedWords() {
+		return reservedWords;
+	}
+
+	public static void setReservedWords(HashMap reservedWords) {
+		JavaCodeViewer.reservedWords = reservedWords;
+	}
+
+	public char[] getBackgroundColor() {
+		return backgroundColor;
+	}
+
+	public void setBackgroundColor(char[] backgroundColor) {
+		this.backgroundColor = backgroundColor;
+	}
+
+	public char getCharacterEscape() {
+		return characterEscape;
+	}
+
+	public void setCharacterEscape(char characterEscape) {
+		this.characterEscape = characterEscape;
+	}
+
+	public char[] getNbsp() {
+		return nbsp;
+	}
+
+	public void setNbsp(char[] nbsp) {
+		this.nbsp = nbsp;
+	}
+
+	public char getStringEscape() {
+		return stringEscape;
+	}
+
+	public void setStringEscape(char stringEscape) {
+		this.stringEscape = stringEscape;
+	}
+
+	public void setBracketEnd(char[] bracketEnd) {
+		this.bracketEnd = bracketEnd;
+	}
+
+	public void setBracketStart(char[] bracketStart) {
+		this.bracketStart = bracketStart;
+	}
+
+	public void setCharacterEnd(char[] characterEnd) {
+		this.characterEnd = characterEnd;
+	}
+
+	public void setCharacterStart(char[] characterStart) {
+		this.characterStart = characterStart;
+	}
+
+	public void setCommentEnd(char[] commentEnd) {
+		this.commentEnd = commentEnd;
+	}
+
+	public void setCommentStart(char[] commentStart) {
+		this.commentStart = commentStart;
+	}
+
+	public void setMethodEnd(char[] methodEnd) {
+		this.methodEnd = methodEnd;
+	}
+
+	public void setMethodStart(char[] methodStart) {
+		this.methodStart = methodStart;
+	}
+
+	public void setNumberEnd(char[] numberEnd) {
+		this.numberEnd = numberEnd;
+	}
+
+	public void setNumberStart(char[] numberStart) {
+		this.numberStart = numberStart;
+	}
+
+	public void setReservedWordEnd(char[] reservedWordEnd) {
+		this.reservedWordEnd = reservedWordEnd;
+	}
+
+	public void setReservedWordStart(char[] reservedWordStart) {
+		this.reservedWordStart = reservedWordStart;
+	}
+
+	public void setStringEnd(char[] stringEnd) {
+		this.stringEnd = stringEnd;
+	}
+
+	public void setStringStart(char[] stringStart) {
+		this.stringStart = stringStart;
+	}
+
+	/*
+	 * Load Hashtable (or HashMap) with Java reserved words. Improved list in
+	 * version 1.1 taken directly from Java language spec.
+	 */
+	private static void loadKeywords() {
+		reservedWords.put("abstract", "abstract");
+		reservedWords.put("boolean", "boolean");
+		reservedWords.put("break", "break");
+		reservedWords.put("byte", "byte");
+		reservedWords.put("case", "case");
+		reservedWords.put("catch", "catch");
+		reservedWords.put("char", "char");
+		reservedWords.put("class", "class");
+		reservedWords.put("const", "const");
+		reservedWords.put("continue", "continue");
+		reservedWords.put("defa
