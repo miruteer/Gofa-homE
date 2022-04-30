@@ -994,4 +994,45 @@ public class JavaCodeViewer {
 		reservedWords.put("class", "class");
 		reservedWords.put("const", "const");
 		reservedWords.put("continue", "continue");
-		reservedWords.put("defa
+		reservedWords.put("default", "default");
+		reservedWords.put("do", "do");
+		reservedWords.put("double", "double");
+		reservedWords.put("else", "else");
+		reservedWords.put("extends", "extends");
+		reservedWords.put("false", "false");
+		reservedWords.put("final", "final");
+		reservedWords.put("finally", "finally");
+		reservedWords.put("float", "float");
+		reservedWords.put("for", "for");
+		reservedWords.put("goto", "goto");
+		reservedWords.put("if", "if");
+		reservedWords.put("implements", "implements");
+		reservedWords.put("import", "import");
+		reservedWords.put("instanceof", "instanceof");
+		reservedWords.put("int", "int");
+		reservedWords.put("interface", "interface");
+		reservedWords.put("long", "long");
+		reservedWords.put("native", "native");
+		reservedWords.put("new", "new");
+		reservedWords.put("package", "package");
+		reservedWords.put("private", "private");
+		reservedWords.put("protected", "protected");
+		reservedWords.put("public", "public");
+		reservedWords.put("return", "return");
+		reservedWords.put("short", "short");
+		reservedWords.put("static", "static");
+		reservedWords.put("strictfp", "strictfp");
+		reservedWords.put("super", "super");
+		reservedWords.put("switch", "switch");
+		reservedWords.put("synchronized", "synchronized");
+		reservedWords.put("this", "this");
+		reservedWords.put("throw", "throw");
+		reservedWords.put("throws", "throws");
+		reservedWords.put("transient", "transient");
+		reservedWords.put("true", "true");
+		reservedWords.put("try", "try");
+		reservedWords.put("void", "void");
+		reservedWords.put("volatile", "volatile");
+		reservedWords.put("while", "while");
+	}
+}
