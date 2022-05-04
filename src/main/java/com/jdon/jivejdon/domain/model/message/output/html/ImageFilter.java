@@ -34,4 +34,25 @@ public class ImageFilter implements Function<MessageVO, MessageVO> {
 	}
 
 
-	private String convertTa
+	private String convertTags(MessageVO messageVO) {
+		String str = messageVO.getBody();
+		if (str == null || str.length() == 0) {
+			return str;
+		}
+		String patt = "(\\[img\\])([^\\[]+)(\\[/img\\])";
+		Pattern p = Pattern.compile(patt);
+		Matcher m = p.matcher(str);
+		StringBuffer sb = new StringBuffer();
+		boolean result = m.find();
+		String url = "";
+		while (result) {
+			url = m.group(2);
+			m.appendReplacement(sb, "<img src=\"" + url + "\" border='0' loading='lazy' >");
+			result = m.find();
+		}
+//		messageVO.setThumbnailUrl(url);
+		m.appendTail(sb);
+		return sb.toString();
+	}
+
+}
