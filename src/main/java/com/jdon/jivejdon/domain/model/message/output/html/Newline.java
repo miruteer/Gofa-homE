@@ -88,4 +88,85 @@ public class Newline implements Function<MessageVO, MessageVO> {
 		// int y = 0;
 
 		// record code index positions
-		while (((i = input.indexOf("[code]", oldend)) >= 0) && ((j = input.indexOf
+		while (((i = input.indexOf("[code]", oldend)) >= 0) && ((j = input.indexOf("[/code]", i +
+				6)) >= 0)) {
+			codeIndeces[x][0] = i;
+			// y++;
+			codeIndeces[x][1] = j;
+			x++;
+			// y--;
+			oldend = j + 7;
+		}
+		return codeIndeces;
+	}
+
+	/**
+	 * Clones a new filter that will have the same properties and that will wrap
+	 * around the specified message.
+	 *
+	 */
+	public MessageVO apply(MessageVO messageVO) {
+		String s = messageVO.getBody();
+		s = ToolsUtil.convertTags(s, "\n\\[", "\n" + new String(P_TAG) + "\\[");
+		return messageVO.builder().subject(messageVO.getSubject()).body
+				(convertNewlinesAroundCode(s)).build();
+	}
+
+
+	/**
+	 * Replaces newline characters with the HTML equivalent. This method works
+	 * around the code filter, allowing copy and paste actions to be
+	 * successfully performed.
+	 *
+	 * @param input
+	 *            the text to be converted.
+	 * @return the input string with newline characters replaced with HTML
+	 *         newline tags..
+	 */
+	private String convertNewlinesAroundCode(String input) {
+		char[] chars = input.toCharArray();
+		int[][] table;
+		int cur = 0;
+		int len = chars.length;
+		StringBuilder buf = new StringBuilder(len);
+
+		table = recordCodeIndeces(input);
+
+		if (table.length > 0) { // there are some code sections
+			// while there are more characters to filter
+			for (int i = 0; i < len; i++) {
+				// If we've found a Unix newline, add BR tag.
+				// filter only positions outside of code sections
+				if (chars[i] == '\n' && notInCodeSection(i, table)) {
+					buf.append(chars, cur, i - cur).append(BR_TAG);
+					cur = i + 1;
+				}
+				// If we've found a Windows newline, add BR tag.
+				// filter only positions outside of code sections
+				else if (chars[i] == '\r' && i < len - 1 && chars[i + 1] == '\n' && notInCodeSection(i, table)) {
+					buf.append(chars, cur, i - cur).append(BR_TAG);
+					i++;
+					cur = i + 1;
+				}
+			}
+		} else { // there are no code sections
+			// filter normally
+			for (int i = 0; i < len; i++) {
+				// If we've found a Unix newline, add BR tag.
+				if (chars[i] == '\n') {
+					buf.append(chars, cur, i - cur).append(BR_TAG);
+					cur = i + 1;
+				}
+				// If we've found a Windows newline, add BR tag.
+				else if (chars[i] == '\r' && i < len - 1 && chars[i + 1] == '\n') {
+					buf.append(chars, cur, i - cur).append(BR_TAG);
+					i++;
+					cur = i + 1;
+				}
+			}
+		}
+		// Add whatever chars are left to buffer.
+		buf.append(chars, cur, len - cur);
+		return buf.toString().intern();
+	}
+}
