@@ -15,4 +15,10 @@ public class FontStyleBeanInfo extends FilterBeanInfo {
 	}
 
 	public String[] getPropertyNames() {
-		re
+		return PROPERTY_NAMES;
+	}
+
+	public String getName() {
+		return "FontStyle";
+	}
+}
