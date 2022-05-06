@@ -351,4 +351,32 @@ public class QuoteFilter implements Function<MessageVO, MessageVO> {
 
 		for (int c = 0; c < chars.length; c++) {
 			if (chars[c] == quoteChar) {
-				quoteC
+				quoteCount++;
+			} else if (chars[c] == ' ') {
+				continue;
+			} else {
+				return quoteCount;
+			}
+		}
+
+		return quoteCount;
+	}
+
+	private String stripQuotes(char[] line) {
+		StringBuilder sb = new StringBuilder(new String(line));
+		boolean start = false;
+
+		for (int c = 0; c < sb.length(); c++) {
+			if (!start && sb.charAt(c) == quoteChar) {
+				sb.deleteCharAt(c);
+				if (c > 0) {
+					c--;
+				}
+			} else if (!start && sb.charAt(c) != ' ') {
+				start = true;
+			}
+		}
+
+		return sb.toString().trim().intern();
+	}
+}
