@@ -60,3 +60,34 @@ public class ToolsUtil {
 			String childhtmlEnd = "";
 			if (childHtml.length() != 0) {
 				childhtmlBegin = "<" + childHtml + ">";
+				childhtmlEnd = "</" + childHtml + ">";
+			}
+			String[] sss = cleanS.split(childTagRex);
+			for (String s : sss) {
+				if (s != null && s.length() != 0) {
+					sb.append(childhtmlBegin).append(s).append(childhtmlEnd);
+				}
+			}
+			if (parentHtml.length() != 0)
+				sb.append("</" + parentHtml + ">");
+
+		}
+
+		input = matcher.replaceFirst(sb.toString());
+
+		return input;
+	}
+
+	public static String convertTags(String input, String parentTagRegx, String phtml) {
+		// Check if the string is null or zero length -- if so, return what was
+		// sent in.
+		if (input == null || input.length() == 0)
+			return input;
+
+		Matcher matcher = Pattern.compile(parentTagRegx, Pattern.CASE_INSENSITIVE | Pattern.DOTALL)
+				.matcher(input);
+		input = matcher.replaceAll(phtml);
+
+		return input;
+	}
+}
