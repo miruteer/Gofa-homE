@@ -18,15 +18,16 @@ package com.jdon.jivejdon.domain.model.message.upload;
 
 import com.jdon.jivejdon.domain.model.message.output.beanutil.FilterBeanInfo;
 
-public class UploadFileFilterBeanInfo extends FilterBeanInfo {
-	public static final String[] PROPERTY_NAMES = { "fileShowFileName" };
+public class UploadImageFilterBeanInfo extends FilterBeanInfo {
+	public static final String[] PROPERTY_NAMES = {"imageShowUrl", "imageShowInHtmlUrl",
+			"imageShowFileName"};
 
-	public UploadFileFilterBeanInfo() {
+	public UploadImageFilterBeanInfo() {
 		super();
 	}
 
 	public Class getBeanClass() {
-		return UploadFileFilter.class;
+		return UploadImageFilter.class;
 	}
 
 	public String[] getPropertyNames() {
@@ -34,6 +35,6 @@ public class UploadFileFilterBeanInfo extends FilterBeanInfo {
 	}
 
 	public String getName() {
-		return "UploadFileFilter";
+		return "UploadImageFilter";
 	}
 }
