@@ -26,4 +26,6 @@ public class EscapeUTFInFIlter implements Function<MessageVO, MessageVO> {
 				Pattern.UNICODE_CASE | Pattern.CANON_EQ
 						| Pattern.CASE_INSENSITIVE);
 		Matcher unicodeOutlierMatcher = unicodeOutliers.matcher(input);
-		ret
+		return unicodeOutlierMatcher.replaceAll(" ");
+	}
+}
