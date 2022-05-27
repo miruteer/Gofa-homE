@@ -38,4 +38,23 @@ public class ForumMessageDTO {
 	}
 
 	public String getCreationDate() {
-		retu
+		return creationDate;
+	}
+
+	public long getMessageId() {
+		return messageId;
+	}
+
+	public long getThreadId() {
+		return threadId;
+	}
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+}
