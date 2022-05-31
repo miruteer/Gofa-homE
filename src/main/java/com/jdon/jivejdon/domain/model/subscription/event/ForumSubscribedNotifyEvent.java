@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,23 +16,26 @@
  */
 package com.jdon.jivejdon.domain.model.subscription.event;
 
-public class AccountSubscribedNotifyEvent implements SubscribedNotifyEvent {
+import com.jdon.jivejdon.domain.model.ForumMessage;
 
-	private final String userId;
-	private final long messageId;
+public class ForumSubscribedNotifyEvent implements SubscribedNotifyEvent {
 
-	public AccountSubscribedNotifyEvent(String userId, long messageId) {
+	private final Long forumId;
+
+	private final ForumMessage forumMessage;
+
+	public ForumSubscribedNotifyEvent(Long forumId, ForumMessage forumMessage) {
 		super();
-		this.userId = userId;
-		this.messageId = messageId;
+		this.forumId = forumId;
+		this.forumMessage = forumMessage;
 	}
 
-	public String getUserId() {
-		return userId;
+	public ForumMessage getForumMessage() {
+		return forumMessage;
 	}
 
-	public long getMessageId() {
-		return messageId;
+	public Long getForumId() {
+		return forumId;
 	}
 
 }

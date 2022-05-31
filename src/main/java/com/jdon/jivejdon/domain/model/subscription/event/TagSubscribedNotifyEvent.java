@@ -15,23 +15,23 @@
  */
 package com.jdon.jivejdon.domain.model.subscription.event;
 
-public class AccountSubscribedNotifyEvent implements SubscribedNotifyEvent {
+public class TagSubscribedNotifyEvent implements SubscribedNotifyEvent {
 
-	private final String userId;
-	private final long messageId;
+	private final long tagId;
+	private final long threadId;
 
-	public AccountSubscribedNotifyEvent(String userId, long messageId) {
+	public TagSubscribedNotifyEvent(long tagId, long threadId) {
 		super();
-		this.userId = userId;
-		this.messageId = messageId;
+		this.tagId = tagId;
+		this.threadId = threadId;
 	}
 
-	public String getUserId() {
-		return userId;
+	public long getTagId() {
+		return tagId;
 	}
 
-	public long getMessageId() {
-		return messageId;
+	public long getThreadId() {
+		return threadId;
 	}
 
 }

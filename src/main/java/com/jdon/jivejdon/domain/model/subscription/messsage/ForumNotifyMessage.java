@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +14,30 @@
  * limitations under the License.
  * 
  */
-package com.jdon.jivejdon.domain.model.subscription.event;
+package com.jdon.jivejdon.domain.model.subscription.messsage;
 
-public class AccountSubscribedNotifyEvent implements SubscribedNotifyEvent {
 
-	private final String userId;
-	private final long messageId;
+public class ForumNotifyMessage {
+	private final String notifyTitle;
+	private final String notifyUrlTemp;
+	private final String notifier;
 
-	public AccountSubscribedNotifyEvent(String userId, long messageId) {
-		super();
-		this.userId = userId;
-		this.messageId = messageId;
+	public ForumNotifyMessage(String notifyTitle, String notifyUrlTemp, String notifier) {
+		this.notifyTitle = notifyTitle;
+		this.notifyUrlTemp = notifyUrlTemp;
+		this.notifier = notifier;
 	}
 
-	public String getUserId() {
-		return userId;
+	public String getNotifyUrlTemp() {
+		return notifyUrlTemp;
 	}
 
-	public long getMessageId() {
-		return messageId;
+	public String getNotifyTitle() {
+		return notifyTitle;
+	}
+
+	public String getNotifier() {
+		return notifier;
 	}
 
 }
