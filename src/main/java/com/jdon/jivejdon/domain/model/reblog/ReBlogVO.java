@@ -38,4 +38,39 @@ public class ReBlogVO extends LazyLoader {
 	public ReBlogVO(long Id, LazyLoaderRole lazyLoaderRole) {
 		super();
 		this.Id = Id;
-		this.lazyLoaderRole
+		this.lazyLoaderRole = lazyLoaderRole;
+	}
+
+	public Collection<ForumThread> getThreadTos() {
+		loadAscResult();
+		return threadTos;
+	}
+
+	public Collection<ForumThread> getThreadFroms() {
+		loadAscResult();
+		return threadFroms;
+	}
+
+	private void loadAscResult() {
+		if (!load) {
+			super.setDomainMessage(null);
+			Many2ManyDTO many2ManyDTO = (Many2ManyDTO) super.loadResult();
+			if (many2ManyDTO != null) {
+				threadTos = many2ManyDTO.getChildern();
+				threadFroms = many2ManyDTO.getParent();
+				load = true;
+			}
+		}
+
+	}
+
+	@Override
+	public DomainMessage getDomainMessage() {
+		return lazyLoaderRole.loadReBlog(Id);
+	}
+
+	public void refresh() {
+		load = false;
+	}
+
+}
