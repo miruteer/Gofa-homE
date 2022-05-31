@@ -104,3 +104,6 @@ public class ShortMessageState extends Observable {
 	}
 
 	public void setSendTime(String sendTime) {
+		this.sendTime = sendTime;
+	}
+}
