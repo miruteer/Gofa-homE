@@ -21,4 +21,23 @@ import com.jdon.jivejdon.domain.model.account.PasswordassitVO;
 
 public interface AccountRepository {
 
-	PageIterator getAccountByNameLike(Str
+	PageIterator getAccountByNameLike(String username, int start, int count);
+
+	void createAccount(Account account) throws Exception;
+
+	void updateAccount(Account account) throws Exception;
+
+	void deleteAccount(Account account) throws Exception;
+
+	PageIterator getAccounts(int start, int count);
+
+	void updateAccountEmailValidate(Account account) throws Exception;
+
+	PasswordassitVO getPasswordassit(String userId);
+
+	void insertPasswordassit(PasswordassitVO passwordassitVO) throws Exception;
+
+	void updatePasswordassit(PasswordassitVO passwordassitVO) throws Exception;
+
+	void deletePasswordassit(String userId) throws Exception;
+}
