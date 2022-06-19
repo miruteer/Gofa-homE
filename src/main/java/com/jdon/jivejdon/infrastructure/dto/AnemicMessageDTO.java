@@ -173,4 +173,21 @@ public class AnemicMessageDTO {
         forumMessageDTO.setAttachment(postTopicMessageCommand.getAttachment());
         forumMessageDTO.setForum(postTopicMessageCommand.getForum());
         forumMessageDTO.setMessagePropertysVO(postTopicMessageCommand.getMessagePropertysVO());
-        forumM
+        forumMessageDTO.setTagTitle(postTopicMessageCommand.getTagTitle());
+        return forumMessageDTO;
+    }
+
+    public static AnemicMessageDTO commandToDTO(ReviseForumMessageCommand reviseForumMessageCommand) {
+        AnemicMessageDTO forumMessageDTO = new AnemicMessageDTO(
+                reviseForumMessageCommand.getOldforumMessage().getMessageId());
+        forumMessageDTO.setAccount(reviseForumMessageCommand.getOldforumMessage().getAccount());
+        forumMessageDTO.setMessageVO(reviseForumMessageCommand.getMessageVO());
+        forumMessageDTO.setAttachment(reviseForumMessageCommand.getAttachment());
+        forumMessageDTO.setForum(reviseForumMessageCommand.getOldforumMessage().getForum());
+        forumMessageDTO.setForumThread(reviseForumMessageCommand.getOldforumMessage().getForumThread());
+        forumMessageDTO.setMessagePropertysVO(reviseForumMessageCommand.getMessagePropertysVO());
+        forumMessageDTO.setTagTitle(reviseForumMessageCommand.getOldforumMessage().getTagTitle());
+        return forumMessageDTO;
+    }
+
+}
