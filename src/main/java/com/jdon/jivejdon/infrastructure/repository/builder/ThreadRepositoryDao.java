@@ -34,4 +34,29 @@ public class ThreadRepositoryDao implements ThreadRepository {
 
 	/* (non-Javadoc)
 	 * @see com.jdon.jivejdon.infrastructure.repository.ThreadRepository#deleteThread(com.jdon.jivejdon.domain.model
-	 * .Fo
+	 * .ForumThread)
+	 */
+	public void deleteThread(ForumThread thread) throws Exception {
+		messageDaoFacade.getMessageDao().deleteThread(thread.getThreadId());
+
+	}
+
+	public void updateThreadName(String name, ForumThread forumThread) {
+		messageDaoFacade.getMessageDao().updateThreadName(name, forumThread);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.jdon.jivejdon.api.ForumMessageService#getThreadsPrevNext(java
+	 *      .lang.String, int)
+	 */
+	/* (non-Javadoc)
+	 * @see com.jdon.jivejdon.infrastructure.repository.ThreadRepository#getThreadsPrevNext(java.lang.Long, java
+	 * .lang.Long)
+	 */
+	public List getThreadsPrevNext(Long forumId, Long currentThreadId) {
+		return messageDaoFacade.getMessageQueryDao().getThreadsPrevNext(forumId, currentThreadId);
+	}
+
+}
