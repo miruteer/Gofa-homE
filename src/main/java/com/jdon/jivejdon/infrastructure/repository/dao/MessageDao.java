@@ -42,4 +42,24 @@ public interface MessageDao {
 
 	ForumThread getThreadCore(Long threadId, ForumMessage rootMessage);
 
-	Long getThreadRootMessageId(Long th
+	Long getThreadRootMessageId(Long threadId);
+
+	void createThread(AnemicMessageDTO forumMessagePostDTO) throws Exception;
+
+	void updateThread(ForumThread forumThread) throws Exception;
+
+	void updateThreadName(String name, ForumThread forumThread);
+
+	void updateMovingForum(Long messageId, Long threadId, Long forumId) throws Exception;
+
+	void deleteThread(Long forumThreadId) throws Exception;
+
+	void saveReBlog(OneOneDTO oneOneDTO) throws Exception;
+
+	void delReBlog(Long msgId) throws Exception;
+
+	Collection<Long> getReBlogByFrom(Long messageId) throws Exception;
+
+	Collection<Long> getReBlogByTo(Long threadId) throws Exception;
+
+}
