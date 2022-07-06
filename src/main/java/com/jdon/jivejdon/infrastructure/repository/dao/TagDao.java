@@ -19,4 +19,35 @@ package com.jdon.jivejdon.infrastructure.repository.dao;
 import java.util.Collection;
 
 import com.jdon.controller.model.PageIterator;
-import com.jdon.jivejdon.domain.mod
+import com.jdon.jivejdon.domain.model.property.ThreadTag;
+import com.jdon.jivejdon.domain.model.query.specification.TaggedThreadListSpec;
+
+public interface TagDao {
+
+	ThreadTag getThreadTagByTitle(String title);
+
+	Collection<Long> searchTitle(String s);
+
+	ThreadTag getThreadTag(Long tagID);
+
+	void createThreadTag(ThreadTag threadTag) throws Exception;
+
+	void updateThreadTag(ThreadTag threadTag) throws Exception;
+
+	Collection getThreadTagIDs(Long threadID);
+
+	PageIterator getThreadTags(int start, int count);
+
+	PageIterator getTaggedThread(TaggedThreadListSpec taggedThreadListSpec, int start, int count);
+
+	void addThreadTag(Long tagID, Long threadID) throws Exception;
+
+	void delThreadTag(Long threadID) throws Exception;
+
+	boolean checkThreadTagRelation(Long tagID, Long threadID);
+
+	void delThreadTag(Long tagID, Long threadID) throws Exception;
+
+	void deleteThreadTag(Long tagID) throws Exception;
+
+}
