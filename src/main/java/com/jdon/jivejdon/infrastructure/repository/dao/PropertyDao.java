@@ -35,4 +35,13 @@ public interface PropertyDao {
 
 	void saveProperties(int type, Long id, Collection c);
 
-	void u
+	void updateProperty(int type, Long id, Property property);
+
+	void deleteProperties(int type, Long id);
+
+	void deleteProperty(int type, Long id, Property property);
+
+	PageIterator getIdsByNameAndValue(int type, String name, String value);
+	
+	PageIterator getIdsByName(int type, String name);
+}
