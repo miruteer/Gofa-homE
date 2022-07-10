@@ -14,4 +14,30 @@ import com.jdon.jivejdon.util.ContainerUtil;
 @Introduce("modelCache")
 public class SubscriptionDaoCache extends SubscriptionDaoSql {
 
-	public SubscriptionDaoCache(JdbcTempSource jdbcTempSourc
+	public SubscriptionDaoCache(JdbcTempSource jdbcTempSource, ContainerUtil containerUtil, Constants constants,
+			SubscriptionInitFactory subscriptionInitFactory) {
+		super(jdbcTempSource, constants, containerUtil, subscriptionInitFactory);
+
+	}
+
+	@Around()
+	public Subscription getSubscription(Long id) {
+		Subscription subscription = super.getSubscription(id);
+		return subscription;
+	}
+
+	public void createSubscription(Subscription subscription) {
+		super.createSubscription(subscription);
+		clearCache();
+	}
+
+	public void deleteSubscription(Long subscriptionID) {
+		super.deleteSubscription(subscriptionID);
+		clearCache();
+	}
+
+	public void clearCache() {
+		pageIteratorSolver.clearCache();
+	}
+
+}
