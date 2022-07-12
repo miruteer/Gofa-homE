@@ -158,3 +158,123 @@ public class AccountDaoSql implements AccountDao, AccountRepository {
 				Map map = (Map) iter.next();
 				userId = (Long) map.get("userID");
 
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return userId;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.AccountDao#createAccount(Account)
+	 */
+	public void createAccount(Account account) throws Exception {
+		logger.debug("enter createAccount");
+		String INSERT_USER = "INSERT INTO jiveUser(userID,username,passwordHash,name,nameVisible,"
+				+ "email,emailVisible,rewardPoints, creationDate,modifiedDate) " + "VALUES(?,?,?,?,?,?,?,?,?,?)";
+		try {
+			List queryParams = new ArrayList();
+			queryParams.add(account.getUserIdLong());
+			queryParams.add(account.getUsername());
+			queryParams.add(ToolsUtil.hash(account.getPassword()));
+			queryParams.add(account.getUsername());
+			queryParams.add(new Integer(0));
+			queryParams.add(account.getEmail());
+			queryParams.add(new Integer(account.isEmailVisible() ? 1 : 0));
+			queryParams.add(new Integer(0));
+
+			long now = System.currentTimeMillis();
+			String saveDateTime = ToolsUtil.dateToMillis(now);
+			String displayDateTime = constants.getDateTimeDisp(saveDateTime);
+			queryParams.add(saveDateTime);
+			account.setModifiedDate(displayDateTime);
+			queryParams.add(saveDateTime);
+			account.setCreationDate(displayDateTime);
+
+			jdbcTempSource.getJdbcTemp().operate(queryParams, INSERT_USER);
+			accountSSOSql.insertSSOServer(account);
+			clearCache();
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	public PasswordassitVO getPasswordassit(String userId) {
+		return accountSSOSql.getPasswordassit(userId);
+	}
+
+	public void insertPasswordassit(PasswordassitVO passwordassitVO) throws Exception {
+		this.accountSSOSql.insertPasswordassit(passwordassitVO);
+	}
+
+	public void updatePasswordassit(PasswordassitVO passwordassitVO) throws Exception {
+		this.accountSSOSql.updatePasswordassit(passwordassitVO);
+	}
+
+	public void deletePasswordassit(String userId) throws Exception {
+		this.accountSSOSql.deletePasswordassit(userId);
+	}
+
+	public int getAccountEmailVisible(Long userId) {
+		logger.debug("enter getAccount");
+		String SQL = "SELECT emailVisible FROM jiveUser WHERE userID=?";
+		List queryParams = new ArrayList();
+		queryParams.add(userId);
+		int emailVisible = 0;
+		try {
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(queryParams, SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				logger.debug("found the account");
+				Map map = (Map) iter.next();
+				emailVisible = ((Integer) map.get("emailVisible")).intValue();
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return emailVisible;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.AccountDao#updateAccount(Account)
+	 */
+	public void updateAccount(Account account) throws Exception {
+		logger.debug("enter updateAccount");
+		String SAVE_USER = "UPDATE jiveUser SET username=?, passwordHash=?,name=?,nameVisible=?,email=?,"
+				+ "emailVisible=?,rewardPoints=?,modifiedDate=? WHERE " + "userID=?";
+		try {
+			List queryParams = new ArrayList();
+			queryParams.add(account.getUsername());
+			queryParams.add(ToolsUtil.hash(account.getPassword()));
+			queryParams.add(account.getUsername());
+			queryParams.add(new Integer(0));
+			queryParams.add(account.getEmail());
+			int emailVisible = accountInitFactory.getEmailVisible(account.isAnonymous(), getAccountEmailVisible(account.getUserIdLong()));
+			queryParams.add(emailVisible);
+			queryParams.add(new Integer(0));
+			// queryParams.add(new
+			// Integer(account.getReward().getRewardPoints()));
+
+			long now = System.currentTimeMillis();
+			String saveDateTime = ToolsUtil.dateToMillis(now);
+			String displayDateTime = constants.getDateTimeDisp(saveDateTime);
+			queryParams.add(saveDateTime);
+			account.setModifiedDate(displayDateTime);
+
+			queryParams.add(account.getUserIdLong());
+
+			accountSSOSql.updateSSOServer(account);
+			jdbcTempSource.getJdbcTemp().operate(queryParams, SAVE_USER);
+			clearCache();
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	publ
