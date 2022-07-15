@@ -277,4 +277,65 @@ public class AccountDaoSql implements AccountDao, AccountRepository {
 		}
 	}
 
-	publ
+	public void updateAccountEmailValidate(Account account) throws Exception {
+		logger.debug("enter updateAccount");
+		String SQL = "UPDATE jiveUser SET emailVisible=? WHERE userID=?";
+		try {
+			List queryParams = new ArrayList();
+			int oldEmailVisible = getAccountEmailVisible(account.getUserIdLong());
+			int emailVisible = accountInitFactory.addEmailValidate(account.isEmailValidate(), oldEmailVisible);
+			queryParams.add(emailVisible);
+			queryParams.add(account.getUserIdLong());
+			jdbcTempSource.getJdbcTemp().operate(queryParams, SQL);
+			clearCache();
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.AccountDao#deleteAccount(Account)
+	 */
+	public void deleteAccount(Account account) throws Exception {
+		logger.debug("enter deleteAccount");
+		String SQL = "DELETE FROM jiveUser WHERE userID=?";
+		List queryParams = new ArrayList();
+		queryParams.add(account.getUserId());
+		try {
+			accountSSOSql.deleteSSOServer(account);
+			jdbcTempSource.getJdbcTemp().operate(queryParams, SQL);
+			clearCache();
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.AccountDao#getAccounts(int, int)
+	 */
+	public PageIterator getAccounts(int start, int count) {
+		logger.debug("enter getAccounts");
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from jiveUser ";
+		String GET_ALL_ITEMS = "select userID from jiveUser ORDER BY creationDate ASC";
+		return pageIteratorSolver.getPageIterator(GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, "", start, count);
+	}
+
+	public PageIterator getAccountByNameLike(String username, int start, int count) {
+		logger.debug("enter getAccounts");
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from jiveUser where username like '" + username + "'";
+		String GET_ALL_ITEMS = "select userID from jiveUser  where username like '" + username + "'";
+		return pageIteratorSolver.getPageIterator(GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, "", start, count);
+
+	}
+
+	public void clearCache() {
+		pageIteratorSolver.clearCache();
+	}
+
+}
