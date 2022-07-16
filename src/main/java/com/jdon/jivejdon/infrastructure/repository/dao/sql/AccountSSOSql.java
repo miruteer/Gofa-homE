@@ -51,4 +51,114 @@ public class AccountSSOSql {
 	public String getRoleNameByUserId(String userId) {
 		logger.debug("enter getRoleName for userId=" + userId);
 		String SQL = "SELECT RL.name FROM role as RL,  users_roles as RU WHERE RU.roleid = RL.roleid  and RU.userId = ?";
-		//String SQL = "SELECT name FROM role where ro
+		//String SQL = "SELECT name FROM role where roleid=(SELECT roleid FROM users_roles WHERE userid =? )";
+		List queryParams = new ArrayList();
+		queryParams.add(userId);
+		String roleName = null;
+		try {
+			Object ret = jdbcTempSSOSource.getJdbcTemp().querySingleObject(queryParams, SQL);
+			if (ret != null) {
+				roleName = (String) ret;
+			}
+		} catch (Exception se) {
+			logger.error(userId + " error:" + se);
+		}
+		return roleName;
+	}
+
+	public String getRoleNameFByusername(String username) {
+		logger.debug("enter getAccountByName for username=" + username);
+		String SQL = "SELECT RL.name, 'Roles' FROM role as RL, user as U ,  users_roles as RU WHERE U.userid = RU.userid and RU.roleid = RL.roleid  and U.name = ?";
+		//String SQL = "SELECT name FROM role where roleid=(SELECT roleid FROM users_roles WHERE userid = ( SELECT  userId FROM user  WHERE name=? ) )";
+		List queryParams = new ArrayList();
+		queryParams.add(username);
+		String roleName = null;
+		try {
+			List list = jdbcTempSSOSource.getJdbcTemp().queryMultiObject(queryParams, SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				logger.debug("found the role");
+				Map map = (Map) iter.next();
+				roleName = ((String) map.get("name")).trim();
+			}
+		} catch (Exception se) {
+			logger.error(username + " error:" + se);
+		}
+		return roleName;
+	}
+
+	public PasswordassitVO getPasswordassit(String userId) {
+		String SQL = "SELECT * from passwordassit where userId = ?";
+		List queryParams = new ArrayList();
+		queryParams.add(userId);
+		PasswordassitVO passwordassitVO = new PasswordassitVO(userId, "", "");
+		try {
+			List list = jdbcTempSSOSource.getJdbcTemp().queryMultiObject(queryParams, SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				logger.debug("found the passwordassit");
+				Map map = (Map) iter.next();
+
+				String pt = ((String) map.get("passwdtype"));
+				String ps = ((String) map.get("passwdanswer"));
+				passwordassitVO = new PasswordassitVO(userId, pt, ps);
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return passwordassitVO;
+	}
+
+	public void insertSSOServer(Account account) throws Exception {
+		logger.debug("enter insertSSOServer");
+		try {
+			// the user has `` ,because mysql user is special
+			String INSERT_USER = "REPLACE INTO `user` (userId,password,name,email) VALUES(?,?,?,?)";
+			List queryParams = new ArrayList();
+			queryParams.add(account.getUserId());
+			queryParams.add(ToolsUtil.hash(account.getPassword()));
+			queryParams.add(account.getUsername());
+			queryParams.add(account.getEmail());
+
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams, INSERT_USER);
+
+			String INSERT_USER_ROLE = "REPLACE INTO users_roles(userId,roleId) VALUES(?,?)";
+			List queryParams2 = new ArrayList();
+			queryParams2.add(account.getUserId());
+			String roleId = getRoleId(account.getRoleName());
+			logger.debug(" the roleName: " + account.getRoleName() + " roleId =" + roleId);
+			queryParams2.add(roleId);
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams2, INSERT_USER_ROLE);
+
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	public void insertPasswordassit(PasswordassitVO passwordassitVO) throws Exception {
+		logger.debug("enter insertPasswordassit");
+		try {
+
+			String INSERT_PASSWORDASSIT = "REPLACE INTO passwordassit(userId,passwdtype,passwdanswer) VALUES(?,?,?)";
+			List queryParams3 = new ArrayList();
+			queryParams3.add(passwordassitVO.getUserId());
+			queryParams3.add(passwordassitVO.getPasswdtype());
+			queryParams3.add(passwordassitVO.getPasswdanswer());
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams3, INSERT_PASSWORDASSIT);
+
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+
+	}
+
+	private String getRoleId(String roleName) throws Exception {
+		try {
+			String roleId = getRoleName(roleName);
+			if (roleId == null) {
+				roleId = createRole(roleName);
+			}
+			return roleId;
+		} catch (Exception e
