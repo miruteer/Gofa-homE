@@ -161,4 +161,101 @@ public class AccountSSOSql {
 				roleId = createRole(roleName);
 			}
 			return roleId;
-		} catch (Exception e
+		} catch (Exception ex) {
+			logger.error(ex);
+			throw new Exception(ex);
+		}
+	}
+
+	public String getRoleName(String roleName) {
+		if (!UtilValidate.isAlphanumeric(roleName))
+			return null;
+		String SQL = "SELECT roleId FROM role WHERE name=? ";
+		List queryParams = new ArrayList();
+		queryParams.add(roleName);
+		String roleId = null;
+		try {
+			List list = jdbcTempSSOSource.getJdbcTemp().queryMultiObject(queryParams, SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				Map map = (Map) iter.next();
+				roleId = ((String) map.get("roleId")).trim();
+			}
+		} catch (Exception se) {
+			logger.warn(se);
+		}
+		return roleId;
+	}
+
+	private String createRole(String roleName) throws Exception {
+		logger.debug("enter insertSSOServer");
+
+		String INSERT_ROLE = "INSERT INTO role(roleId, name) VALUES(?,?)";
+		String roleId = null;
+		try {
+			Long roleIDInt = sequenceDao.getNextId(Constants.USER);
+
+			List queryParams = new ArrayList();
+			roleId = roleIDInt.toString().trim();
+			queryParams.add(roleId);
+			queryParams.add(roleName);
+
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams, INSERT_ROLE);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+		return roleId;
+	}
+
+	public void updateSSOServer(Account account) throws Exception {
+		logger.debug("enter updayeSSOServer");
+
+		try {
+			String SAVE_USER = "UPDATE user SET password=?,name=?,email=? " + " WHERE userId=?";
+			List queryParams = new ArrayList();
+			queryParams.add(ToolsUtil.hash(account.getPassword()));
+			queryParams.add(account.getUsername());
+			queryParams.add(account.getEmail());
+			queryParams.add(account.getUserIdLong());
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams, SAVE_USER);
+
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	public void updatePasswordassit(PasswordassitVO passwordassitVO) throws Exception {
+		logger.debug("enter updatePasswordassit");
+		insertPasswordassit(passwordassitVO);
+
+	}
+
+	public void deleteSSOServer(Account account) throws Exception {
+		logger.debug("enter deleteSSOServer");
+		String SQL = "DELETE FROM user WHERE userId=?";
+		List queryParams = new ArrayList();
+		queryParams.add(account.getUserId());
+		try {
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams, SQL);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+	public void deletePasswordassit(String userId) throws Exception {
+		logger.debug("enter deletePasswordassit");
+		String SQL = "DELETE FROM passwordassit WHERE userId=?";
+		List queryParams = new ArrayList();
+		queryParams.add(userId);
+		try {
+			jdbcTempSSOSource.getJdbcTemp().operate(queryParams, SQL);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new Exception(e);
+		}
+	}
+
+}
