@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2005 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,20 +26,17 @@ import org.apache.logging.log4j.Logger;
 import com.jdon.model.query.JdbcTemp;
 
 /**
- * this is for another dataSource that User SSO Login Database
- * 
  * @author <a href="mailto:banq@163.com">banq</a>
  * 
  */
-public class JdbcTempSSOSource {
-	private final static Logger logger = LogManager.getLogger(JdbcTempSSOSource.class);
+public class JdbcTempSource {
+	private final static Logger logger = LogManager.getLogger(JdbcTempSource.class);
 
 	protected DataSource dataSource;
 
 	protected JdbcTemp jdbcTemp;
 
-	public JdbcTempSSOSource(String jndiname) {
-
+	public JdbcTempSource(String jndiname) {
 		try {
 			InitialContext ic = new InitialContext();
 			dataSource = (DataSource) ic.lookup(jndiname);
@@ -48,7 +46,6 @@ public class JdbcTempSSOSource {
 		} catch (Exception slx) {
 			logger.error(slx);
 		}
-
 	}
 
 	/**
