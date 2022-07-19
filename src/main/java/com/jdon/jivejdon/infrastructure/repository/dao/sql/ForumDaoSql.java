@@ -150,4 +150,117 @@ public abstract class ForumDaoSql implements ForumDao {
 			jdbcTempSource.getJdbcTemp().operate(queryParams, SAVE_FORUM);
 			clearCache();
 
-			propertyDaoSql.deleteProperties(Constants.FORUM, foru
+			propertyDaoSql.deleteProperties(Constants.FORUM, forum.getForumId());
+			propertyDaoSql.saveProperties(Constants.FORUM, forum.getForumId(), forum.getPropertys());
+		} catch (Exception e) {
+			logger.error(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.ForumDao#deleteForum(com.jdon.jivejdon.domain.model.Forum)
+	 */
+	public void deleteForum(Forum forum) {
+		try {
+			String sql = "DELETE FROM jiveForum WHERE forumID=?";
+			List queryParams = new ArrayList();
+			queryParams.add(forum.getForumId());
+			jdbcTempSource.getJdbcTemp().operate(queryParams, sql);
+			clearCache();
+			propertyDaoSql.deleteProperties(Constants.FORUM, forum.getForumId());
+		} catch (Exception e) {
+			logger.error(e);
+		}
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.ForumDao#getForums(int, int)
+	 */
+	public PageIterator getForums(int start, int count) {
+		logger.debug("enter getForums ..");
+
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from jiveForum ";
+
+		String GET_ALL_ITEMS = "select forumID from jiveForum ";
+
+		return pageIteratorSolver.getPageIterator(GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, "", start, count);
+	}
+
+	/**
+	 * get the thread count from message db.
+	 * 
+	 * @param forumId
+	 * @return
+	 */
+	public int getMessageCount(Long forumId) {
+		String ALL_THREADS = "SELECT count(1) from jiveMessage WHERE forumID=?";
+		List queryParams = new ArrayList();
+		queryParams.add(forumId);
+		Integer count = null;
+		try {
+			Object counto = jdbcTempSource.getJdbcTemp().querySingleObject(queryParams, ALL_THREADS);
+			if (counto instanceof Long)// for mysql 5
+				count = ((Long) counto).intValue();
+			else
+				count = ((Integer) counto).intValue(); // for mysql 4
+			logger.debug("found count:" + count);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return count.intValue();
+	}
+
+	/**
+	 * get the thread count from thread db.
+	 * 
+	 * @param forumId
+	 * @return
+	 */
+	public int getThreadCount(Long forumId) {
+		String ALL_MESSAGES = "SELECT count(1) from jiveThread WHERE forumID=?";
+		List queryParams2 = new ArrayList();
+		queryParams2.add(forumId);
+
+		int count = 0;
+		try {
+			Object counto = jdbcTempSource.getJdbcTemp().querySingleObject(queryParams2, ALL_MESSAGES);
+			if (counto instanceof Long)// for mysql 5
+				count = ((Long) counto).intValue();
+			else
+				count = ((Integer) counto).intValue(); // for mysql 4
+			logger.debug("found count:" + count);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return count;
+	}
+
+	/**
+	 * get laste message from the message db
+	 * 
+	 */
+	public Long getLatestPostMessageId(Long forumId) {
+		String LAST_MESSAGES = "SELECT messageID from jiveMessage WHERE forumID=? ORDER BY modifiedDate DESC";
+		List queryParams2 = new ArrayList();
+		queryParams2.add(forumId);
+
+		Long messageId = null;
+		try {
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(queryParams2, LAST_MESSAGES);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				Map map = (Map) iter.next();
+				messageId = (Long) map.get("messageID");
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return messageId;
+	}
+
+}
