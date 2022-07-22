@@ -270,4 +270,27 @@ public class TagDaoSql implements TagDao {
 		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from threadTag where tagID =? ";
 		String GET_ALL_ITEMS = "select threadID  from threadTag where tagID =? " + taggedThreadListSpec.getResultSortSQL();
 		Collection params = new ArrayList(1);
-		params.add(ta
+		params.add(taggedThreadListSpec.getTagID());
+		return pageIteratorSolver.getPageIterator(GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, params, start, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.dao.sql.TagDao#updateThreadTag(com.jdon.jivejdon.domain.model
+	 * .ThreadTag)
+	 */
+	public void updateThreadTag(ThreadTag threadTag) throws Exception {
+		String SQL = "UPDATE tag SET title=?, assonum=? WHERE tagID=?";
+
+		List queryParams = new ArrayList();
+		queryParams.add(threadTag.getTitle());
+		queryParams.add(threadTag.getAssonum());
+		queryParams.add(threadTag.getTagID());
+
+		jdbcTempSource.getJdbcTemp().operate(queryParams, SQL);
+		clearCache();
+	}
+
+}
