@@ -141,4 +141,133 @@ public class TagDaoSql implements TagDao {
 		queryParams.add(tagID);
 		boolean ret = false;
 		try {
-			List list
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(queryParams, LOAD_SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				ret = true;
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return ret;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.sql.TagDao#clearCache()
+	 */
+	public void clearCache() {
+		pageIteratorSolver.clearCache();
+	}
+
+	public Collection getThreadTagIDs(Long threadID) {
+		String SQL = "select tagID FROM threadTag WHERE threadID=? ";
+		List queryParams = new ArrayList();
+		queryParams.add(threadID);
+		Collection ret = new ArrayList();
+		try {
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(queryParams, SQL);
+			Iterator iter = list.iterator();
+			while (iter.hasNext()) {
+				Map map = (Map) iter.next();
+				ret.add((Long) map.get("tagID"));
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return ret;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.sql.TagDao#getThreadTag(java.lang.Long)
+	 */
+	public ThreadTag getThreadTag(Long tagID) {
+		logger.debug("enter getThreadTag for tagID:" + tagID);
+		String LOAD_SQL = "SELECT tagID, title, assonum FROM tag WHERE tagID=?";
+		List queryParams = new ArrayList();
+		queryParams.add(tagID);
+		ThreadTag ret = null;
+		try {
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(queryParams, LOAD_SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				ret = new ThreadTag();
+				Map map = (Map) iter.next();
+				ret.setTagID((Long) map.get("tagID"));
+				ret.setTitle((String) map.get("title"));
+				ret.setAssonum((Integer) map.get("assonum"));
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return ret;
+	}
+
+	public ThreadTag getThreadTagByTitle(String title) {
+		logger.debug("enter getThreadTagByTitle for title:" + title);
+		String LOAD_SQL = "SELECT tagID, title, assonum FROM tag WHERE title =?";
+		List queryParams = new ArrayList();
+		queryParams.add(title);
+		ThreadTag ret = null;
+		try {
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(queryParams, LOAD_SQL);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				ret = new ThreadTag();
+				Map map = (Map) iter.next();
+				ret.setTagID((Long) map.get("tagID"));
+				ret.setTitle((String) map.get("title"));
+				ret.setAssonum((Integer) map.get("assonum"));
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return ret;
+	}
+
+	public Collection<Long> searchTitle(String s) {
+		logger.debug("enter searchTitle for title:" + s);
+		// String LOAD_SQL = "SELECT title FROM tag WHERE locate('"+ s
+		// +"', title) > 0 order " +
+		// "by locate('" + s + "', title), title limit 50";
+		String LOAD_SQL = "SELECT tagID FROM tag WHERE title like '%" + s + "%'";
+		Collection<Long> ret = new ArrayList<Long>();
+		try {
+			List list = jdbcTempSource.getJdbcTemp().queryMultiObject(new ArrayList(), LOAD_SQL);
+			Iterator iter = list.iterator();
+			while (iter.hasNext()) {
+				Map map = (Map) iter.next();
+				ret.add((Long) map.get("tagID"));
+			}
+		} catch (Exception se) {
+			logger.error(se);
+		}
+		return ret;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.sql.TagDao#getThreadTags(int, int)
+	 */
+	public PageIterator getThreadTags(int start, int count) {
+		logger.debug("enter getThreadTags ..");
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from tag order by assonum DESC";
+		String GET_ALL_ITEMS = "select tagID from tag order by assonum DESC";
+		return pageIteratorSolver.getPageIterator(GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, "", start, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.jivejdon.dao.sql.TagDao#getTaggedThread(java.lang.Long,
+	 * int, int)
+	 */
+	public PageIterator getTaggedThread(TaggedThreadListSpec taggedThreadListSpec, int start, int count) {
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from threadTag where tagID =? ";
+		String GET_ALL_ITEMS = "select threadID  from threadTag where tagID =? " + taggedThreadListSpec.getResultSortSQL();
+		Collection params = new ArrayList(1);
+		params.add(ta
