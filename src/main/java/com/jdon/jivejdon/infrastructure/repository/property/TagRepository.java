@@ -26,4 +26,22 @@ public interface TagRepository {
 
 	public abstract Collection<Long> searchTitle(String s);
 
-	public abstract PageIterator getTaggedThread(TaggedThreadListSpec taggedThreadListSpec, int start, int c
+	public abstract PageIterator getTaggedThread(TaggedThreadListSpec taggedThreadListSpec, int start, int count);
+
+	public abstract PageIterator getThreadTags(int start, int count);
+
+	public abstract ThreadTag getThreadTag(Long tagID);
+
+	public abstract void saveTagTitle(Long threadId, String[] tagTitles) throws Exception;
+
+	public abstract void deleteTagTitle(Long threadId) throws Exception;
+
+	public abstract Collection getThreadTags(ForumThread forumThread);
+
+	public abstract Collection getThreadTags(Long forumThreadId);
+
+	public abstract void updateThreadTag(ThreadTag threadTag) throws Exception;
+
+	public abstract void deleteThreadTag(ThreadTag threadTag) throws Exception;
+
+}
