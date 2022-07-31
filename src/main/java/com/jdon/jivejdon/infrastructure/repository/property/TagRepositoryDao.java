@@ -106,4 +106,112 @@ public class TagRepositoryDao implements TagRepository {
 			if (!tagDao.checkThreadTagRelation(threadTag.getTagID(), fourmThreadId)) {
 				threadTag.setAssonum(threadTag.getAssonum() + 1);
 				updateThreadTag(threadTag);
-				tagDao.addThr
+				tagDao.addThreadTag(threadTag.getTagID(), fourmThreadId);
+			}
+		} else {
+			threadTag = new ThreadTag();
+			Long tagID = sequenceDao.getNextId(Constants.OTHERS);
+			threadTag.setTagID(tagID);
+			threadTag.setTitle(tagTitle);
+			threadTag.setAssonum(1);
+			tagDao.createThreadTag(threadTag);
+			tagDao.addThreadTag(threadTag.getTagID(), fourmThreadId);
+		}
+
+	}
+
+	// 进行比较 使用hibernate merge就一句OK
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.TagRepository#mergeTagTitle(java.lang.Long,
+	 * java.lang.String[])
+	 */
+	public void saveTagTitle(Long threadId, String[] tagTitles) throws Exception {
+		deleteTagTitle(threadId);
+		insertTagTitle(threadId, tagTitles);
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.TagRepository#deleteTagTitle(java.lang.Long)
+	 */
+	public void deleteTagTitle(Long threadId) throws Exception {
+		Collection tags = getThreadTags(threadId);
+		for (Object o : tags) {
+			ThreadTag tag = (ThreadTag) o;
+			if (tag.getAssonum() <= 1) {
+				deleteThreadTag(tag);
+			} else {
+				tag.setAssonum(tag.getAssonum() - 1);
+				updateThreadTag(tag);
+				tagDao.delThreadTag(threadId);
+			}
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.TagRepository#getThreadTags(com.jdon.jivejdon
+	 * .model.ForumThread)
+	 */
+	public Collection getThreadTags(ForumThread forumThread) {
+		Collection tags = new ArrayList();
+		Collection ids = tagDao.getThreadTagIDs(forumThread.getThreadId());
+		Iterator iter = ids.iterator();
+		while (iter.hasNext()) {
+			Long tagID = (Long) iter.next();
+			ThreadTag tag = tagDao.getThreadTag(tagID);
+			if (tag != null)
+				tags.add(tag);
+		}
+		return tags;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.TagRepository#getThreadTags(java.lang.Long)
+	 */
+	public Collection getThreadTags(Long forumThreadId) {
+		Collection tags = new ArrayList();
+		Collection ids = tagDao.getThreadTagIDs(forumThreadId);
+		Iterator iter = ids.iterator();
+		while (iter.hasNext()) {
+			Long tagID = (Long) iter.next();
+			tags.add(tagDao.getThreadTag(tagID));
+		}
+		return tags;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.TagRepository#updateThreadTag(com.jdon.jivejdon
+	 * .model.ThreadTag)
+	 */
+	public void updateThreadTag(ThreadTag threadTag) throws Exception {
+		tagDao.updateThreadTag(threadTag);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.TagRepository#deleteThreadTag(com.jdon.jivejdon
+	 * .model.ThreadTag)
+	 */
+	public void deleteThreadTag(ThreadTag threadTag) throws Exception {
+		threadTag = this.getThreadTag(threadTag.getTagID());
+		tagDao.deleteThreadTag(threadTag.getTagID());
+	}
+
+}
