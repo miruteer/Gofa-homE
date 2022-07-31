@@ -30,4 +30,11 @@ public interface UploadRepository {
 
 	public abstract UploadFile getUploadFile(String objectId);
 
-	pub
+	public abstract void saveAllUploadFiles(String parentId, Collection uploads) throws Exception;
+
+	public abstract void deleteAllUploadFiles(String parentId);
+
+	public abstract void deleteUploadFile(String objectId);
+
+	public void saveUpload(UploadFile uploadFile) throws Exception;
+}
