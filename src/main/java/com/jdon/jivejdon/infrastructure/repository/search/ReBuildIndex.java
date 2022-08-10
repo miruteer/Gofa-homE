@@ -58,4 +58,46 @@ public class ReBuildIndex implements Runnable {
 		int start = 0;
 		int count = 30;
 		boolean found = false;
-		PageIterator pi = getAllThread
+		PageIterator pi = getAllThreads(start, count);
+		int allCount = pi.getAllCount();
+		while ((start < allCount) && (!found)) {// loop all
+			while (pi.hasNext()) {
+				Long threadId = (Long) pi.next();
+				addMessage(threadId);
+
+			}
+			if (found)
+				break;
+			start = start + count;
+			logger.debug("rebuildIndex start = " + start + " count = " + count);
+			pi = getAllThreads(start, count);
+		}
+        logger.error("rebuildIndex ok!");
+	}
+
+	private void addMessage(Long threadId) {
+		try {
+			ForumThread thread = forumAbstractFactory.getThread(threadId).get();
+			ForumMessage message = thread.getRootMessage();
+			AnemicMessageDTO anemicMessageDTO = new AnemicMessageDTO();
+			anemicMessageDTO.setMessageId(message.getMessageId());
+			anemicMessageDTO.setForum(message.getForum());
+			anemicMessageDTO.setAccount(message.getAccount());
+			anemicMessageDTO.setMessageVO(message.getMessageVO());
+			anemicMessageDTO.setForumThread(message.getForumThread());
+			messageSearchProxy.createMessage(anemicMessageDTO);
+            Thread.sleep(5000);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+	}
+
+	public PageIterator getAllThreads(int start, int count) {
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from jiveThread ";
+
+		String GET_ALL_ITEMS = "select threadID  from jiveThread ";
+		Collection params = new ArrayList(1);
+		return pageIteratorSolver.getPageIterator(GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, params, start, count);
+	}
+
+}
