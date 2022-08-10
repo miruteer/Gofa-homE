@@ -130,4 +130,22 @@ public class UploadRepositoryDao implements UploadRepository {
 	 * .lang.String)
 	 */
 	public void deleteAllUploadFiles(String parentId) {
-		Co
+		Collection ids = uploadFileDao.getAdjunctIDs(parentId);
+		Iterator iter = ids.iterator();
+		while (iter.hasNext()) {
+			String id = (String) iter.next();
+			deleteUploadFile(id);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.property.UploadRepository#deleteUploadFile(java.lang
+	 * .String)
+	 */
+	public void deleteUploadFile(String objectId) {
+		uploadFileDao.deleteUploadFile(objectId);
+	}
+}
