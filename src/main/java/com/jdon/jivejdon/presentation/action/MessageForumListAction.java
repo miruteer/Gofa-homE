@@ -62,4 +62,36 @@ public class MessageForumListAction extends MessageListAction {
 	/**
 	 * set ModelListAction donot load directly a model from cache.
 	 */
-	protected boo
+	protected boolean isEnableCache() {
+		return false;
+	}
+
+	public void customizeListForm(ActionMapping actionMapping, ActionForm actionForm,
+								  HttpServletRequest request, ModelListForm modelListForm)
+			throws Exception {
+		String forumId = request.getParameter("forum");
+		if (forumId == null || (!UtilValidate.isInteger(forumId)) || forumId.length() > 10) {
+			Debug.logError("customizeListForm error : forumId  is not Integer or > 10, ip=" +
+					request.getRemoteAddr(), module);
+			return;
+		}
+		ForumService forumService = (ForumService) WebAppUtil.getService("forumService",
+				this.servlet.getServletContext());
+		Forum forum = forumService.getForum(new Long(forumId));
+		ForumThread forumThread = forum.getForumState().getLatestPost().getForumThread();
+		if (forumThread == null)
+			throw new Exception("thread is null forumId latestPost=" + forumId);
+
+		modelListForm.setOneModel(forumThread);
+
+		if (request.getSession(false) != null) {
+			boolean[] authenticateds = getAuthedListForm(actionForm, request);
+			MessageListForm messageListForm = (MessageListForm) actionForm;
+			messageListForm.setAuthenticateds(authenticateds);
+		}
+
+
+	}
+
+
+}
