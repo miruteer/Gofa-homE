@@ -49,4 +49,48 @@ public class MessageDigAction extends Action {
 		}
 
 		ForumMessageService forumMessageService = (ForumMessageService) WebAppUtil
-				.getService("forumMessageService", this.servlet.getServletContext(
+				.getService("forumMessageService", this.servlet.getServletContext());
+
+		Long key = Long.valueOf(messageId);
+		ForumMessage message = forumMessageService.getMessage(key);
+		if (message == null) {
+			response.sendError(404);
+			return null;
+		}
+		// who has read can dig it.
+//		if (message.getForumThread().getViewCounter().isContains(request.getRemoteAddr())) {
+//			if (!message.getPostip().equals(request.getRemoteAddr()))
+			  message.messaegDigAction();
+			try {				
+				response.setContentType("text/html");
+				response.getWriter().print(message.getDigCount());
+				response.getWriter().close();
+			} catch (Exception e) {
+				if (response != null && response.getWriter() != null) {
+					response.getWriter().close();
+				}
+			}
+//		}
+		return null;
+	}
+
+	private boolean isPermittedRobot(HttpServletRequest request, Pattern robotPattern) {
+		// if refer is null, 1. browser 2. google 3. otherspam
+		String userAgent = request.getHeader("User-Agent");
+		if (robotPattern != null) {
+			if (userAgent != null && userAgent.length() > 0 && robotPattern.matcher(userAgent.toLowerCase()).matches()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean checkSpamHit(String id, HttpServletRequest request) {
+		if (customizedThrottle == null) {
+			customizedThrottle = (CustomizedThrottle) WebAppUtil.getComponentInstance("customizedThrottle", this.servlet.getServletContext());
+		}
+		HitKeyIF hitKey = new HitKeySame(request.getRemoteAddr(), "threads");
+		return customizedThrottle.processHitFilter(hitKey);
+	}
+
+}
