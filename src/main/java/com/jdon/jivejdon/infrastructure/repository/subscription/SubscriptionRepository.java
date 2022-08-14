@@ -24,4 +24,10 @@ public interface SubscriptionRepository {
 
 	public abstract Subscription getSubscription(Long id);
 
-	public abstract Subscription getFullSub(Su
+	public abstract Subscription getFullSub(Subscription subscription);
+
+	public abstract void deleteSubscription(Subscription subscription);
+
+	public abstract SubscriptionDao getSubscriptionDao();
+
+}
