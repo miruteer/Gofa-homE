@@ -68,4 +68,99 @@ public class MessageListAction extends ModelListAction {
 			return new PageIterator();
 		}
 
-		return getForumMessageQueryService().getMessages(new Long(
+		return getForumMessageQueryService().getMessages(new Long(threadId), start, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.jdon.strutsutil.ModelListAction#findModelByKey(javax.servlet.http
+	 * .HttpServletRequest, java.lang.Object)
+	 */
+	public Object findModelIFByKey(HttpServletRequest request, Object key) {
+		Debug.logVerbose("enter findModelByKey", module);
+
+		// getXXX can be intercepted by cacheinterceptor before accessing
+		// ForumMessageServiceShell
+		ForumMessage forumMessage = getForumMessageQueryService().getMessage((Long) key);
+
+		return forumMessage;
+	}
+
+	/**
+	 * set ModelListAction donot load directly a model from cache.
+	 */
+	protected boolean isEnableCache() {
+		return false;
+	}
+
+	public void customizeListForm(ActionMapping actionMapping, ActionForm actionForm, HttpServletRequest request,
+			ModelListForm modelListForm) throws Exception {
+		String threadId = request.getParameter("thread");
+		if ((threadId == null) || (!UtilValidate.isInteger(threadId)) || threadId.length() > 10) {
+			Debug.logError("customizeListForm error : threadId is null", module);
+			return;
+		}
+
+		try {
+			ForumThread forumThread = getForumMessageQueryService().getThread(new Long(threadId));
+			if (forumThread == null)
+				throw new Exception("thread is null " + threadId);
+
+			modelListForm.setOneModel(forumThread);
+
+			executor.submit(new Runnable() {
+				public void run() { // this run method's body will be executed by the service
+				  if(forumThread.addViewCount(request.getRemoteAddr()))
+			     	getThreadViewCounterJob().saveViewCounter(forumThread.getViewCounter());
+			    }
+			});
+
+
+			request.setAttribute("threadsInMemallCount", getThreadViewCounterJob().getThreadIdsList().size());
+
+			if (request.getSession(false) != null) {
+				boolean[] authenticateds = getAuthedListForm(actionForm, request);
+				MessageListForm messageListForm = (MessageListForm) actionForm;
+				messageListForm.setAuthenticateds(authenticateds);
+			}
+
+		} catch (Exception e) {
+			return;
+		}
+
+	}
+
+	protected boolean[] getAuthedListForm(ActionForm actionForm, HttpServletRequest request) {
+		MessageListForm messageListForm = (MessageListForm) actionForm;
+		boolean[] authenticateds = new boolean[messageListForm.getList().size()];
+
+		// if there is no session, no login user, ignore it.
+		if (request.getSession(false) == null)
+			return authenticateds;
+
+		AccountService accountService = (AccountService) WebAppUtil.getService("accountService", request);
+		Account account = accountService.getloginAccount();
+		if (account == null)
+			return authenticateds;// if login need auth check
+
+		ForumMessageService forumMessageService = (ForumMessageService) WebAppUtil.getService("forumMessageService",
+				request);
+		int i = 0;
+		for (Object o : messageListForm.getList()) {
+			ForumMessage forumMessage = (ForumMessage) o;
+			boolean result = forumMessageService.checkIsAuthenticated(forumMessage);
+			authenticateds[i] = result;
+			i++;
+		}
+		return authenticateds;
+	}
+
+	private ThreadViewCounterJob getThreadViewCounterJob() {
+		if (threadViewCounterJob == null)
+			threadViewCounterJob = (ThreadViewCounterJob) WebAppUtil.getComponentInstance("threadViewCounterJob",
+					this.servlet.getServletContext());
+		return threadViewCounterJob;
+	}
+
+}
