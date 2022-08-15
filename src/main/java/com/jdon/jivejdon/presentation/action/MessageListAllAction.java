@@ -20,4 +20,49 @@ import javax.servlet.http.HttpServletRequest;
 import com.jdon.controller.WebAppUtil;
 import com.jdon.controller.model.PageIterator;
 import com.jdon.jivejdon.domain.model.ForumMessage;
-impo
+import com.jdon.jivejdon.api.query.ForumMessageQueryService;
+import com.jdon.jivejdon.api.ForumMessageService;
+import com.jdon.strutsutil.ModelListAction;
+import com.jdon.util.Debug;
+
+/**
+ * @author <a href="mailto:banq@163.com">banq</a>
+ * 
+ */
+public class MessageListAllAction extends ModelListAction {
+	private final static String module = MessageListAllAction.class.getName();
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.strutsutil.ModelListAction#getPageIterator(javax.servlet.http
+	 * .HttpServletRequest, int, int)
+	 */
+	public PageIterator getPageIterator(HttpServletRequest request, int start, int count) {
+		Debug.logVerbose("enter getPageIterator", module);
+
+		ForumMessageQueryService forumMessageQueryService = (ForumMessageQueryService) WebAppUtil.getService("forumMessageQueryService",
+				this.servlet.getServletContext());
+		return forumMessageQueryService.getMessages(start, count);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.strutsutil.ModelListAction#findModelByKey(javax.servlet.http
+	 * .HttpServletRequest, java.lang.Object)
+	 */
+	public Object findModelIFByKey(HttpServletRequest request, Object key) {
+		Debug.logVerbose("enter findModelByKey", module);
+		ForumMessageService forumMessageService = (ForumMessageService) WebAppUtil
+				.getService("forumMessageService", this.servlet.getServletContext());
+		// getXXX can be intercepted by cacheinterceptor before accessing
+		// ForumMessageServiceShell
+		ForumMessage forumMessage = forumMessageService.getMessage((Long) key);
+
+		return forumMessage;
+	}
+
+}
