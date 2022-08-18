@@ -57,4 +57,40 @@ public class MessageListNav2Action extends Action {
 		ForumThread thread = forumMessageParent.getForumThread();
 		long threadId = thread.getThreadId();
 		// AddReplyMessageZ will update state
-		L
+		Long lastMessageId = thread.getState().getLatestPost().getMessageId();
+		if (lastMessageId.longValue() >= (new Long(messageId)).longValue()) {
+			int start = locateTheMessage(new Long(threadId), lastMessageId, new Long(messageId),
+					messageListForm.getCount());
+			ActionRedirect redirect = new ActionRedirect(mapping.findForward("success"));
+			redirect.addParameter("thread", threadId);
+			redirect.addParameter("start", start);
+			redirect.addParameter("messageId", messageId);
+			redirect.addParameter("nocache", "true");
+			redirect.addParameter("ver", java.util.UUID.randomUUID().toString());
+			redirect.setAnchor(messageId);
+			return redirect;
+		} else {// forward to /forum/navf2.jsp to waiting a minute until all ok
+			request.setAttribute("pMessageId", new Long(pMessageId));
+			request.setAttribute("messageId", new Long(messageId));
+			return mapping.findForward("navf2");
+		}
+	}
+
+	/**
+	 * by lastMessageId locate the new MessageId
+	 */
+	private int locateTheMessage(Long threadId, Long lastMessageId, Long messageId, int count) {
+		ForumMessageQueryService forumMessageQueryService = (ForumMessageQueryService) WebAppUtil
+				.getService("forumMessageQueryService", this.servlet.getServletContext());
+		PageIterator pi = forumMessageQueryService.getMessages(threadId, 0, count);
+		int allCount = pi.getAllCount();
+		int countdown = allCount / count;
+		int m = allCount % count;
+		if (m == 0)
+			return (--countdown) * count;
+		else
+			return countdown * count;
+
+	}
+
+}
