@@ -55,4 +55,15 @@ public class MessageListNavAction extends Action {
 		if (lastMessageId.longValue() >= (new Long(messageId)).longValue()) {
 			ActionRedirect redirect = new ActionRedirect(mapping.findForward("success"));
 			// redirect.addParameter("thread", threadId);
-			// redirect.
+			// redirect.addParameter("messageId", messageId);
+			redirect.setPath("/" + Long.toString(threadId));
+			return redirect;
+		} else {
+			request.setAttribute("forumId", new Long(forumIds));
+			request.setAttribute("messageId", new Long(messageId));
+			return mapping.findForward("navf");
+		}
+
+	}
+
+}
