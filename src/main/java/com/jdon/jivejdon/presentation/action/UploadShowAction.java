@@ -135,4 +135,23 @@ public class UploadShowAction extends Action {
 	protected void outUploadFile(HttpServletResponse response, byte[] data, String type, String dlname) throws Exception {
 		if (data == null)
 			throw new Exception("data is null ");
-	
+		response.setContentType(type);
+		if (!UtilValidate.isEmpty(dlname)) {
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + dlname + "\"");
+		}
+
+		long d = System.currentTimeMillis();
+		response.addDateHeader("Last-Modified", d);
+		response.addDateHeader("Expires", d + (5 * 24 * 60 * 60 * 1000));
+		OutputStream toClient = response.getOutputStream();
+		try {
+			toClient.write(data);
+		} catch (Exception ex) {
+			Debug.logError("get the image error:" + ex, module);
+			throw new Exception(ex);
+		} finally {
+			toClient.close();
+		}
+	}
+
+}
