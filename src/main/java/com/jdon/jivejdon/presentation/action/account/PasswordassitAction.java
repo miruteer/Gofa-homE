@@ -31,4 +31,87 @@ import org.apache.struts.action.ActionMessage;
 import org.apache.struts.action.ActionMessages;
 
 import com.jdon.controller.WebAppUtil;
-import com.jdon.jivejdon.domain.model.account.
+import com.jdon.jivejdon.domain.model.account.Account;
+import com.jdon.jivejdon.domain.model.account.PasswordassitVO;
+import com.jdon.jivejdon.presentation.action.account.oauth.CallUtil;
+import com.jdon.jivejdon.presentation.form.SkinUtils;
+import com.jdon.jivejdon.api.account.AccountService;
+
+public class PasswordassitAction extends Action {
+	private final static Logger logger = LogManager.getLogger(PasswordassitAction.class);
+
+	public ActionForward execute(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+		String userId = request.getParameter("userId");
+		String passwdtype = request.getParameter("passwdtype");
+		String passwdanswer = request.getParameter("passwdanswer");
+		PasswordassitVO passwordassitVO = new PasswordassitVO(userId, passwdtype, passwdanswer);
+		AccountService accountService = (AccountService) WebAppUtil.getService("accountService", request);
+
+		String action = request.getParameter("action");
+		try {
+			if (action == null || action.equals("create")) {
+				String actionType = request.getParameter("actionType");
+				if (actionType == null) {
+					passwordassitVO = new PasswordassitVO("", "", "");
+					request.setAttribute("passwordassitVO", passwordassitVO);
+					return mapping.findForward("create");
+				} else {
+					String username = request.getParameter("username");
+					Account account = accountService.getAccountByName(username);
+					if (!account.isAnonymous()) {
+						passwordassitVO = new PasswordassitVO(account.getUserId(), passwdtype, passwdanswer);
+						accountService.insertPasswordassit(passwordassitVO);
+						String forwdUrl = mapping.findForward("success").getPath();
+						Map subParams = new HashMap();
+						subParams.put("j_username", account.getUsername());
+						subParams.put("j_password", request.getParameter("password"));
+						subParams.put("rememberMe", "true");
+
+						String domainUrl = CallUtil.getDomainUrl(request, forwdUrl, subParams);
+						response.sendRedirect(domainUrl);
+					} else {
+						return mapping.findForward("failure");
+					}
+				}
+			} else if (action.equals("edit")) {
+				String actionType = request.getParameter("actionType");
+				if (actionType == null) {
+					if (userId != null)
+						passwordassitVO = accountService.getPasswordassit(userId);
+					String username = request.getParameter("username");
+					if (username != null) {
+						Account account = accountService.getAccountByName(username);
+						userId = account.getUserId();
+						passwordassitVO = accountService.getPasswordassit(userId);
+					}
+					if (passwordassitVO == null)
+						passwordassitVO = new PasswordassitVO(userId, "", "");
+					request.setAttribute("passwordassitVO", passwordassitVO);
+					return mapping.findForward("edit");
+				} else {
+					accountService.updatePasswordassit(passwordassitVO);
+					request.setAttribute("passwordassitVO", passwordassitVO);
+					return mapping.findForward("success");
+				}
+			} else if (action.equals("delete")) {
+				accountService.deletePasswordassit(userId);
+				return mapping.findForward("success");
+			} else if (action.equals("forgetPasswd")) {
+				String step = request.getParameter("step");
+				if (step.equals("1")) {
+					String username = request.getParameter("username");
+					Account account = accountService.getAccountByName(username);
+					if (!account.isAnonymous()) {
+						passwordassitVO = accountService.getPasswordassit(account.getUserId());
+						request.setAttribute("passwordassitVO", passwordassitVO);
+						return mapping.findForward("success");
+					} else {
+						ActionErrors actionErrors = new ActionErrors();
+						actionErrors.add(ActionMessages.GLOBAL_MESSAGE, new ActionMessage("errors.nouser"));
+						saveErrors(request, actionErrors);
+						return mapping.findForward("failure");
+					}
+				} else if (step.equals("2")) {
+					if (!SkinUtils.verifyRegisterCode(request.getParameter("registerCode"), request)) {
+						ActionErrors actionErrors = new ActionErrors();
