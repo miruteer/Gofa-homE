@@ -79,4 +79,10 @@ public class SmsQQAction extends Action {
 			response.getWriter().print("发送完成");
 			response.getWriter().close();
 
-			logger.err
+			logger.error("发送完成" + phoneNumbers[0] + " 验证码：" + SMSCODE);
+		} catch (Exception e) {
+			logger.error("sms send error:" + e);
+		}
+		return null;
+	}
+}
