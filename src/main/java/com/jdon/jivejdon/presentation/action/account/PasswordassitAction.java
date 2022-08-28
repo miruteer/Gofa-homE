@@ -115,3 +115,35 @@ public class PasswordassitAction extends Action {
 				} else if (step.equals("2")) {
 					if (!SkinUtils.verifyRegisterCode(request.getParameter("registerCode"), request)) {
 						ActionErrors actionErrors = new ActionErrors();
+						actionErrors.add(ActionMessages.GLOBAL_MESSAGE, new ActionMessage("registerCode.dismatch"));
+						saveErrors(request, actionErrors);
+						return mapping.findForward("failure");
+					}
+
+					boolean ret = accountService.forgetPasswd(passwordassitVO);
+					if (!ret) {
+						ActionErrors actionErrors = new ActionErrors();
+						actionErrors.add(ActionMessages.GLOBAL_MESSAGE, new ActionMessage("wrong.answer"));
+						saveErrors(request, actionErrors);
+						return mapping.findForward("failure");
+					}
+					Account account = accountService.getAccount(Long.parseLong(userId));
+					String email = account.getEmail();
+					int len = email.indexOf("@");
+					String s1 = email.substring(1, len);
+					String n = "";
+					for (int i = 1; i < len; i++) {
+						n = n + "*";
+					}
+					email = email.replaceAll(s1, n);
+					request.setAttribute("email", email);
+					return mapping.findForward("success");
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return null;
+
+	}
+}
