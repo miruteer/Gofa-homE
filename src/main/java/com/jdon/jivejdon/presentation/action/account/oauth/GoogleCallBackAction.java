@@ -44,4 +44,27 @@ public class GoogleCallBackAction extends Action {
 		if (verifier != null) {
 			OAuthAccessor resToken = (OAuthAccessor) session.getAttribute("resToken");
 			if (resToken != null) {
-				GoogleOAuthSubmitter googleOA
+				GoogleOAuthSubmitter googleOAuthSubmitter = (GoogleOAuthSubmitter) WebAppUtil.getComponentInstance("googleOAuthSubmitter", request);
+				OAuthAccessor accessToken = googleOAuthSubmitter.requstAccessToken(resToken, verifier);
+
+				if (accessToken.accessToken == null)
+					return mapping.findForward("failure");
+
+				OAuthAccountService oAuthAccountService = (OAuthAccountService) WebAppUtil.getService("oAuthAccountService", request);
+				Account account = oAuthAccountService.saveGoogle(accessToken);
+
+				Map<String, String> subParams = (Map<String, String>) session.getAttribute("subscriptionParameters");
+				if (subParams != null && account != null) {
+					String forwdUrl = mapping.findForward("success").getPath();
+					subParams.put("j_username", account.getUsername());
+					subParams.put("j_password", oAuthAccountService.createPassword(accessToken.accessToken));
+					subParams.put("rememberMe", "true");
+
+					String domainUrl = CallUtil.getDomainUrl(request, forwdUrl, subParams);
+					response.sendRedirect(domainUrl);
+				}
+			}
+		}
+		return mapping.findForward("failure");
+	}
+}
