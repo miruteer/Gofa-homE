@@ -65,4 +65,95 @@ public class FiltersAction extends DispatchAction {
             List unInstalledDescriptors = new ArrayList(availablefilters.length);
             for (int i = 0; i < availablefilters.length; i++) {
                 BeanDescriptor descriptor = (Introspector.getBeanInfo(availablefilters[i].getClass())).getBeanDescriptor();
-                descriptors
+                descriptors[i] = descriptor;
+                if (!isInstalledFilter(filterManager, availablefilters[i])) {
+                    unInstalledDescriptors.add(descriptor);
+                }
+            }
+            filtersForm.setAvailableDescriptors(descriptors);
+            filtersForm.setUnInstalledDescriptors(unInstalledDescriptors);
+
+			Function<MessageVO, MessageVO>[] filters = filterManager.getFilters();
+            descriptors = new BeanDescriptor[filters.length];
+            for (int i = 0; i < filters.length; i++) {
+                BeanDescriptor descriptor = (Introspector.getBeanInfo(filters[i].getClass())).getBeanDescriptor();
+                descriptors[i] = descriptor;
+                PropertyDescriptor[] propertydescriptors = BeanUtils.getPropertyDescriptors(filters[i].getClass());
+                filtersForm.setPropertyDescriptors(descriptor, propertydescriptors);
+            }
+            filtersForm.setDescriptors(descriptors);
+            filtersForm.setFilters(filters);
+            filtersForm.setFilterCount(filterManager.getFilterCount());
+
+        } catch (IntrospectionException e) {
+            logger.error("IntrospectionException error:" + e);
+            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error(" Exception error:" + e);
+            e.printStackTrace();
+        }
+    }
+
+	private boolean isInstalledFilter(RenderingFilterManager filterManager, Function<MessageVO,
+			MessageVO> filter) {
+        try {
+            int filterCount = filterManager.getFilterCount();
+            if (filter == null) {
+                return false;
+            }
+            if (filterCount < 1) {
+                return false;
+            }
+            String filterClassname = filter.getClass().getName();
+            for (int i = 0; i < filterCount; i++) {
+				Function<MessageVO, MessageVO> installedFilter = filterManager.getFilter(i);
+                if (filterClassname.equals(installedFilter.getClass().getName())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+    /**
+     * /admin/filters/filtersAction.shtml?method=changePos
+     */
+    public ActionForward changePos(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        logger.debug(" enter changePos..");
+        FiltersForm filtersForm = (FiltersForm) form;
+        logger.debug(" filterIndex =" + filtersForm.getFilterIndex());
+        if (filtersForm.getFilterIndex() < 0) {
+            logger.error("filterIndex < 0");
+        }
+
+        RenderingFilterManager filterManager = getFilterManager(request);
+        // Get the filter at the specified filter position
+		Function<MessageVO, MessageVO> filter = filterManager.getFilter(filtersForm.getFilterIndex
+				());
+        // Remove it
+        filterManager.removeFilter(filtersForm.getFilterIndex());
+        // Re-add it based on the "direction" we're doing
+        if (filtersForm.isUp()) {
+            filterManager.addFilter(filter, filtersForm.getFilterIndex() - 1);
+        }
+        if (filtersForm.isDown()) {
+            filterManager.addFilter(filter, filtersForm.getFilterIndex() + 1);
+        }
+        saveFilter(request);
+        initForm(filtersForm, request);
+        return mapping.findForward("forward");
+    }
+
+    public ActionForward edit(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        FiltersForm filtersForm = (FiltersForm) form;
+        initForm(filtersForm, request);
+        return mapping.findForward("forward");
+
+    }
+
+    public ActionForward remove(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        logger.debug(" enter remove..");
+        FiltersForm filtersForm = (FiltersForm) form;
+        logger.debug(" pos =" + filtersForm.getPos());
+   
