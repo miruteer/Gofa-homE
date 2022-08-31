@@ -50,4 +50,38 @@ public class CacheKeysAction extends Action {
 			pageIterator = containerUtil.getCacheKeys(mlform.getStart(), mlform.getCount());
 		}
 		mlform.setAllCount(pageIterator.getAllCount());
-		List list = new ArrayList(pageIterator
+		List list = new ArrayList(pageIterator.getSize());
+		while (pageIterator.hasNext()) {
+			Object key = pageIterator.next();
+			Object value = containerUtil.getCacheManager().getCache().get(key);
+			String className = value.getClass().getName();
+			if (value instanceof CacheableWrapper) {
+				CacheableWrapper cw = (CacheableWrapper) value;
+				className = getAllFields(cw.getCachedValue());
+			}
+			OneOneDTO one = new OneOneDTO(key, className);
+			list.add(one);
+		}
+		mlform.setList(list);
+		return mapping.findForward("success");
+
+	}
+
+	private String getAllFields(Object obj) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(obj).append(" \n <br>");
+		sb.append("fields:").append(" \n <br>");
+		for (final Field field : ClassUtil.getAllDecaredFields(obj.getClass())) {
+			field.setAccessible(true);
+			try {
+				Object fo = field.get(obj);
+				sb.append(field.getName()).append("=").append(fo).append(" \n <br>");
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		return sb.toString();
+	}
+}
