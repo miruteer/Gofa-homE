@@ -156,4 +156,104 @@ public class FiltersAction extends DispatchAction {
         logger.debug(" enter remove..");
         FiltersForm filtersForm = (FiltersForm) form;
         logger.debug(" pos =" + filtersForm.getPos());
-   
+        if (filtersForm.getPos() < 0) {
+            logger.error("pos < 0");
+        }
+        getFilterManager(request).removeFilter(filtersForm.getPos());
+        saveFilter(request);
+        
+        initForm(filtersForm, request);
+        return mapping.findForward("forward");
+    }
+
+    public ActionForward saveProperties(ActionMapping mapping, ActionForm form,
+			HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		logger.debug(" enter saveProperties..");
+		FiltersForm filtersForm = (FiltersForm) form;
+		logger.debug(" filterIndex =" + filtersForm.getFilterIndex());
+		if (filtersForm.getFilterIndex() < 0) {
+			logger.error("filterIndex < 0");
+		}
+		RenderingFilterManager filterManager = getFilterManager(request);
+
+		// The filter we're working with
+		Function<MessageVO, MessageVO> filter = filterManager.getFilter(filtersForm
+				.getFilterIndex());
+
+		// A map of name/value pairs. The names are the names of the bean
+		// properties and the values come as parameters to this page
+		Map properties = getFilterPropertyValues(request, filter);
+
+		// Set the properties
+		BeanUtils.setProperties(filter, properties);
+		saveFilter(request);
+		// Done, so redirect to this page
+
+		initForm(filtersForm, request);
+		return mapping.findForward("forward");
+	}
+    
+    private void saveFilter(HttpServletRequest request){
+    	  try {
+    		  RenderingFilterManager filterManager = getFilterManager(request);
+  			  // Save the filters
+  			  filterManager.saveFilters();
+  			  //clear all cache
+  			  ForumService forumService = (ForumService) WebAppUtil.getService("forumService", request);
+  			  forumService.clearCache();
+  		} catch (Exception e) {
+  			e.printStackTrace();
+  		}
+    }
+
+
+	private Map getFilterPropertyValues(HttpServletRequest request, Function<MessageVO, MessageVO>
+			filter) {
+        // Map of filter property name/value pairs
+        Map map = new HashMap();
+        try {
+            // Property descriptors
+            PropertyDescriptor[] descriptors = BeanUtils.getPropertyDescriptors(filter.getClass());
+            // Loop through the properties, get the value of the property as a
+            // parameter from the HttpRequest object
+            for (int i = 0; i < descriptors.length; i++) {
+                String propName = descriptors[i].getName();
+                String propValue = request.getParameter(propName);
+                logger.debug(" propName=" + propName + ":propValue=" + propValue);
+                map.put(propName, propValue);
+            }
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return map;
+    }
+
+    public ActionForward install(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        logger.debug(" enter install..");
+        String classname = request.getParameter("classname");
+        logger.debug(" classname =" + classname);
+        try {
+			Function<MessageVO, MessageVO> newFilter = (Function<MessageVO, MessageVO>) (Class
+					.forName(classname)).newInstance();
+            RenderingFilterManager filterManager = getFilterManager(request);
+            filterManager.addFilter(newFilter);
+            saveFilter(request);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        FiltersForm filtersForm = (FiltersForm) form;
+        initForm(filtersForm, request);
+        return mapping.findForward("forward");
+    }
+
+    public ActionForward addFilter(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        logger.debug(" enter addFilter..");
+        String newClassname = request.getParameter("newClassname");
+        try {
+            if (newClassname == null) {
+                throw new ClassNotFoundException("not found the class");
+            }
+            getFilterManager(request).addFilterClass(newClassname.trim());
+        } catch (ClassNotFoundException cnfe) {
+            logger.error("message \"" + newClassname + "\"not found the class in clas
