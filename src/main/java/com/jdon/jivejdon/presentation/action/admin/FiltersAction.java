@@ -256,4 +256,19 @@ public class FiltersAction extends DispatchAction {
             }
             getFilterManager(request).addFilterClass(newClassname.trim());
         } catch (ClassNotFoundException cnfe) {
-            logger.error("message \"" + newClassname + "\"not found the class in clas
+            logger.error("message \"" + newClassname + "\"not found the class in classpath");
+        }
+        FiltersForm filtersForm = (FiltersForm) form;
+        initForm(filtersForm, request);
+        return mapping.findForward("forward");
+    }
+    
+    private RenderingFilterManager getFilterManager( HttpServletRequest request){
+        ForumMessageService forumMessageService = (ForumMessageService) WebAppUtil.getService("forumMessageService", request);
+        return forumMessageService.getFilterManager();        
+    }
+    
+   
+  
+
+}
