@@ -32,4 +32,15 @@ public class UserMessageListAction extends ModelListAction {
 
 		ForumMessageQueryService forumMessageQueryService = (ForumMessageQueryService) WebAppUtil.getService("forumMessageQueryService",
 				this.servlet.getServletContext());
-		return forumMessageQueryService.getMesageListByUser(userId, start, c
+		return forumMessageQueryService.getMesageListByUser(userId, start, count);
+	}
+
+	public Object findModelIFByKey(HttpServletRequest request, Object key) {
+		ForumMessageService forumMessageService = (ForumMessageService) WebAppUtil
+				.getService("forumMessageService", this.servlet.getServletContext());
+		logger.debug(" key calss type = " + key.getClass().getName());
+		ForumMessage message = forumMessageService.getMessage((Long) key);
+		return message;
+	}
+
+}
