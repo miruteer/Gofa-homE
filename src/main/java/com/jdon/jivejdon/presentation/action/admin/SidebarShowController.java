@@ -37,4 +37,14 @@ public class SidebarShowController extends DispatchAction {
         return mapping.findForward("forum");
     }
     
-    public ActionForward system
+    public ActionForward system(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Debug.logVerbose("enter Forum menu ", module);
+        return mapping.findForward("system");
+    }
+
+    public ActionForward users(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Debug.logVerbose("enter Forum menu ", module);
+        return mapping.findForward("users");
+    }
+
+}
