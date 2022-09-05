@@ -35,4 +35,49 @@ public class ApprovedAction extends ModelListAction {
 	  if (request.getParameter("tagID") != null)
 	  	 return getPageIteratorTagID(request, start, count);
 	  else
-	  	 return getPageIteratorAll(request, start,
+	  	 return getPageIteratorAll(request, start, count);
+
+	}
+
+	public PageIterator getPageIteratorAll(HttpServletRequest request, int start, int count) {
+		ThreadListSpec threadListSpec = null;
+		ResultSort resultSort = new ResultSort();
+		resultSort.setOrder_DESCENDING();
+		threadListSpec = new ThreadListSpec();
+		threadListSpec.setResultSort(resultSort);
+		return getForumMessageQueryService().getThreads(start, count, threadListSpec);
+	}
+
+	public PageIterator getPageIteratorTagID(HttpServletRequest request, int start, int count) {
+		TagService othersService = (TagService) WebAppUtil.getService("othersService", this.servlet.getServletContext());
+		String tagID = request.getParameter("tagID");
+		if (tagID == null || !UtilValidate.isInteger(tagID) || tagID.length()>10) {
+			return new PageIterator();
+		}
+		ThreadTag tag = othersService.getThreadTag(new Long(tagID));
+		if (tag == null)
+			return new PageIterator();
+		request.setAttribute("TITLE", tag.getTitle());
+		request.setAttribute("threadTag", tag);
+		TaggedThreadListSpec taggedThreadListSpec = new TaggedThreadListSpec();
+		taggedThreadListSpec.setTagID(new Long(tagID));
+		return othersService.getTaggedThread(taggedThreadListSpec, start, count);
+	}
+
+	public Object findModelIFByKey(HttpServletRequest request, Object key) {
+		try {
+			return getForumMessageQueryService().getThread((Long) key);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public void customizeListForm(ActionMapping actionMapping, ActionForm actionForm,
+								  HttpServletRequest request, ModelListForm modelListForm)
+			throws Exception {
+		Forum forum = new Forum();
+		forum.setName("ThreadApprovedNewListAction");
+		modelListForm.setOneModel(forum);
+	}
+}
