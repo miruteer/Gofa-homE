@@ -46,4 +46,25 @@ public class MessageQueryAction extends ModelListAction {
 		ForumMessageService forumMessageService = (ForumMessageService) WebAppUtil
 				.getService("forumMessageService", this.servlet.getServletContext());
 		logger.debug(" key calss type = " + key.getClass().getName());
-		// at first call getXXX, this will activer jdon f
+		// at first call getXXX, this will activer jdon framework cache
+		// interceptor
+		ForumMessage message = forumMessageService.getMessage((Long) key);
+		return message;
+	}
+
+	protected QueryCriteria create(QueryForm qForm) {
+
+		// client: queryView.jsp
+		logger.debug("queryType is MultiCriteria");
+		MultiCriteria queryCriteria = new MultiCriteria();
+		queryCriteria.setForumId(qForm.getForumId());
+		queryCriteria.setUsername(qForm.getUsername());
+		queryCriteria.setUserID(qForm.getUserID());
+		queryCriteria.setFromDate(qForm.getFromDate());
+		queryCriteria.setToDate(qForm.getToDate());
+		logger.debug("fromDate=" + queryCriteria.getFromDateString());
+		logger.debug("toDate=" + queryCriteria.getToDateString());
+		return queryCriteria;
+
+	}
+}
