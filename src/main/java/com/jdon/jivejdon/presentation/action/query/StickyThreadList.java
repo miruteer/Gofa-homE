@@ -48,4 +48,46 @@ public class StickyThreadList extends Action {
 		return forumMessageQueryService;
 	}
 
-	publi
+	public StickyThreadList() {
+		Runnable task = new Runnable() {
+			public void run() {
+				stickyThreadList.clear();
+			}
+		};
+		ScheduledExecutorUtil.scheduExecStatic.scheduleAtFixedRate(task, 30, 60 * 60 * 48, TimeUnit.SECONDS);
+	}
+
+	public ActionForward execute(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		ThreadListForm threadListForm = (ThreadListForm) form;
+
+		Collection list = getStickyThreadList(request);
+		threadListForm.setList(list);
+
+		return mapping.findForward("success");
+
+	}
+
+	public Collection getStickyThreadList(HttpServletRequest request) {
+		if (!stickyThreadList.isEmpty()) {
+			return stickyThreadList;
+		}
+
+		Collection<ForumThread> results = new ArrayList();
+		PropertyService propertyService = (PropertyService) WebAppUtil.getService("propertyService", this.servlet.getServletContext());
+		try {
+			PageIterator stickyids = propertyService.getThreadIdsByNameAndValue(ThreadPropertys.UISTATE, ThreadPropertys.STICKY_ALL);
+
+			while (stickyids.hasNext()) {
+				Long id = (Long) stickyids.next();
+				ForumThread thread = getForumMessageQueryService().getThread(id);
+				results.add(thread);
+			}
+			stickyThreadList = results;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return results;
+	}
+
+}
