@@ -41,4 +41,97 @@ import javax.servlet.http.HttpServletRequest;
  * @author banq(http://www.jdon.com)
  * 
  */
-public c
+public class ThreadQueryAction extends ModelListAction {
+	public final static String QUERY_TYPE1 = "HOT1";
+	public final static String QUERY_TYPE2 = "HOT2";
+
+	private final static String module = ThreadQueryAction.class.getName();
+	private ForumMessageQueryService forumMessageQueryService;
+
+	public ForumMessageQueryService getForumMessageQueryService() {
+		if (forumMessageQueryService == null)
+			forumMessageQueryService = (ForumMessageQueryService) WebAppUtil.getService("forumMessageQueryService", this.servlet.getServletContext());
+		return forumMessageQueryService;
+	}
+
+	public PageIterator getPageIterator(HttpServletRequest request, int start, int count) {
+		Debug.logVerbose("enter ThreadQueryAction ....", module);
+		QueryForm qForm = (QueryForm) FormBeanUtil.lookupActionForm(request, "queryForm");
+		if (qForm == null) {
+			Debug.logError(" ThreadQueryForm is null, at first call /message/threadViewQuery" +
+					".shtml" +
+					" :", module);
+		}
+		// save queryCriteria for html:link multi params
+		request.setAttribute("paramMaps", qForm.getParamMaps());
+
+		QueryCriteria queryCriteria = create(qForm);
+		PageIterator pi = getForumMessageQueryService().getHotThreads(queryCriteria, start, count);
+		Debug.logVerbose("found pi " + pi.getAllCount(), module);
+		return pi;
+	}
+
+	public Object findModelIFByKey(HttpServletRequest request, Object key) {
+		ForumThread thread = null;
+		try {
+			thread = getForumMessageQueryService().getThread((Long) key);
+		} catch (Exception e) {
+			Debug.logError("getThread error:" + e, module);
+		}
+		return thread;
+	}
+
+	protected QueryCriteria create(QueryForm qForm) {
+
+		HoThreadCriteria queryCriteria = new HoThreadCriteria();
+		queryCriteria.setMessageReplyCountWindow(qForm.getMessageReplyCountWindow());
+		String queryType = qForm.getQueryType();
+		// client: index.jsp threadList.jsp
+		if (queryType.equals(QUERY_TYPE1)) {// HOT1 is dataRange
+			Debug.logVerbose("queryType is " + QUERY_TYPE1, module);
+			queryCriteria.setDateRange(qForm.getDateRange());
+			queryCriteria.setForumId(qForm.getForumId());
+			// fun(queryCriteria, qForm);
+			Debug.logVerbose("dateRange=" + qForm.getDateRange(), module);
+			return queryCriteria;
+			// client: queryView.jsp
+		} else if (queryType.equals(QUERY_TYPE2)) {
+			Debug.logVerbose("queryType is " + QUERY_TYPE2, module);
+			queryCriteria.setForumId(qForm.getForumId());
+			queryCriteria.setFromDate(qForm.getFromDate());
+			queryCriteria.setToDate(qForm.getToDate());
+			Debug.logVerbose("fromDate=" + queryCriteria.getFromDateString(), module);
+			Debug.logVerbose("toDate=" + queryCriteria.getToDateString(), module);
+			return queryCriteria;
+		} else {
+			return queryCriteria;
+		}
+	}
+	/**
+	 * 
+	 * @param hmc
+	 * @param qForm
+	 * 
+	 * 
+	 *            private void fun(HoThreadCriteria hmc, QueryForm qForm) {
+	 * 
+	 * 
+	 *            String date = hmc.getFromDateString(); int dateSlash1 =
+	 *            date.indexOf("/"); int dateSlash2 = date.lastIndexOf("/");
+	 *            String month = date.substring(0, dateSlash1); String day =
+	 *            date.substring(dateSlash1 + 1, dateSlash2); String year =
+	 *            date.substring(dateSlash2 + 1);
+	 * 
+	 *            qForm.setFromDate(year + "-" + month + "-" + day);
+	 * 
+	 *            date = hmc.getToDateString(); dateSlash1 = date.indexOf("/");
+	 *            dateSlash2 = date.lastIndexOf("/"); month = date.substring(0,
+	 *            dateSlash1); day = date.substring(dateSlash1 + 1, dateSlash2);
+	 *            year = date.substring(dateSlash2 + 1);
+	 * 
+	 *            qForm.setToDate(year + "-" + month + "-" + day);
+	 * 
+	 * 
+	 *            }
+	 */
+}
