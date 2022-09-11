@@ -66,4 +66,41 @@ public class ThreadTagListAction extends Action {
 		if (threadId == null || !UtilValidate.isInteger(threadId) || threadId.length() > 10) {
 			return mapping.findForward("failure");
 		}
-		ForumThread th
+		ForumThread thread = getForumMessageQueryService().getThread(Long.parseLong(threadId));
+		if (thread == null)
+			return mapping.findForward("failure");
+
+		Set<Long> checkDoubles = new HashSet<Long>();
+		Collection<String> lists = new ArrayList<String>();
+		int index = 0;
+		for(ThreadTag tag:thread.getTags()) {
+			Collection<ForumThread> threadList = getForumThreadsForTag(tag.getTagID(), Long.parseLong(threadId),checkDoubles);					
+			lists.add(Long.toString(tag.getTagID()));
+			request.setAttribute("tagID"+Integer.toString(index), threadList);
+			index++;
+		}
+				
+
+		ModelListForm threadListForm = (ModelListForm) form;
+		threadListForm.setList(lists);
+		threadListForm.setAllCount(lists.size());
+		return mapping.findForward("success");
+	}
+
+	private Collection<ForumThread> getForumThreadsForTag(Long tagID, final Long threadId, Set<Long> checkDoubles) {
+		TaggedThreadListSpec taggedThreadListSpec = new TaggedThreadListSpec();
+		taggedThreadListSpec.setTagID(tagID);
+		PageIterator pageIterator = getTagService().getTaggedThread(taggedThreadListSpec, 0, 20);
+		Collection<ForumThread> threads = new ArrayList<ForumThread>();
+		Set<Long> foundThreadIds = new HashSet<Long>();
+		while (pageIterator.hasNext()) {
+			Long threadId1 = (Long) pageIterator.next();
+			if (threadId1.longValue() != threadId.longValue() && !foundThreadIds.contains(threadId1) && !checkDoubles.contains(threadId1)) {
+				threads.add( getForumMessageQueryService().getThread(threadId1));
+				foundThreadIds.add(threadId1);				
+				checkDoubles.add(threadId1);				
+			}
+		}		
+		return threads;
+	}
+}
