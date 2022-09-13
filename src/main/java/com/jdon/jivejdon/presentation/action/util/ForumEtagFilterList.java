@@ -20,4 +20,36 @@ import com.jdon.jivejdon.api.ForumService;
 import com.jdon.jivejdon.util.ToolsUtil;
 import com.jdon.strutsutil.ModelListAction;
 import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForwar
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * ThreadPopularAction extends ForumEtagFilterList
+ * 
+ * @author banq
+ * 
+ */
+public abstract class ForumEtagFilterList extends ModelListAction {
+	public final static String NEWLASMESSAGE = "NEWLASMESSAGE";
+
+	public ActionForward execute(ActionMapping actionMapping, ActionForm actionForm, HttpServletRequest request, HttpServletResponse response)
+			throws Exception {
+		ForumService forumService = (ForumService) WebAppUtil.getService("forumService", this.servlet.getServletContext());
+		String forumId = request.getParameter("forum");
+		if (forumId == null)
+			forumId = request.getParameter("forumId");
+
+		int expire = 24 * 60 * 60;
+		long modelLastModifiedDate = ForumUtil.getForumsLastModifiedDate(this.servlet
+				.getServletContext());
+		// if (!ToolsUtil.checkHeaderCache(expire, modelLastModifiedDate, request, response)) {
+		// 	return null;
+		// }
+		return super.execute(actionMapping, actionForm, request, response);
+
+	}
+
+}
