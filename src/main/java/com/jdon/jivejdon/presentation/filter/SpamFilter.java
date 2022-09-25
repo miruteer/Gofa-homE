@@ -30,4 +30,98 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-im
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.jdon.controller.WebAppUtil;
+import com.jdon.jivejdon.spi.component.block.IPBanListManagerIF;
+
+/**
+ * Ban clients that has banned.
+ * 
+ * see configuration in web.xml
+ * 
+ * diable, only check ip in this filter
+ * 
+ */
+public class SpamFilter implements Filter {
+	private final static Logger log = LogManager.getLogger(SpamFilter.class);
+
+	protected IPBanListManagerIF iPBanListManagerIF;
+
+	private ServletContext servletContext;
+
+	private final HashSet<String> safeips = new HashSet(500);
+
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		if (safeips.contains(request.getRemoteAddr())) {
+			chain.doFilter(request, response);
+			return;
+		}
+
+		if (safeips.size() > 500) {
+			safeips.clear();
+		}
+
+		if (iPBanListManagerIF == null)
+			iPBanListManagerIF = (IPBanListManagerIF) WebAppUtil.getComponentInstance("iPBanListManager", servletContext);
+
+		if (!httpRequest.getRequestURI().contains("registerCode")) {
+			if (isSpam(httpRequest)) {
+				log.debug("spammer, giving 'em a 503");
+				safeips.remove(request.getRemoteAddr());
+				disableSessionOnlines(httpRequest);
+				if (!response.isCommitted())
+					response.reset();
+				HttpServletResponse httpResponse = (HttpServletResponse) response;
+				httpResponse.sendError(503);
+				return;
+			}
+		}
+
+		safeips.add(request.getRemoteAddr());
+		chain.doFilter(request, response);
+		return;
+	}
+
+	private void disableSessionOnlines(HttpServletRequest httpRequest) {
+		HttpSession session = httpRequest.getSession(false);
+		if (session != null)
+			session.invalidate();
+	}
+
+	/**
+	 * Process the incoming request to extract referrer info and pass it on to
+	 * the referrer processing queue for tracking.
+	 * 
+	 * @returns true if referrer was spam, false otherwise
+	 */
+	protected boolean isSpam(HttpServletRequest request) {
+		return isSpamForThrottle2(request);
+	}
+
+	protected boolean isSpamForThrottle2(HttpServletRequest request) {
+		if (iPBanListManagerIF.isBanned(request.getRemoteAddr())) {
+			String userAgent = request.getHeader("User-Agent");
+			String referrerUrl = request.getHeader("Referer");
+			log.warn("it is spam : processing referrer for " + request.getRequestURI() + " referrerUrl=" + referrerUrl + " userAgent=" + userAgent
+					+ " ip=" + request.getRemoteAddr());
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Unused.
+	 */
+	public void destroy() {
+	}
+
+	@Override
+	public void init(FilterConfig config) throws ServletException {
+		servletContext = config.getServletContext();
+
+	}
+}
