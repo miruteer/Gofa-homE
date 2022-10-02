@@ -133,4 +133,31 @@ public class SpamFilterTooFreq implements Filter {
 		// if refer is null, 1. browser 2. google 3. otherspam
 		String userAgent = request.getHeader("User-Agent");
 		if (robotPattern != null) {
-			if (userAgent != null && userAgent.length() > 0 && robotPat
+			if (userAgent != null && userAgent.length() > 0 && robotPattern.matcher(userAgent.toLowerCase()).matches()) {
+				disableSessionOnlines(request);// although permitted, but
+				// disable session.
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean checkSpamHit(String id, HttpServletRequest request) {
+		if (customizedThrottle == null) {
+			customizedThrottle = (CustomizedThrottle) WebAppUtil.getComponentInstance("customizedThrottle", servletContext);
+		}
+		HitKeyIF hitKey = new HitKeyDiff(request.getRemoteAddr(), id);
+		return customizedThrottle.processHitFilter(hitKey);
+	}
+
+	public void destroy() {
+
+	}
+
+	private void disableSessionOnlines(HttpServletRequest httpRequest) {
+		HttpSession session = httpRequest.getSession(false);
+		if (session != null)
+			session.invalidate();
+	}
+
+}
