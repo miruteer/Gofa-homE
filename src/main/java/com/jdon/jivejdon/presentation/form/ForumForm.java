@@ -123,3 +123,26 @@ public class ForumForm extends BaseForm {
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	/**
+	 * @return Returns the propertys.
+	 */
+	public Collection getPropertys() {
+		return propertys;
+	}
+
+	/**
+	 * @param propertys
+	 *            The propertys to set.
+	 */
+	public void setPropertys(Collection propertys) {
+		this.propertys = propertys;
+	}
+
+	public void doValidate(ActionMapping mapping, HttpServletRequest request, List errors) {
+		if (!this.getAction().equals("delete"))
+			addErrorIfStringEmpty(errors, "forum name is required.", getName());
+
+	}
+
+}
