@@ -129,4 +129,168 @@ public class MessageForm extends BaseForm {
 		return forumThread;
 	}
 
-	public void setForumThread(ForumThread forum
+	public void setForumThread(ForumThread forumThread) {
+		this.forumThread = forumThread;
+	}
+
+	public Forum getForum() {
+		return forum;
+	}
+
+	public void setForum(Forum forum) {
+		this.forum = forum;
+	}
+
+	public int getBodyMaxLength() {
+		return bodyMaxLength;
+	}
+
+	public void setBodyMaxLength(int bodyMaxLength) {
+		this.bodyMaxLength = bodyMaxLength;
+	}
+
+	public boolean isMasked() {
+		return masked;
+	}
+
+	public void setMasked(boolean masked) {
+		this.masked = masked;
+	}
+	//
+	// public String getTagTitles() {
+	// if ((this.tagTitles != null) && (this.tagTitles.length != 0)) {
+	// return StringUtil.merge(this.tagTitles, " ");
+	// } else
+	// return "";
+	// }
+	//
+	// public void setTagTitles(String tagTitle) {
+	// if (!UtilValidate.isEmpty(tagTitle))
+	// this.tagTitles = tagTitle.split("(\\s)+");
+	// }
+
+	public String[] getTagTitle() {
+
+		return this.tagTitle;
+	}
+
+	public void setTagTitle(String[] tagTitle) {
+		this.tagTitle = tagTitle;
+	}
+
+	public boolean isRoot() {
+		if (this.forumThread.getRootMessage().getMessageId().longValue() == this.messageId.longValue())
+			return true;
+		else
+			return false;
+	}
+
+	public boolean isAttached() {
+		if (attachment == null)
+			return false;
+
+		if ((attachment.getUploadFiles() != null) && (attachment.getUploadFiles().size() != 0))
+			return true;
+		else
+			return false;
+	}
+
+	public Collection getUploadFiles() {
+		if (attachment == null)
+			return new ArrayList();
+		return attachment.getUploadFiles();
+	}
+
+	/**
+	 * donot need get method, upload is in uploadService.getAllUploadFiles public
+	 * AttachmentsVO getAttachment() { return attachment; }
+	 * 
+	 * @return
+	 */
+
+	public void setAttachment(AttachmentsVO attachment) {
+		this.attachment = attachment;
+	}
+
+	public boolean isAuthenticated() {
+		return authenticated;
+	}
+
+	public void setAuthenticated(boolean authenticated) {
+		this.authenticated = authenticated;
+	}
+
+	public MessageVO getMessageVO() {
+		return messageVO;
+	}
+
+	public void setMessageVO(MessageVO messageVO) {
+		this.messageVO = messageVO;
+	}
+
+	public boolean isMessageVOFiltered() {
+		return messageVOFiltered;
+	}
+
+	public void setMessageVOFiltered(boolean messageVOFiltered) {
+		this.messageVOFiltered = messageVOFiltered;
+	}
+
+	public boolean isReplyNotify() {
+		return replyNotify;
+	}
+
+	public void setReplyNotify(boolean replyNotify) {
+		this.replyNotify = replyNotify;
+	}
+
+	public void doValidate(ActionMapping mapping, HttpServletRequest request, List errors) {
+		if (getMethod() == null || !getMethod().equalsIgnoreCase("delete")) {
+			if (addErrorIfStringEmpty(errors, "need subject", this.getSubject()))
+				return;
+			if (addErrorIfStringEmpty(errors, "need.body", getBody()))
+				return;
+
+			if (this.getParentMessage() == null)
+				if (this.getForum() == null || this.getForum().getForumId() == null) {
+					errors.add("need.forum");
+					return;
+				}
+			if (UtilValidate.isEmpty(this.getSubject()) || UtilValidate.isEmpty(this.getBody())) {
+				errors.add("subject.or.body.is.null");
+				return;
+			}
+			if ((this.getSubject() != null) && (this.getSubject().length() > subjectMaxLength)) {
+				errors.add("subject.length.too.long");
+				return;
+			}
+			if ((getBody() != null) && (getBody().length() >= bodyMaxLength)) {
+				errors.add("body.sizeerror");
+				return;
+			}
+			if (UtilValidate.isEmpty(this.getSubject().replaceAll("[^\\p{L}\\p{N}]", ""))
+					|| UtilValidate.isEmpty(this.getBody().replaceAll("[^\\p{L}\\p{N}]", ""))) {
+				errors.add("subject.or.body.is.null");
+				return;
+			}
+
+		}
+	}
+
+	public String esacpeUtf(String input) {
+		String utf8tweet = "";
+		try {
+			byte[] utf8Bytes = input.getBytes("UTF-8");
+
+			utf8tweet = new String(utf8Bytes, "UTF-8");
+
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		Pattern unicodeOutliers = Pattern.compile("[^\\x00-\\x7F]",
+				Pattern.UNICODE_CASE | Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE);
+		Matcher unicodeOutlierMatcher = unicodeOutliers.matcher(utf8tweet);
+
+		return unicodeOutlierMatcher.replaceAll(" ");
+	}
+}
