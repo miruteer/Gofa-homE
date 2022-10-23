@@ -88,4 +88,6 @@ public class UploadInfo implements java.io.Serializable {
 
 	public String toString() {
 		return "[UploadInfo]\n" + " totalSize= " + totalSize + "\n" + " bytesRead= " + bytesRead + "\n" + " elapsedTime= " + elapsedTime + "\n"
-				+ " status= '" + status + "'\n" + " fileIndex= " + f
+				+ " status= '" + status + "'\n" + " fileIndex= " + fileIndex + "\n" + "[/ UploadInfo]\n";
+	}
+}
