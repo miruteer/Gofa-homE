@@ -49,4 +49,20 @@ public class MonitoredOutputStream extends OutputStream
         listener.bytesRead(b.length);
     }
 
-    public void wri
+    public void write(int b) throws IOException
+    {
+        target.write(b);
+        listener.bytesRead(1);
+    }
+
+    public void close() throws IOException
+    {
+        target.close();
+        listener.done();
+    }
+
+    public void flush() throws IOException
+    {
+        target.flush();
+    }
+}
