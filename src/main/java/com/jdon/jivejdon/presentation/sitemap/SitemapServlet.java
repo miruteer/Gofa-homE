@@ -195,4 +195,152 @@ public class SitemapServlet extends HttpServlet {
 				start = start + count;
 			}
 		} catch (Exception e) {
-			logger.error(e)
+			logger.error(e);
+		}
+		return sitemaps;
+	}
+
+	private Collection<UrlSet> genThreadUrlSet(HttpServletRequest request) {
+		int startInt = 0;
+		try {
+			String start = request.getParameter("start");
+			if (start != null) {
+				startInt = Integer.parseInt(start);
+			}
+			Collection<UrlSet> urlsets = new ArrayList();
+			PageIterator pi = getThreadPI(request, startInt);
+			while (pi.hasNext()) {
+				Long threadId = (Long) pi.next();
+				urlsets.add(new UrlSet(threadUrl + threadId + ".html", "1"));
+			}
+			return urlsets;
+
+		} catch (Exception e) {
+			logger.error(e);
+			return new ArrayList();
+		}
+
+	}
+
+	private Collection<UrlSet> genUrlSet(HttpServletRequest request) {
+
+		try {
+			int startInt = 0;
+			String start = request.getParameter("start");
+			if (start != null) {
+				startInt = Integer.parseInt(start);
+			}
+			Collection<UrlSet> urlsets = new ArrayList();
+			PageIterator pi = null;
+			SitemapRepository sitemapRepository = (SitemapRepository) WebAppUtil
+					.getComponentInstance("sitemapRepository", servletContext);
+			SitemapService entityFactory = (SitemapService) WebAppUtil
+					.getService("sitemapService", servletContext);
+			pi = sitemapRepository.getUrls(startInt, MAXCOUNT);
+			while (pi.hasNext()) {
+				Url url = entityFactory.getUrl((Long) pi.next());
+				urlsets.add(new UrlSet(url.getIoc(), "1"));
+			}
+			return urlsets;
+
+		} catch (Exception e) {
+			logger.error(e);
+			return new ArrayList();
+		}
+
+	}
+
+	private PageIterator getThreadPI(HttpServletRequest request, int startInt) {
+		try {
+			ForumMessageQueryService forumMessageQueryService = (ForumMessageQueryService) WebAppUtil
+					.getService("forumMessageQueryService", servletContext);
+			ResultSort resultSort = new ResultSort();
+			resultSort.setOrder_ASCENDING();
+			ThreadListSpec threadListSpec = new ThreadListSpecForMod();
+			threadListSpec.setResultSort(resultSort);
+
+			return forumMessageQueryService.getThreads(startInt, MAXCOUNT,
+					threadListSpec);
+		} catch (Exception e) {
+			logger.error(e);
+			return new PageIterator();
+		}
+	}
+
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		servletContext = config.getServletContext();
+		String domainurl = config.getInitParameter("sitemapUrl");
+		if (!UtilValidate.isEmpty(domainurl)) {
+			this.sitemapUrl = domainurl;
+		}
+
+		String threadUrl = config.getInitParameter("threadUrl");
+		if (!UtilValidate.isEmpty(threadUrl)) {
+			this.threadUrl = threadUrl;
+		}
+
+	}
+
+	private CharArrayWriter outIndex(Collection<Sitemap> sitemaps) {
+		CharArrayWriter writer = new CharArrayWriter();
+		try {
+			SitemapHelper.writeSitemapIndex(writer, sitemaps.iterator());
+		} catch (Exception e) {
+			logger.error(e);
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+		return writer;
+	}
+
+	private CharArrayWriter outUrls(Collection<UrlSet> urls) {
+		CharArrayWriter writer = new CharArrayWriter();
+		try {
+			SitemapHelper.writeUrlset(writer, urls.iterator());
+		} catch (Exception e) {
+			logger.error(e);
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+
+		return writer;
+
+	}
+
+	protected void service(HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		long modelLastModifiedDate = ForumUtil.getForumsLastModifiedDate(
+				this.getServletContext());
+		// if (!ToolsUtil.checkHeaderCache(expire, modelLastModifiedDate, request,
+		// 		response)) {
+		// 	return;
+		// }
+
+		if (!checkSpamHit(request)) {
+			((HttpServletResponse) response).sendError(404);
+			return;
+		}
+
+		if (lastModifiedDate == 0 || lastModifiedDate < modelLastModifiedDate) {
+			lastModifiedDate = modelLastModifiedDate;
+			clearLast();
+		}
+
+		try {
+			String sub = request.getParameter("sub");
+			if (sub == null) {
+				if (baosindex == null) {
+					baosindex = new CharArrayWriter();
+					Collection<Sitemap> sitemaps = new ArrayList();
+					Colle
