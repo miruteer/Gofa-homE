@@ -69,4 +69,130 @@ public class SitemapServlet extends HttpServlet {
 	private String threadUrl;
 	private CharArrayWriter baosindex = null;
 	private Map<Integer, CharArrayWriter> baos1s = new TreeMap();
-	private Map<Integer, CharArrayWri
+	private Map<Integer, CharArrayWriter> baos2s = new TreeMap();
+
+	private boolean checkSpamHit(HttpServletRequest request) {
+		if (customizedThrottle == null) {
+			customizedThrottle = (CustomizedThrottle) WebAppUtil
+					.getComponentInstance("customizedThrottle", servletContext);
+		}
+		HitKeyIF hitKey = new HitKeySame(request.getRemoteAddr(), "SITEMAP");
+		return customizedThrottle.processHitFilter(hitKey);
+	}
+
+	private Collection<Sitemap> genSitemaps(HttpServletRequest request) {
+		Collection<Sitemap> sitemaps = new ArrayList();
+		try {
+			SitemapRepository sitemapRepository = (SitemapRepository) WebAppUtil
+					.getComponentInstance("sitemapRepository", servletContext);
+			try {
+				PageIterator pi = sitemapRepository.getUrls(0, 1);
+				return genSitemaps(pi.getAllCount());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+
+		return sitemaps;
+	}
+
+	private Collection<Sitemap> genSitemaps(int allcount) {
+		Collection<Sitemap> sitemaps = new ArrayList();
+		try {
+			int numPages = 0;
+			int count = this.MAXCOUNT;
+			if (allcount != count) {
+				numPages = (int) Math.ceil((double) allcount / (double) count);
+			} else {
+				numPages = 1;
+			}
+			int start = 0;
+			SitemapRepository sitemapRepository = (SitemapRepository) WebAppUtil
+					.getComponentInstance("sitemapRepository", servletContext);
+			SitemapService entityFactory = (SitemapService) WebAppUtil
+					.getService("sitemapService", servletContext);
+			for (int i = 1; i <= numPages; i++) {
+				try {
+					PageIterator pi = sitemapRepository.getUrls(start,
+							this.MAXCOUNT);
+					if (pi.hasNext()) {
+						Url url = entityFactory.getUrl((Long) pi.next());
+						String lastUpdateDate = url.getCreationDate()
+								.substring(0, 10);
+						Sitemap sitemap = new Sitemap(sitemapUrl + "?sub=2"
+								+ "&start=" + start, lastUpdateDate);
+						sitemaps.add(sitemap);
+					}
+				} catch (NoSuchElementException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				start = start + count;
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return sitemaps;
+	}
+
+	private Collection<Sitemap> genSitemaps2(HttpServletRequest request) {
+
+		Collection<Sitemap> sitemaps = new ArrayList();
+		SitemapRepository sitemapRepository = (SitemapRepository) WebAppUtil
+				.getComponentInstance("sitemapRepository", servletContext);
+		SitemapService entityFactory = (SitemapService) WebAppUtil.getService(
+				"sitemapService", servletContext);
+		try {
+			PageIterator pi = sitemapRepository.getUrls(0, 1);
+			if (pi.hasNext()) {
+				Long id = (Long) pi.next();
+				Url url = entityFactory.getUrl(id);
+				String lastUpdateDate = url.getCreationDate().substring(0, 10);
+				Sitemap sitemap = new Sitemap(sitemapUrl + "?sub=" + 2,
+						lastUpdateDate);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return sitemaps;
+	}
+
+	private Collection<Sitemap> genThreadSitemaps(HttpServletRequest request) {
+		Collection<Sitemap> sitemaps = new ArrayList();
+		try {
+			PageIterator pi = getThreadPI(request, 0);
+			int count = MAXCOUNT;
+			int allCount = pi.getAllCount();
+			int numPages = 0;
+			if (allCount != count) {
+				numPages = (int) Math.ceil((double) allCount / (double) count);
+			} else {
+				numPages = 1;
+			}
+			int start = 0;
+
+			for (int i = 1; i <= numPages; i++) {
+				pi = getThreadPI(request, start);
+				Long threadId = null;
+				while (pi.hasNext()) {
+					threadId = (Long) pi.next();
+				}
+				ForumMessageQueryService forumMessageQueryService = (ForumMessageQueryService) WebAppUtil
+						.getService("forumMessageQueryService", request);
+				ForumThread thread = forumMessageQueryService
+						.getThread(threadId);
+				if (thread != null) {
+					String lastUpdateDate = thread.getState().getModifiedDate()
+							.substring(0, 10);
+					Sitemap sitemap = new Sitemap(sitemapUrl + "?sub=1&start="
+							+ start, lastUpdateDate);
+					sitemaps.add(sitemap);
+				}
+				start = start + count;
+			}
+		} catch (Exception e) {
+			logger.error(e)
