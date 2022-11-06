@@ -343,4 +343,88 @@ public class SitemapServlet extends HttpServlet {
 				if (baosindex == null) {
 					baosindex = new CharArrayWriter();
 					Collection<Sitemap> sitemaps = new ArrayList();
-					Colle
+					Collection<Sitemap> threadSitemaps = genThreadSitemaps(request);
+					if (!threadSitemaps.isEmpty())
+						sitemaps.addAll(genThreadSitemaps(request));
+					Collection<Sitemap> genSitemaps = genSitemaps(request);
+					if (!genSitemaps.isEmpty())
+						sitemaps.addAll(genSitemaps);
+
+					if (!sitemaps.isEmpty())
+						baosindex = outIndex(sitemaps);
+				}
+				writeToResponse(response, baosindex.toCharArray());
+
+			} else {
+				int startInt = 0;
+				String start = request.getParameter("start");
+				if (start != null) {
+					startInt = Integer.parseInt(start);
+				}
+				if (sub.equals("1")) {
+					CharArrayWriter baos1 = baos1s.get(startInt);
+					if (baos1 == null) {
+						baos1 = new CharArrayWriter();
+						Collection threadUrlSet = genThreadUrlSet(request);
+						if (!threadUrlSet.isEmpty()) {
+							baos1 = outUrls(threadUrlSet);
+							baos1s.put(startInt, baos1);
+						}
+
+					}
+					writeToResponse(response, baos1.toCharArray());
+				} else if (sub.equals("2")) {
+					CharArrayWriter baos2 = baos2s.get(startInt);
+					if (baos2 == null) {
+						baos2 = new CharArrayWriter();
+						Collection urlSet = genUrlSet(request);
+						if (!urlSet.isEmpty()) {
+							baos2 = outUrls(genUrlSet(request));
+							baos2s.put(startInt, baos2);
+						}
+					}
+					writeToResponse(response, baos2.toCharArray());
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e);
+		}
+	}
+
+	private void clearLast() {
+		if (!baos1s.isEmpty()) {
+			int lastKey = (Integer) getLastElement(this.baos1s.keySet());
+			this.baos1s.remove(lastKey);
+		}
+
+		if (!baos2s.isEmpty()) {
+			int lastKey = (Integer) getLastElement(this.baos2s.keySet());
+			this.baos2s.remove(lastKey);
+		}
+
+	}
+
+	private Object getLastElement(final Collection c) {
+		if (c.isEmpty())
+			return null;
+		final Iterator itr = c.iterator();
+		Object lastElement = itr.next();
+		while (itr.hasNext()) {
+			lastElement = itr.next();
+		}
+		return lastElement;
+	}
+
+	private void writeToResponse(HttpServletResponse response, char[] chararray) {
+		try {
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(chararray);
+			response.getWriter().flush();
+			response.getWriter().close();
+		} catch (IOException e) {
+			logger.error("writeToResponse" + e);
+		}
+
+	}
+
+}
