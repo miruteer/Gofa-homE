@@ -70,4 +70,29 @@ public class AccountManager implements Startable {
 	}
 
 	public void addChkKey(String chkKey) {
-		this.cachedOneTimes.add(c
+		this.cachedOneTimes.add(chkKey);
+	}
+
+	public boolean forgetPasswdAction(PasswordassitVO passwordassitVOParam) throws Exception {
+
+		boolean ret = false;
+		try {
+			PasswordassitVO passwordassitVO = accountRepository.getPasswordassit(passwordassitVOParam.getUserId());
+			if (passwordassitVO == null)
+				throw new Exception();
+
+			if ((passwordassitVO.getPasswdanswer().equalsIgnoreCase(passwordassitVOParam.getPasswdanswer()))
+					&& (passwordassitVO.getPasswdtype().equalsIgnoreCase(passwordassitVOParam.getPasswdtype()))) {
+				Account account = this.accountFactory.getFullAccount(passwordassitVOParam.getUserId());
+				String newpasswd = StringUtil.getPassword(8);
+				account.setPassword(newpasswd);
+				accountRepository.updateAccount(account);
+				forgotPasswdEmail.send(account, newpasswd);
+				ret = true;
+			}
+		} catch (Exception e) {
+			throw new Exception(e);
+		}
+		return ret;
+	}
+}
