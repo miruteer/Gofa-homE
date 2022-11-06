@@ -51,4 +51,38 @@ public class UrlListAction extends ModelListAction {
 	 * @return PageIterator
 	 * @todo Implement this com.jdon.strutsutil.ModelListAction method
 	 */
-	public PageIterator getPageIterator(HttpServletRequest request, int 
+	public PageIterator getPageIterator(HttpServletRequest request, int start, int count) {
+		PageIterator pageIterator = null;
+		try {
+			SitemapRepository sitemapRepository = (SitemapRepository) WebAppUtil.getComponentInstance("sitemapRepository", this.servlet.getServletContext());
+			pageIterator = sitemapRepository.getUrls(start, count);
+		} catch (Exception ex) {
+			logger.error(ex);
+		}
+		return pageIterator;
+	}
+
+	/**
+	 * 
+	 * @param request
+	 *            HttpServletRequest
+	 * @param key
+	 *            Object
+	 * @return Model
+	 * @todo Implement this com.jdon.strutsutil.ModelListAction method
+	 */
+	public Object findModelIFByKey(HttpServletRequest request, Object key) {
+		Object url = null;
+		try {
+			logger.debug("get the model for primary key=" + key + " type:" + key.getClass().getName());
+			SitemapService entityFactory = (SitemapService) WebAppUtil.getService("sitemapService", this.servlet.getServletContext());
+			url = entityFactory.getUrl((Long) key);
+		} catch (Exception ex) {
+			logger.debug("get the model for primary key=" + key + " type:" + key.getClass().getName());
+			logger.error(" error: " + ex);
+		}
+		return url;
+
+	}
+
+}
