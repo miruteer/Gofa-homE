@@ -86,4 +86,65 @@ public class GoogleOAuthSubmitter {
 	public OAuthAccessor requstAccessToken(OAuthAccessor accessor, String oauthVerifier) throws Exception {
 		OAuthMessage result = null;
 		try {
-			List<OAuth.Parameter> parameters = OAuth.newList(OAuth.OAUTH_VERIFIER, oauthVerifier
+			List<OAuth.Parameter> parameters = OAuth.newList(OAuth.OAUTH_VERIFIER, oauthVerifier);
+			result = CLIENT.getAccessToken(accessor, null, parameters);
+		} catch (Exception e) {
+			OAuthProblemException problem = new OAuthProblemException(OAuth.Problems.PARAMETER_ABSENT);
+			problem.setParameter(OAuth.Problems.OAUTH_PARAMETERS_ABSENT, OAuth.OAUTH_TOKEN);
+			problem.getParameters().putAll(result.getDump());
+			logger.error("request error:" + problem.getMessage());
+			throw problem;
+		}
+		return accessor;
+	}
+
+	public OAuthUserVO getUserInfo(OAuthAccessor accessor) throws Exception {
+		OAuthUserVO weiboUser = null;
+		InputStream in = null;
+		try {
+			accessor.consumer.setProperty(OAUTH_SIGNATURE_METHOD, HMAC_SHA1);
+			OAuthMessage message = accessor.newRequestMessage(OAuthMessage.GET, goolgeOAuthParamVO.userInfo, null);
+			OAuthMessage result = CLIENT.invoke(message, ParameterStyle.AUTHORIZATION_HEADER);
+
+			in = result.getBodyAsStream();
+			String jsonStr = getString(new InputStreamReader(in, Charset.forName("UTF-8")));
+			JSONObject json = new JSONObject(jsonStr);
+			String id = json.getString("id");
+			String atName = json.getString("name");
+			String description = json.getString("name");
+			String url = "";
+			if (!UtilValidate.isEmpty(json.getString("link")))
+				url = json.getString("link");// t.qq.com/name
+			String profileurl = "";
+			if (!UtilValidate.isEmpty(json.getString("picture")))
+				profileurl = json.getString("picture");
+			weiboUser = new OAuthUserVO(id, atName, description, url, profileurl);
+
+		} catch (Exception e) {
+			throw new Exception(e);
+		} finally {
+			if (in != null)
+				in.close();
+		}
+		return weiboUser;
+
+	}
+
+	public static String getString(Reader in) throws IOException {
+		StringBuilder s = new StringBuilder();
+		try {
+			BufferedReader reader = new BufferedReader(in);
+			String str = null;
+			while ((str = reader.readLine()) != null) {
+				System.out.println(str);
+				s.append(str);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+
+		} finally {
+			in.close();
+		}
+		return s.toString();
+	}
+}
