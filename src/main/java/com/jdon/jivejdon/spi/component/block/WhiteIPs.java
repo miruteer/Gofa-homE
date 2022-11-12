@@ -15,12 +15,17 @@
  */
 package com.jdon.jivejdon.spi.component.block;
 
-public interface ErrorBlockerIF {
+import java.util.regex.Pattern;
 
-	boolean checkRate(String ip, int callcount);
+public class WhiteIPs {
 
-	boolean checkCount(String ip, int callcount);
+	private Pattern whiteips;
 
-	boolean contains(String ip);
+	public WhiteIPs(String whiteips) {
+		this.whiteips = Pattern.compile(whiteips);
+	}
 
+	public boolean isWhite(String ip) {
+		return (whiteips.matcher(ip.toLowerCase()).matches());
+	}
 }

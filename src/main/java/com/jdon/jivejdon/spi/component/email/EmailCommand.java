@@ -13,14 +13,14 @@
  * limitations under the License.
  * 
  */
-package com.jdon.jivejdon.spi.component.block;
+package com.jdon.jivejdon.spi.component.email;
 
-public interface ErrorBlockerIF {
+import java.util.List;
 
-	boolean checkRate(String ip, int callcount);
+import com.jdon.jivejdon.domain.model.account.Account;
 
-	boolean checkCount(String ip, int callcount);
+public interface EmailCommand {
 
-	boolean contains(String ip);
+	void send(Account account, List params);
 
 }
