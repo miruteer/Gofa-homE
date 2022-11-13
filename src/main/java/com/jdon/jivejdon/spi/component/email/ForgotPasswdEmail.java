@@ -41,4 +41,20 @@ public class ForgotPasswdEmail implements Startable {
 		buffer.append("\n");
 		buffer.append("password:").append(newpasswd);
 		buffer.append("\n\n");
-		buffer.append(forgotPasswdEm
+		buffer.append(forgotPasswdEmailParams.getFooter());
+		return buffer.toString();
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void stop() {
+		this.emailHelper.stop();
+
+	}
+
+}
