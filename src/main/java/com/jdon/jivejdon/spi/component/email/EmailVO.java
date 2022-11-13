@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +16,7 @@
  */
 package com.jdon.jivejdon.spi.component.email;
 
-public class EmailContent {
+public class EmailVO {
 
 	private final String toName;
 	private final String toEmail;
@@ -25,7 +26,7 @@ public class EmailContent {
 	private final String body;
 	private final String format;
 
-	public EmailContent(String toName, String toEmail, String fromName, String fromEmail, String subject, String body, String format) {
+	public EmailVO(String toName, String toEmail, String fromName, String fromEmail, String subject, String body, String format) {
 		super();
 		this.toName = toName;
 		this.toEmail = toEmail;
@@ -62,6 +63,14 @@ public class EmailContent {
 
 	public String getFormat() {
 		return format;
+	}
+
+	public boolean isEmpty() {
+		if (toEmail == null || fromEmail == null || subject == null || body == null) {
+			return true;
+		} else
+			return false;
+
 	}
 
 }
