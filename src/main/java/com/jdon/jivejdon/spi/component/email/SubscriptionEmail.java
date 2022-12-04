@@ -49,4 +49,22 @@ public class SubscriptionEmail implements Startable {
 		String toName = account.getUsername();
 		String fromName = sm.getMessageFrom();
 		String fromEmail = subscriptionEmailParam.getFromEmail();
-		EmailVO emailVO = 
+		EmailVO emailVO = new EmailVO(toName, toEmail, fromName, fromEmail, subject, body, EmailTask.HTML_FORMAT);
+		emailHelper.send(emailVO);
+		Debug.logVerbose("email is over", module);
+
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void stop() {
+		this.emailHelper.stop();
+
+	}
+
+}
