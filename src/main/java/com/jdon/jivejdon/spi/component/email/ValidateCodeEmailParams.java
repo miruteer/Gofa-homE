@@ -74,3 +74,17 @@ public class ValidateCodeEmailParams {
 	public String getFromEmail() {
 		return fromEmail;
 	}
+
+	public void setFromEmail(String fromEmail) {
+		this.fromEmail = fromEmail;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+}
