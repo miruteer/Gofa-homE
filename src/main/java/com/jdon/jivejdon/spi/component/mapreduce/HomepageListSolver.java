@@ -21,4 +21,35 @@ import java.util.stream.Collectors;
 @Component("homepageListSolver")
 public class HomepageListSolver {
 
-	private final ThreadApprovedNewList threadAppr
+	private final ThreadApprovedNewList threadApprovedNewList;
+	private final ForumMessageQueryService forumMessageQueryService;
+	private Collection<Long> list;
+
+	public HomepageListSolver(ThreadApprovedNewList threadApprovedNewList,
+							  ForumMessageQueryService forumMessageQueryService) {
+		this.threadApprovedNewList = threadApprovedNewList;
+		this.forumMessageQueryService = forumMessageQueryService;
+	}
+
+	public Collection<Long> getList(int start, int count) {
+		if (start == 0 || list  == null){
+		    list = new ArrayList<>();
+		    for (int i = 0; i < 75; i = i + 15) {
+			   list.addAll(threadApprovedNewList.getApprovedThreads(i));
+		    }
+			list = list.stream().collect(Collectors.toMap((threadId) -> forumMessageQueryService
+				.getThread(threadId), threadId -> threadId, (e1, e2) -> e1,
+				() -> new TreeMap<ForumThread, Long>(new HomePageComparator()))).values();
+	    }   
+		return list.stream().skip(start).limit(count).collect(Collectors.toList());
+	}
+
+	
+
+//		for (Long threadId : list) {
+//			ForumThread thread = forumMessageQueryService.getThread(threadId);
+//			sorted_map.put(thread, thread.getThreadId());
+//		}
+//		return sorted_map.values();
+
+}
