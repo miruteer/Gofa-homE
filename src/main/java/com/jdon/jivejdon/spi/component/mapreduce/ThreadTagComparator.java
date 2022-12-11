@@ -28,4 +28,9 @@ public class ThreadTagComparator implements Comparator<Long> {
 			return 1;
 		else {
 			if (tagID1.longValue() > tagID2.longValue())
-				ret
+				return -1;
+			else
+				return 1;
+		}
+	}
+}
