@@ -43,4 +43,54 @@ public class SitemapHelper {
 			+ "         xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
 	protected final static String SITEMAPINDEX_END = "\n</sitemapindex>";
 
-	public static void writeSitemapIndex(Writer writer, 
+	public static void writeSitemapIndex(Writer writer, Iterator<? extends Sitemap> mappings) throws IOException {
+		writeXml(writer, SITEMAPINDEX_START, mappings, SITEMAPINDEX_END);
+	}
+
+	public static long writeUrlset(Writer writer, Iterator<UrlSet> urls) throws IOException {
+		return writeXml(writer, URLSET_START, urls, URLSET_END);
+	}
+
+	private static long writeXml(Writer writer, String start, Iterator<?> it, String end) throws IOException {
+		writer.write(start);
+		long count = writeSubtree(writer, it);
+		writer.write(end);
+		return count;
+	}
+
+	private synchronized static void initJAXB() {
+		try {
+			JAXBContext jc = JAXBContext.newInstance(Sitemap.class, UrlSet.class);
+			m = jc.createMarshaller();
+			m.setProperty(Marshaller.JAXB_FRAGMENT, true);
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		} catch (PropertyException e) {
+			throw new DataBindingException(e);
+		} catch (JAXBException e) {
+			throw new DataBindingException(e);
+		}
+	}
+
+	public static long writeSubtree(Writer writer, Iterator<?> it) throws IOException {
+		long size = 0;
+		if (SitemapHelper.m == null) {
+			initJAXB();
+		}
+
+		boolean first = true;
+		while (it.hasNext()) {
+			if (first)
+				first = false;
+			else
+				writer.write("\n");
+			try {
+				m.marshal(it.next(), writer);
+			} catch (JAXBException e) {
+				throw new IOException(e);
+			}
+			size++;
+		}
+		return size;
+	}
+
+}
