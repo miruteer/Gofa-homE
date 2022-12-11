@@ -159,4 +159,26 @@ public class ShortMessageFactory implements Observer {
 		}
 	}
 
-	public void createWeiBoShortMessage(ATUserNotifiedEvent event
+	public void createWeiBoShortMessage(ATUserNotifiedEvent event) {
+		try {
+			for (String tousername : event.getToUsernames()) {
+				Account account = findTheUser(tousername);
+				if (account != null) {
+					ShortMessage msg = new ShortMessage();
+					msg.setAccount(event.getFromAccount());
+					msg.setMessageFrom(event.getFromAccount().getUsername());
+					msg.setMessageTo(account.getUsername());
+					msg.setMessageTitle(weiBoShortMessageParams.getSubject());
+					msg.setMessageBody(weiBoShortMessageParams.getBody(event));
+					this.sendShortMessage(msg);
+				}
+
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+}
