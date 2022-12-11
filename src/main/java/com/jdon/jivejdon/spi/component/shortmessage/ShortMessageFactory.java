@@ -26,4 +26,137 @@ import com.jdon.jivejdon.domain.model.account.Account;
 import com.jdon.jivejdon.domain.model.shortmessage.ShortMessage;
 import com.jdon.jivejdon.domain.model.shortmessage.ShortMessageState;
 import com.jdon.jivejdon.domain.event.ATUserNotifiedEvent;
-import com.jdon.jivejdon.infrast
+import com.jdon.jivejdon.infrastructure.repository.acccount.AccountFactory;
+import com.jdon.jivejdon.infrastructure.repository.shortmessage.ShortMessageRepository;
+import com.jdon.jivejdon.infrastructure.repository.dao.SequenceDao;
+import com.jdon.jivejdon.infrastructure.repository.dao.ShortMessageDao;
+
+/**
+ * ShortMessageFactory.java
+ * <p>
+ * Title:
+ * </p>
+ * <p>
+ * Description:
+ * </p>
+ * <p>
+ * CreateData: Jun 6, 2008
+ * </p>
+ * 
+ * @author GeXinying banq
+ * @version 1.0
+ */
+@Component("shortMessageFactory")
+public class ShortMessageFactory implements Observer {
+
+	private ShortMessageDao shortMessageDao;
+
+	private SequenceDao sequenceDao;
+
+	protected ShortMessageRepository repository;
+
+	protected final AccountFactory accountFactory;
+
+	protected final WeiBoShortMessageParams weiBoShortMessageParams;
+
+	public ShortMessageFactory(ShortMessageDao shortMessageDao, SequenceDao sequenceDao, ShortMessageRepository repository,
+			AccountFactory accountFactory, WeiBoShortMessageParams weiBoShortMessageParams) {
+		this.shortMessageDao = shortMessageDao;
+		this.sequenceDao = sequenceDao;
+		this.repository = repository;
+		this.accountFactory = accountFactory;
+		this.weiBoShortMessageParams = weiBoShortMessageParams;
+	}
+
+	public boolean sendShortMessage(ShortMessage msg) throws Exception {
+		if (!msg.isSatify(getMessageCount(msg)))
+			return false;
+		try {
+			msg = composite(msg);
+			msg.setHasSent(true);
+			notifyTargetAccount(msg);
+			this.shortMessageDao.sendShortMessage(msg);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	public void notifyTargetAccount(ShortMessage msg) {
+		Account targetAccount = new Account();
+		targetAccount.setUsername(msg.getMessageTo());
+		targetAccount = accountFactory.getFullAccount(targetAccount);
+		targetAccount.addOneNewMessage(1);
+	}
+
+	public int getNewShortMessageCount(ShortMessage msg) {
+		Account targetAccount = new Account();
+		targetAccount.setUsername(msg.getMessageTo());
+		targetAccount = accountFactory.getFullAccount(targetAccount);
+		return targetAccount.getNewShortMessageCount();
+	}
+
+	public boolean saveShortMessage(ShortMessage msg) throws Exception {
+		if (!msg.isSatify(getMessageCount(msg)))
+			return false;
+		msg = composite(msg);
+		this.shortMessageDao.sendShortMessage(msg);
+		return true;
+	}
+
+	private ShortMessage composite(ShortMessage msg) throws Exception {
+		long dateTime = System.currentTimeMillis();
+		try {
+			Long key = this.sequenceDao.getNextId(Constants.SHORTMESSAGE);
+			ShortMessageState state = new ShortMessageState();
+			state.setSendTime(Long.toString(dateTime));
+			msg.setMsgId(key);
+			msg.setShortMessageState(state);
+		} catch (SQLException e) {
+			throw new Exception(e);
+		}
+		return msg;
+	}
+
+	private int getMessageCount(ShortMessage msg) {
+		PageIterator pageIterator = this.repository.getShortMessages(0, 10, msg.getAccount().getUserIdLong());
+		return pageIterator.getAllCount();
+	}
+
+	public ShortMessage findShortMessage(Long msgId) {
+		ShortMessage sm = this.shortMessageDao.findShortMessage(msgId);
+		Account account = accountFactory.getFullAccount(sm.getAccount());
+		sm.setAccount(account);
+
+		account = findTheUser(sm.getMessageTo());
+		account.addMessageObservable(sm.getShortMessageState());
+		sm.getShortMessageState().addObserver(this);
+
+		return sm;
+	}
+
+	public Account findTheUser(String userName) {
+		Account account = new Account();
+		account.setUsername(userName);
+		return accountFactory.getFullAccount(account);
+	}
+
+	// for observer not open.
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.jdon.jivejdon.infrastructure.repository.shortmessage.ShortMessageRepository#update(java.util.
+	 * Observable, java.lang.Object)
+	 */
+	public void update(Observable obj, Object arg) {
+		ShortMessageState shortMessageState = (ShortMessageState) obj;
+		try {
+			this.shortMessageDao.updateShortMessate(shortMessageState.getShortMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void createWeiBoShortMessage(ATUserNotifiedEvent event
