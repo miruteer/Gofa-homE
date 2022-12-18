@@ -42,4 +42,113 @@ public class SitemapRepositoryImpl implements SitemapRepository {
 
 	private PageIteratorSolver pageIteratorSolver;
 
-	private Constants c
+	private Constants constants;
+
+	public SitemapRepositoryImpl(JdbcTempSource jdbcTempSource, ContainerUtil containerUtil, Constants constants) {
+		this.pageIteratorSolver = new PageIteratorSolver(jdbcTempSource.getDataSource(), containerUtil.getCacheManager());
+		this.jdbcTempSource = jdbcTempSource;
+		this.constants = constants;
+	}
+
+	public void clearCacheOfItem() {
+		pageIteratorSolver.clearCache();
+	}
+
+	@Override
+	public void insert(Url url) throws Exception {
+		try {
+			String sql = "INSERT INTO sitemap (id , url , name, creationDate) " + "VALUES (?, ?, ?, ?)";
+			List queryParams = new ArrayList();
+			queryParams.add(url.getUrlId());
+			queryParams.add(url.getIoc());
+			queryParams.add(url.getName());
+			long now = System.currentTimeMillis();
+			String saveDateTime = ToolsUtil.dateToMillis(now);
+			queryParams.add(saveDateTime);
+			jdbcTempSource.getJdbcTemp().operate(queryParams, sql);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		clearCacheOfItem();
+
+	}
+
+	@Override
+	public void update(Url url) throws Exception {
+		try {
+			String sql = "update sitemap set name=?, url=? where id=?";
+			List queryParams = new ArrayList();
+			queryParams.add(url.getName());
+			queryParams.add(url.getIoc());
+			queryParams.add(url.getUrlId());
+			jdbcTempSource.getJdbcTemp().operate(queryParams, sql);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		clearCacheOfItem();
+
+	}
+
+	@Override
+	public void delete(Url url) throws Exception {
+		String sql = "delete from sitemap where id=?";
+		List queryParams = new ArrayList();
+		queryParams.add(url.getUrlId());
+		jdbcTempSource.getJdbcTemp().operate(queryParams, sql);
+		clearCacheOfItem();
+
+	}
+
+	@Around
+	public Url getUrl(long Id) {
+		String GET_FIELD = "select  * from sitemap where id = ?";
+		List queryParams = new ArrayList();
+		queryParams.add(Id);
+
+		Url ret = null;
+
+		try {
+			List list = pageIteratorSolver.queryMultiObject(queryParams, GET_FIELD);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				Map map = (Map) iter.next();
+				ret = new Url();
+				ret.setName((String) map.get("name"));
+				ret.setIoc((String) map.get("url"));
+				String saveDateTime = ((String) map.get("creationDate")).trim();
+				String displayDateTime = constants.getDateTimeDisp(saveDateTime);
+				ret.setCreationDate(displayDateTime);
+				ret.setUrlId(Id);
+			}
+		} catch (Exception e) {
+			logger.error("getUrl" + e);
+		}
+		return ret;
+	}
+
+	@Override
+	public PageIterator getUrls(int start, int count) throws Exception {
+		String GET_ALL_ITEMS_ALLCOUNT = "select count(1) from sitemap  ORDER BY creationDate DESC";
+		String GET_ALL_ITEMS = "select id  from sitemap  ORDER BY creationDate DESC";
+		return pageIteratorSolver.getDatas("", GET_ALL_ITEMS_ALLCOUNT, GET_ALL_ITEMS, start, count);
+
+	}
+
+	public boolean checkUrl(String ioc) {
+		String GET_FIELD = "select  * from sitemap where url = ?";
+		List queryParams = new ArrayList();
+		queryParams.add(ioc);
+		boolean ret = false;
+		try {
+			List list = pageIteratorSolver.queryMultiObject(queryParams, GET_FIELD);
+			Iterator iter = list.iterator();
+			if (iter.hasNext()) {
+				ret = true;
+			}
+		} catch (Exception e) {
+			logger.error("getUrl" + e);
+		}
+		return ret;
+	}
+
+}
