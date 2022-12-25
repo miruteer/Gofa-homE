@@ -39,4 +39,51 @@ import com.jdon.jivejdon.infrastructure.repository.acccount.AccountFactory;
 import com.jdon.jivejdon.infrastructure.repository.ForumFactory;
 import com.jdon.jivejdon.infrastructure.repository.property.TagRepository;
 
-import java.util.
+import java.util.Optional;
+
+@Component
+public class NotifySubscribedFactory {
+	private final ForumFactory forumAbstractFactory;
+	private final AccountFactory accountFactory;
+	private final TagRepository tagRepository;
+
+	private final ForumNotifyMessage forumNotifyMessageTemp;
+	private final ThreadNotifyMessage threadNotifyMessageTemp;
+	private final TagNotifyMessage tagNotifyMessageTemp;
+	private final AccountNotifyMessage accountNotifyMessageTemp;
+
+	public NotifySubscribedFactory(AccountFactory accountFactory, ForumFactory forumAbstractFactory, ForumNotifyMessage forumNotifyMessageTemp,
+			ThreadNotifyMessage threadNotifyMessageTemp, TagNotifyMessage tagNotifyMessageTemp, AccountNotifyMessage accountNotifyMessageTemp,
+			TagRepository tagRepository) {
+		this.accountFactory = accountFactory;
+		this.forumAbstractFactory = forumAbstractFactory;
+		this.forumNotifyMessageTemp = forumNotifyMessageTemp;
+		this.threadNotifyMessageTemp = threadNotifyMessageTemp;
+		this.tagNotifyMessageTemp = tagNotifyMessageTemp;
+		this.accountNotifyMessageTemp = accountNotifyMessageTemp;
+		this.tagRepository = tagRepository;
+
+	}
+
+	public NotifySubscribed createFullSubscribed(SubscribedNotifyEvent subscribedNotifyEvent) throws Exception {
+		if (subscribedNotifyEvent instanceof ForumSubscribedNotifyEvent) {
+			Forum forum = forumAbstractFactory.getForum(((ForumSubscribedNotifyEvent) subscribedNotifyEvent).getForumId());
+			return new ForumNotifySubscribed(forum, forumNotifyMessageTemp, ((ForumSubscribedNotifyEvent) subscribedNotifyEvent).getForumMessage());
+		} else if (subscribedNotifyEvent instanceof ThreadSubscribedNotifyEvent) {
+			Optional<ForumThread> forumThreadOptional = forumAbstractFactory.getThread((
+					(ThreadSubscribedNotifyEvent) subscribedNotifyEvent).getThreadId());
+			return new ThreadNotifySubscribed(forumThreadOptional.get(), threadNotifyMessageTemp);
+		} else if (subscribedNotifyEvent instanceof TagSubscribedNotifyEvent) {
+			Optional<ForumThread> forumThreadOptional = forumAbstractFactory.getThread((
+					(TagSubscribedNotifyEvent) subscribedNotifyEvent).getThreadId());
+			ThreadTag tag = tagRepository.getThreadTag(((TagSubscribedNotifyEvent) subscribedNotifyEvent).getTagId());
+			return new TagNotifySubscribed(tag, forumThreadOptional.get(), tagNotifyMessageTemp);
+		} else if (subscribedNotifyEvent instanceof AccountSubscribedNotifyEvent) {
+			Account account = accountFactory.getFullAccount(((AccountSubscribedNotifyEvent) subscribedNotifyEvent).getUserId());
+			ForumMessage message = forumAbstractFactory.getMessage(((AccountSubscribedNotifyEvent) subscribedNotifyEvent).getMessageId());
+			return new AccountNotifySubscribed(account, message, accountNotifyMessageTemp);
+		} else
+			return null;
+
+	}
+}
