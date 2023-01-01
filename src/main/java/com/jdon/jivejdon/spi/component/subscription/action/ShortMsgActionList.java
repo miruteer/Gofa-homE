@@ -22,4 +22,15 @@ public class ShortMsgActionList extends ShortMsgAction {
 
 	private final List<ShortMsgAction> msgActionList = new ArrayList();
 
-	public v
+	public void addShortMsgAction(ShortMsgAction shortMsgAction) {
+		msgActionList.add(shortMsgAction);
+	}
+
+	public void exec() {
+		for (ShortMsgAction shortMsgAction : msgActionList) {
+			if (shortMsgAction != null)
+				shortMsgAction.exec();
+		}
+		msgActionList.clear();
+	}
+}
