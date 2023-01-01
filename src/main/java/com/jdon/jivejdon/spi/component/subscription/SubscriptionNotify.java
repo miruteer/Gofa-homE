@@ -61,4 +61,21 @@ public class SubscriptionNotify {
 				sub.setAccount(accountFactory.getFullAccount(sub.getAccount()));
 
 				for (SubscriptionAction subaction : sub.getSubscriptionActionHolder().getSubscriptionActions()) {
-					s
+					subaction.setSubscription(sub);
+					subaction.setSubscriptionNotify(this);
+					subaction.setNotifySubscribed(notifySubscribed);
+					if (subaction instanceof ShortMsgAction) {
+						shortMsgActionList.addShortMsgAction((ShortMsgAction) subaction);
+						if (!queueListerner.contains(shortMsgActionList))
+							queueListerner.offer(shortMsgActionList);
+					} else
+						queueListerner.offer(subaction);
+				}
+				sub.getSubscriptionActionHolder().clear();
+
+			}
+		} catch (Exception e) {
+			logger.error("sendsub erro:" + e);
+		}
+	}
+}
