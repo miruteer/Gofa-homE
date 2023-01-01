@@ -38,4 +38,50 @@ public class SubscriptionActionHolder {
 	}
 
 	public boolean hasActionType(String actionClass) {
-		if (actionC
+		if (actionClass == null)
+			return false;
+		for (SubscriptionAction subaction : subscriptionActions) {
+			if (subaction.getClass().getName().contains(actionClass)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public SubscriptionAction getActionType(Class actionClass) {
+		if (actionClass == null)
+			return null;
+		for (SubscriptionAction subaction : subscriptionActions) {
+			if (subaction.getClass().isAssignableFrom(actionClass)) {
+				return subaction;
+			}
+		}
+		return null;
+	}
+
+	public boolean removeActionType(Class actionClass) {
+		if (actionClass == null)
+			return false;
+		for (SubscriptionAction subaction : subscriptionActions) {
+			if (subaction.getClass().isAssignableFrom(actionClass)) {
+				subscriptionActions.remove(subaction);
+			}
+		}
+		return false;
+	}
+
+	public void addAction(SubscriptionAction subscriptionAction) {
+		if (subscriptionActions.size() > 100)
+			subscriptionActions.clear();
+		subscriptionActions.add(subscriptionAction);
+	}
+
+	public Collection<SubscriptionAction> getSubscriptionActions() {
+		return subscriptionActions;
+	}
+
+	public void clear() {
+		subscriptionActions.clear();
+	}
+
+}
