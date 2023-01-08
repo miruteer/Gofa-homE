@@ -102,4 +102,15 @@ public class SinaWeiboAction implements SubscriptionAction {
 	}
 
 	public void setSubscriptionNotify(SubscriptionNotify subscriptionNotify) {
-		thi
+		this.subscriptionNotify = subscriptionNotify;
+	}
+
+	public NotifySubscribed getNotifySubscribed() {
+		return notifySubscribed;
+	}
+
+	public void setNotifySubscribed(NotifySubscribed notifySubscribed) {
+		this.notifySubscribed = notifySubscribed;
+	}
+
+}
