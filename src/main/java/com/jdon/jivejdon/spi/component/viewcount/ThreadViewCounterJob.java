@@ -13,25 +13,20 @@
  * limitations under the License.
  * 
  */
-package com.jdon.jivejdon.spi.component.throttle.post;
+package com.jdon.jivejdon.spi.component.viewcount;
 
-public class ThresholdLimit {
+import java.util.List;
 
-	private final int threshold;
+import com.jdon.jivejdon.domain.model.thread.ViewCounter;
 
-	private final int interval; // milliseconds
+public interface ThreadViewCounterJob {
+	/**
+	 * concurrentHashMap.remove will remove it, everytime check if it is exist.
+	 * 
+	 * @param thread
+	 */
+	public abstract void saveViewCounter(ViewCounter viewCounter);
 
-	public ThresholdLimit(int threshold, int interval) {
-		this.threshold = threshold;
-		this.interval = interval;
-	}
-
-	public int getThreshold() {
-		return threshold;
-	}
-
-	public int getInterval() {
-		return interval;
-	}
+	public List<Long> getThreadIdsList();
 
 }

@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,25 +14,33 @@
  * limitations under the License.
  * 
  */
-package com.jdon.jivejdon.spi.component.throttle.post;
+package com.jdon.jivejdon.spi.component.viewcount;
 
-public class ThresholdLimit {
+public class ThreadViewCountParameter {
 
-	private final int threshold;
+	private int delay;
+	private int initdelay;
 
-	private final int interval; // milliseconds
-
-	public ThresholdLimit(int threshold, int interval) {
-		this.threshold = threshold;
-		this.interval = interval;
+	public ThreadViewCountParameter(String initdelay, String delay) {
+		super();
+		this.delay = Integer.parseInt(delay);
+		this.initdelay = Integer.parseInt(initdelay);
 	}
 
-	public int getThreshold() {
-		return threshold;
+	public int getDelay() {
+		return delay;
 	}
 
-	public int getInterval() {
-		return interval;
+	public void setDelay(int delay) {
+		this.delay = delay;
+	}
+
+	public int getInitdelay() {
+		return initdelay;
+	}
+
+	public void setInitdelay(int initdelay) {
+		this.initdelay = initdelay;
 	}
 
 }
