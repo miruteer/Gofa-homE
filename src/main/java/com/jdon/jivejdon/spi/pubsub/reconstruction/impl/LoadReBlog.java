@@ -44,4 +44,11 @@ public class LoadReBlog {
 			Collection<Long> tos = messageRepository.getReBlogByFrom(Id);
 			Collection threadtos = tos.stream().map(forumFactory::getThread)
 					.flatMap(o -> o.isPresent() ? Stream.of(o.get()) : Stream.empty()).collect(Collectors.toList());
-			return new Many2ManyDTO(
+			return new Many2ManyDTO(threadfroms, threadtos);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+}
