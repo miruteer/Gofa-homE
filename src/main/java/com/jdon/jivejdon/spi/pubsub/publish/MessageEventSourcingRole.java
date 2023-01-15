@@ -8,4 +8,66 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
+package com.jdon.jivejdon.spi.pubsub.publish;
+
+import com.jdon.annotation.Introduce;
+import com.jdon.annotation.model.Send;
+import com.jdon.domain.message.DomainMessage;
+import com.jdon.jivejdon.domain.command.MessageRemoveCommand;
+import com.jdon.jivejdon.domain.event.MessageOwnershipChangedEvent;
+import com.jdon.jivejdon.domain.event.MessagePropertiesRevisedEvent;
+import com.jdon.jivejdon.domain.event.MessageRemovedEvent;
+import com.jdon.jivejdon.domain.event.MessageRevisedEvent;
+import com.jdon.jivejdon.domain.event.RepliesMessagePostedEvent;
+import com.jdon.jivejdon.domain.event.ThreadNameRevisedEvent;
+import com.jdon.jivejdon.domain.event.UploadFilesAttachedEvent;
+
+@Introduce("message")
+public class MessageEventSourcingRole {
+
+	@Send("addReplyMessage")
+	public DomainMessage addReplyMessage(RepliesMessagePostedEvent event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("messageRevised")
+	public DomainMessage saveMessage(MessageRevisedEvent event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("moveMessage")
+	public DomainMessage moveMessage(MessageOwnershipChangedEvent event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("deleteMessage")
+	public DomainMessage deleteMessage(MessageRemoveCommand event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("delThread")
+	public DomainMessage delThread(MessageRemovedEvent event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("updateMessageProperties")
+	public DomainMessage saveMessageProperties(MessagePropertiesRevisedEvent event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("saveUploadFiles")
+	public DomainMessage saveUploadFiles(UploadFilesAttachedEvent event) {
+		return new DomainMessage(event);
+	}
+
+	@Send("saveName")
+	public DomainMessage saveName(ThreadNameRevisedEvent event) {
+		return new DomainMessage(event);
+	}
+
+}
