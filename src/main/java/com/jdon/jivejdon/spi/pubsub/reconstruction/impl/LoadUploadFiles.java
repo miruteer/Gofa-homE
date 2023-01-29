@@ -65,4 +65,23 @@ public class LoadUploadFiles {
 
 	@OnEvent("loadUploadFiles")
 	public Collection loadUploadFiles(String parentId) {
-		Collection<UploadFile> uploa
+		Collection<UploadFile> uploadFiles = new ArrayList();
+
+		try {
+			Collection uploads = uploadRepository.getUploadFiles(parentId);
+			if (uploads != null) {
+				uploadFiles.addAll(uploads);
+			}
+
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return uploadFiles;
+	}
+
+	@OnEvent("loadUploadEntity")
+	public byte[] LoadUploadEntity(String objectId) {
+		return uploadFileDao.loadUploadEntity(objectId);
+	}
+
+}
