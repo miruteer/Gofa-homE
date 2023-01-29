@@ -26,3 +26,18 @@ import com.jdon.jivejdon.infrastructure.repository.dao.SubscriptionDao;
 public class SubscriptionCounter implements DomainEventHandler {
 
 	private SubscriptionDao subscriptionDao;
+
+	public SubscriptionCounter(SubscriptionDao subscriptionDao) {
+		super();
+		this.subscriptionDao = subscriptionDao;
+	}
+
+	public void onEvent(EventDisruptor event, boolean endOfBatch) throws Exception {
+
+		OneOneDTO oneOneDTO = (OneOneDTO) event.getDomainMessage().getEventSource();
+		int subscribedCount = subscriptionDao.getSubscriptionsForsubscribedCount((Long) oneOneDTO.getParent());
+		int subscriptionCount = subscriptionDao.getSubscriptionsCount(Long.toString((Long) oneOneDTO.getParent()), (Integer) oneOneDTO.getChild());
+		event.getDomainMessage().setEventResult(new OneOneDTO(subscriptionCount, subscribedCount));
+	}
+
+}
