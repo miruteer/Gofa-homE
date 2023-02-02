@@ -39,4 +39,14 @@ public class TreeModelFactory {
 	@OnEvent("loadTreeModel")
 	public TreeModel loadTreeModel(Long threadId) {
 		try {
-			Optional<ForumThread> forumThreadOpt
+			Optional<ForumThread> forumThreadOptional = forumAbstractFactory.getThread(threadId);
+			return messageQueryDao.getTreeModel(forumThreadOptional.get().getThreadId(),
+					forumThreadOptional.get().getRootMessage().getMessageId());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
+}
