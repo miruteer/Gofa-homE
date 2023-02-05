@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,31 +20,38 @@ import com.jdon.annotation.Consumer;
 import com.jdon.async.disruptor.EventDisruptor;
 import com.jdon.domain.message.DomainEventHandler;
 import com.jdon.jivejdon.domain.event.RepliesMessagePostedEvent;
-import com.jdon.jivejdon.infrastructure.cqrs.CacheQueryRefresher;
 import com.jdon.jivejdon.infrastructure.repository.ForumFactory;
-import com.jdon.jivejdon.infrastructure.repository.query.MessagePageIteratorSolver;
+import com.jdon.jivejdon.util.ContainerUtil;
 
 /**
  * 
- * Event Sourcing send this pubsub to a message Bus to refresh Query system.
  * 
+ * the last evenHandler
  * 
  * @author banq
  * 
  */
 @Consumer("addReplyMessage")
-public class AddReplyMessageSendEventBus implements DomainEventHandler {
-	private final CacheQueryRefresher cacheQueryRefresher;
-	private final ForumFactory forumFactory;
+public class AddReplyMessageZ implements DomainEventHandler {
 
-	public AddReplyMessageSendEventBus(ForumFactory forumFactory, MessagePageIteratorSolver messagePageIteratorSolver) {
-		this.forumFactory = forumFactory;
-		cacheQueryRefresher = new CacheQueryRefresher(forumFactory, messagePageIteratorSolver);
+	protected final ContainerUtil containerUtil;
+	protected final ForumFactory forumAbstractFactory;
+
+	public AddReplyMessageZ(ContainerUtil containerUtil, ForumFactory forumAbstractFactory) {
+		super();
+		this.containerUtil = containerUtil;
+		this.forumAbstractFactory = forumAbstractFactory;
 	}
 
 	public void onEvent(EventDisruptor event, boolean endOfBatch) throws Exception {
 		RepliesMessagePostedEvent repliesMessagePostedEvent = (RepliesMessagePostedEvent) event.getDomainMessage().getEventSource();
-		Long messageId = repliesMessagePostedEvent.getPostRepliesMessageCommand().getMessageId();
-		cacheQueryRefresher.refresh(this.forumFactory.getMessage(messageId));
+		// change the forumMessageReply parameter DTO from commannd to like from
+		// repository
+//		forumMessageReply.finishDTO();
+		event.getDomainMessage().clear();
+//		containerUtil.addModeltoCache(forumMessageReply.getMessageId(), forumMessageReply);
+//		//update state for Eventually consistent so MessageListNav2Action can find its state has
+		// updated
+//		forumMessageReply.getForumThread().changeState((ForumMessageReply) forumMessageReply);
 	}
 }
