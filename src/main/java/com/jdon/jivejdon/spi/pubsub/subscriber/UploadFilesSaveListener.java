@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,30 +16,36 @@
  */
 package com.jdon.jivejdon.spi.pubsub.subscriber;
 
-import com.google.common.eventbus.AsyncEventBus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.jdon.annotation.Consumer;
 import com.jdon.async.disruptor.EventDisruptor;
 import com.jdon.domain.message.DomainEventHandler;
-import com.jdon.jivejdon.spi.component.subscription.SubscriptionNotify;
-import com.jdon.jivejdon.domain.model.subscription.event.SubscribedNotifyEvent;
-import com.jdon.jivejdon.util.ScheduledExecutorUtil;
+import com.jdon.jivejdon.domain.event.UploadFilesAttachedEvent;
+import com.jdon.jivejdon.infrastructure.repository.property.UploadRepository;
 
-@Consumer("subscriptionSender")
-public class SubscriptionSender implements DomainEventHandler {
-	private AsyncEventBus eventBus;
+@Consumer("saveUploadFiles")
+public class UploadFilesSaveListener implements DomainEventHandler {
+	private final static Logger logger = LogManager.getLogger(UploadFilesSaveListener.class);
+	private final UploadRepository uploadRepository;
 
-	public SubscriptionSender(SubscriptionNotify subscriptionNotify, ScheduledExecutorUtil scheduledExecutorUtil) {
-		eventBus = new AsyncEventBus(scheduledExecutorUtil.getScheduExec());
-		eventBus.register(subscriptionNotify);
+	public UploadFilesSaveListener(UploadRepository uploadRepository) {
+		super();
+		this.uploadRepository = uploadRepository;
 	}
 
 	public void onEvent(EventDisruptor event, boolean endOfBatch) throws Exception {
-
+		UploadFilesAttachedEvent es = (UploadFilesAttachedEvent) event.getDomainMessage().getEventSource();
 		try {
-			SubscribedNotifyEvent subscribedNotifyEvent = (SubscribedNotifyEvent) event.getDomainMessage().getEventSource();
-			eventBus.post(subscribedNotifyEvent);
+			Long messageId = es.getMessageId();
+			uploadRepository.saveAllUploadFiles(messageId.toString(), es.getUploads());
 		} catch (Exception e) {
+			logger.error(e);
+		} finally {
+			event.getDomainMessage().clear();
 		}
 
 	}
+
 }
