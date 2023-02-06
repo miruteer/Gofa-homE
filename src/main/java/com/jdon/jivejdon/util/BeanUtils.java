@@ -67,4 +67,89 @@ public class BeanUtils {
                     // String to the correct object type.
                     Object value = decode(propertyType, (String) properties.get(propName));
                     // Set the value of the bean.
-                    descriptor.getWriteMeth
+                    descriptor.getWriteMethod().invoke(bean, new Object[] { value });
+                    logger.debug(" 1propName=" + propName + ":propValue=" + (String) properties.get(propName));
+                    logger.debug(" 1propName=" + propName + ":propValue=" + value);
+
+                } catch (IntrospectionException ie) {
+                    // Ignore. This exception means that the key in the map
+                    // does not correspond to a property of the bean.
+                    ie.printStackTrace();
+                    logger.error("bean getWriteMethod invoke error propname=" + propName);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Gets the properties from a Java Bean and returns them in a Map of String
+     * name/value pairs. Because this method has to know how to convert a
+     * bean property into a String value, only a few bean property
+     * types are supported. They are: String, boolean, int, long, float, double,
+     * Color, and Class.
+     *
+     * @param bean a Java Bean to get properties from.
+     * @return a Map of all properties as String name/value pairs.
+     */
+    public static Map getProperties(Object bean) {
+        Map properties = new HashMap();
+        try {
+        	logger.debug("getProperties=" + bean.getClass().getName());
+            BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass(), Object.class);
+            // Loop through all properties of the bean.
+            PropertyDescriptor[] descriptors = beanInfo.getPropertyDescriptors();
+            String[] names = new String[descriptors.length];
+            for (int i = 0; i < names.length; i++) {
+                // Determine the property name.
+                String name = descriptors[i].getName();
+                Method methodc = descriptors[i].getReadMethod();
+                logger.debug("name=" + name);
+                logger.debug("Method=" + methodc.getName());
+                // Decode the property value using the property type and
+                // encoded String value.
+                Object[] args = null; 
+                Object value = methodc.invoke(bean, args);
+                // Add to Map, encoding the value as a String.
+                properties.put(name, encode(value));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return properties;
+    }
+
+    /**
+     * Returns the PropertyDescriptor array for the specified Java Bean Class.
+     * The method also does a special check to see of the bean has a BeanInfo
+     * class that extends the JiveBeanInfo class. If yes, we load the
+     * PropertyDescriptor array directly from that BeanInfo class rather than
+     * through the Introspector in order to preserve the desired ordering of
+     * properties.
+     *
+     * @param beanClass the Class of the JavaBean.
+     * @return the PropertyDescriptor array for the specified Java Bean Class.
+     */
+    public static PropertyDescriptor[] getPropertyDescriptors(Class beanClass) throws IntrospectionException {
+        // See if the Java Bean has a BeanInfo class that implements
+        // JiveBeanInfo. If so, return the PropertyDescriptor from that
+        // class. This will bypass properties of parent classes, but this is
+        // the normal behavior of classes that implement JiveBeanInfo.
+        try {
+            FilterBeanInfo beanInfo = (FilterBeanInfo) Class.forName(beanClass.getName() + "BeanInfo").newInstance();
+            return beanInfo.getPropertyDescriptors();
+        } catch (Exception e) {
+        	logger.error(e);
+        }
+        // Otherwise, return the PropertyDescriptors from the Introspector.
+        return Introspector.getBeanInfo(beanClass, Object.class).getPropertyDescriptors();
+    }
+
+    /**
+     * Encodes a bean property value as a String. If the object type is not
+     * supported, null will be returned.
+     *
+     * @param value an Object to encode in a String representation.
+     */
+    private static String encode(O
