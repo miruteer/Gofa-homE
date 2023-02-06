@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,24 +19,23 @@ package com.jdon.jivejdon.spi.pubsub.subscriber.updatemessage;
 import com.jdon.annotation.Consumer;
 import com.jdon.async.disruptor.EventDisruptor;
 import com.jdon.domain.message.DomainEventHandler;
-import com.jdon.jivejdon.domain.event.MessageRevisedEvent;
-import com.jdon.jivejdon.infrastructure.dto.AnemicMessageDTO;
-import com.jdon.jivejdon.infrastructure.repository.search.MessageSearchRepository;
 
+/**
+ * 
+ * 
+ * the last evenHandler
+ * 
+ * @author banq
+ * 
+ */
 @Consumer("messageRevised")
-public class MessageSaveSearch implements DomainEventHandler {
+public class MessageZ implements DomainEventHandler {
 
-	private MessageSearchRepository messageSearchRepository;
-
-	public MessageSaveSearch(MessageSearchRepository messageSearchRepository) {
+	public MessageZ() {
 		super();
-		this.messageSearchRepository = messageSearchRepository;
 	}
 
 	public void onEvent(EventDisruptor event, boolean endOfBatch) throws Exception {
-		MessageRevisedEvent messageRevisedEvent = (MessageRevisedEvent) event.getDomainMessage().getEventSource();
-		messageSearchRepository.updateMessage(AnemicMessageDTO.commandToDTO(messageRevisedEvent.getReviseForumMessageCommand()));
-
+		event.getDomainMessage().clear();
 	}
-
 }

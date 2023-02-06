@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2003-2009 the original author or authors.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,24 +19,33 @@ package com.jdon.jivejdon.spi.pubsub.subscriber.updatemessage;
 import com.jdon.annotation.Consumer;
 import com.jdon.async.disruptor.EventDisruptor;
 import com.jdon.domain.message.DomainEventHandler;
+import com.jdon.jivejdon.infrastructure.cqrs.CacheQueryRefresher;
 import com.jdon.jivejdon.domain.event.MessageRevisedEvent;
-import com.jdon.jivejdon.infrastructure.dto.AnemicMessageDTO;
-import com.jdon.jivejdon.infrastructure.repository.search.MessageSearchRepository;
+import com.jdon.jivejdon.infrastructure.repository.ForumFactory;
+import com.jdon.jivejdon.infrastructure.repository.query.MessagePageIteratorSolver;
 
+/**
+ * 
+ * Event Sourcing send this pubsub to a message Bus to refresh Query system.
+ * 
+ * 
+ * @author banq
+ * 
+ */
 @Consumer("messageRevised")
-public class MessageSaveSearch implements DomainEventHandler {
+public class MessageSendEventBus implements DomainEventHandler {
+	private final CacheQueryRefresher cacheQueryRefresher;
+	private final ForumFactory forumFactory;
 
-	private MessageSearchRepository messageSearchRepository;
-
-	public MessageSaveSearch(MessageSearchRepository messageSearchRepository) {
-		super();
-		this.messageSearchRepository = messageSearchRepository;
+	public MessageSendEventBus(ForumFactory forumFactory, MessagePageIteratorSolver messagePageIteratorSolver) {
+		this.forumFactory = forumFactory;
+		cacheQueryRefresher = new CacheQueryRefresher(forumFactory, messagePageIteratorSolver);
 	}
 
 	public void onEvent(EventDisruptor event, boolean endOfBatch) throws Exception {
+		// todo send to JMS or MQ
 		MessageRevisedEvent messageRevisedEvent = (MessageRevisedEvent) event.getDomainMessage().getEventSource();
-		messageSearchRepository.updateMessage(AnemicMessageDTO.commandToDTO(messageRevisedEvent.getReviseForumMessageCommand()));
+		cacheQueryRefresher.refresh(this.forumFactory.getMessage(messageRevisedEvent.getReviseForumMessageCommand().getOldforumMessage().getMessageId()));
 
 	}
-
 }
