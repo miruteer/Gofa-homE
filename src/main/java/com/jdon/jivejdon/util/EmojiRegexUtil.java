@@ -81,3 +81,12 @@ public class EmojiRegexUtil {
 				+ CJKSymbolsAndPunctuation + "|"
 				+ EnclosedCJKLettersAndMonths + "|"
 				+ EnclosedIdeographicSupplement + "|"
+				+ GeneralPunctuation + "|"
+				+ GeometricShapes + "|"
+				+ LatinSupplement + "|"
+				+ LetterlikeSymbols + "|"
+				+ MahjongTiles + "|"
+				+ PlayingCards + "|"
+				+ MiscellaneousTechnical + ")";
+	}
+}
