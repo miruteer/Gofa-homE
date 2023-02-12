@@ -152,4 +152,60 @@ public class BeanUtils {
      *
      * @param value an Object to encode in a String representation.
      */
-    private static String encode(O
+    private static String encode(Object value) {
+        if (value instanceof String) {
+            return (String) value;
+        }
+        if (value instanceof Boolean || value instanceof Integer || value instanceof Long || value instanceof Float || value instanceof Double) {
+            return value.toString();
+        }
+        if (value instanceof Color) {
+            Color color = (Color) value;
+            return color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+        }
+        if (value instanceof Class) {
+            return ((Class) value).getName();
+        }
+        return null;
+    }
+
+    /**
+     * Decodes a String into an object of the specified type. If the object
+     * type is not supported, null will be returned.
+     *
+     * @paran type the type of the property.
+     * @param the encode String value to decode.
+     * @return the String value decoded into the specified type.
+     */
+    private static Object decode(Class type, String value) throws Exception {
+        if (type.getName().equals("java.lang.String")) {
+            return value;
+        }
+        if (type.getName().equals("boolean")) {
+            return Boolean.valueOf(value);
+        }
+        if (type.getName().equals("int")) {
+            return Integer.valueOf(value);
+        }
+        if (type.getName().equals("long")) {
+            return Long.valueOf(value);
+        }
+        if (type.getName().equals("float")) {
+            return Float.valueOf(value);
+        }
+        if (type.getName().equals("double")) {
+            return Double.valueOf(value);
+        }
+        if (type.getName().equals("java.awt.Color")) {
+            StringTokenizer tokens = new StringTokenizer(value, ",");
+            int red = Integer.parseInt(tokens.nextToken());
+            int green = Integer.parseInt(tokens.nextToken());
+            int blue = Integer.parseInt(tokens.nextToken());
+            return new Color(red, green, blue);
+        }
+        if (type.getName().equals("java.lang.Class")) {
+            return Class.forName(value);
+        }
+        return null;
+    }
+}
