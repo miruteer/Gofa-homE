@@ -194,3 +194,40 @@ public class EmailTask extends Thread {
 				BodyPart bp = new MimeBodyPart();
 				bp.setHeader("Content-Type", "text/html;charset=utf-8");
 				bp.setContent(body, "text/html;charset=utf-8");
+				mp.addBodyPart(bp);
+				message.setContent(mp);
+				addMessage(message);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Factory method to return a blank JavaMail message. You should use the
+	 * object returned and set desired message properties. When done, pass the
+	 * object to the addMessage(Message) method.
+	 *
+	 * @return A new JavaMail message.
+	 */
+	public MimeMessage createMessage() {
+		if (session == null)
+			init();
+		return new MimeMessage(session);
+	}
+
+	private class SMTPAuthenticator extends Authenticator {
+		private String SMTP_AUTH_USER;
+		private String SMTP_AUTH_PWD;
+
+		private SMTPAuthenticator(String SMTP_AUTH_USER, String SMTP_AUTH_PWD) {
+			this.SMTP_AUTH_USER = SMTP_AUTH_USER;
+			this.SMTP_AUTH_PWD = SMTP_AUTH_PWD;
+		}
+
+		public PasswordAuthentication getPasswordAuthentication() {
+			return new PasswordAuthentication(SMTP_AUTH_USER, SMTP_AUTH_PWD);
+		}
+	}
+
+}
