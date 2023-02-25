@@ -68,4 +68,9 @@ public class ThreadTimer implements Startable {
 	@Override
 	public void stop() {
 
-		ScheduledExecutorUtil.scheduExecStatic.
+		ScheduledExecutorUtil.scheduExecStatic.shutdownNow();
+		queue.clear();
+
+	}
+
+}
