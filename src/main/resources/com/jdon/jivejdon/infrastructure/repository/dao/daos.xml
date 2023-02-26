@@ -30,4 +30,39 @@
 			class="com.jdon.jivejdon.infrastructure.repository.dao.filter.UploadFileDaoCache"/>
 				
 		<component name="accountDao"
-			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.AccountDao
+			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.AccountDaoSql"/>
+		
+		<component name="accountSSOSql"
+			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.AccountSSOSql"/>
+		
+    	<component name="setupDao"
+			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.SetupDaoSql"/>
+						
+		<component name="shortMessageDao" 
+			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.ShortMessageDaoSql">
+		</component>
+		
+		<component name="tagDaoCache" 
+			class="com.jdon.jivejdon.infrastructure.repository.dao.filter.TagDaoCache">
+		</component>
+		<!--  dao  end-->				
+			
+		
+		<!--  DataSource  -->	
+		<component name="jdbcTempSource"
+			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.JdbcTempSource">
+	       <constructor value="java:comp/env/jdbc/JiveJdonDS"/>
+        </component>
+				
+    	<!--  DataSource for SSO -->	
+		<component name="jdbcTempSSOSource"
+			class="com.jdon.jivejdon.infrastructure.repository.dao.sql.JdbcTempSSOSource">
+       <!-- tomcat jndi     --> 
+           <constructor value="java:comp/env/jdbc/JiveJdonDS"/>
+               <!-- tomcat jndi  if context.xml not configure Security data soure, use below
+                             <constructor value="java:comp/env/jdbc/JiveJdonDS"/>-->
+        </component>
+
+      
+	</services>
+</app>
