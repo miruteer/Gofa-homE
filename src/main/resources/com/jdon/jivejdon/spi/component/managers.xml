@@ -138,4 +138,98 @@
 				value="https://www.jdon.com/account/emailValidate.shtml?Referer=https://www.jdon.com&amp;method=emailValidate" />
 			<constructor value="jdon.com" />
             <constructor value="banq@163.com"/>
-		</compone
+		</component>
+		
+		
+		
+		<component name="feedbackEmailParams"
+			class="com.jdon.jivejdon.spi.component.email.FeedbackEmailParams">
+			<!--  tomcat context.xml  config javaMail -->			
+			<constructor value="java:comp/env/mail/Session" />			
+			<constructor value="admin" />
+			<constructor value="banq@163.com" />
+		</component>
+		
+		
+		<component name="SubscriptionEmailParams"
+			class="com.jdon.jivejdon.spi.component.email.SubscriptionEmailParams">
+			<!--  tomcat context.xml  config javaMail -->			
+			<constructor value="java:comp/env/mail/Session" />			
+			<constructor value="banq@163.com" />
+		</component>
+
+		<component name="emailHelper"
+			class="com.jdon.jivejdon.spi.component.email.EmailHelper" />
+		
+		<component name="EmailSender"
+			class="com.jdon.jivejdon.spi.component.email.EmailSender">
+			<constructor value="java:comp/env/mail/Session" />			
+		</component>
+		
+
+		<component name="tagNotifyMessage"
+			class="com.jdon.jivejdon.domain.model.subscription.messsage.TagNotifyMessage">
+			<constructor value="您关注的标签有新主题 " />
+            <constructor value="https://jdon.com/tag-tagId/"/>
+			<constructor value="admin" />
+		</component>
+
+		<component name="threadNotifyMessage"
+			class="com.jdon.jivejdon.domain.model.subscription.messsage.ThreadNotifyMessage">
+			<constructor value=" 您关注的主题贴有新回复  " />
+			<constructor
+                    value="https://jdon.com/threadId.html"/>
+			<constructor value="admin" />
+		</component>
+		
+		<component name="forumNotifyMessage"
+			class="com.jdon.jivejdon.domain.model.subscription.messsage.ForumNotifyMessage">
+			<constructor value="您关注的论坛有新贴 " />
+            <constructor value="https://jdon.com/threadId.html"/>
+			<constructor value="admin" />
+		</component>
+		
+		<component name="accountNotifyMessage"
+			class="com.jdon.jivejdon.domain.model.subscription.messsage.AccountNotifyMessage">
+			<constructor value="您关注的作者有新主题贴   " />
+            <constructor value="https://jdon.com/threadId.html"/>
+			<constructor value="admin" />
+		</component>
+		
+		<component name="weiboExpiredNotifyMessage"
+			class="com.jdon.jivejdon.domain.model.subscription.messsage.WeiboExpiredNotifyMessage">
+			<constructor value=" 微博授权过期  " />
+			<constructor value=" 微博帐号 weibouserId 授权已经过期(7有效期)，请重新订阅 一次再次授权即可 (订阅多个只需要任选一个重新订阅即可) " />
+			<constructor value="admin" />
+		</component>
+		
+		
+		<component name="threadViewCountParameter"
+			class="com.jdon.jivejdon.spi.component.viewcount.ThreadViewCountParameter">
+            <constructor value="3600"/>
+            <constructor value="3600"/> <!-- 60*60s unit: s -->
+		</component>
+		
+		<component name="contentFormatConverter"
+			class="com.jdon.jivejdon.domain.model.realtime.notification.ContentFormatConverter">
+			<constructor value="300" /> <!-- notification lifecycle seconds   -->
+			<constructor value="ZH" /><!-- Date time Locale -->			
+			<constructor value="发了新帖 " />
+            <constructor
+                    value="&lt;a href='/threadId' target='_blank' onclick='window.top.disablePopUPWithID(notificationId,scopeSeconds)'  &gt; subject &lt;/a&gt;"/>
+		</component>
+		
+		<component name="weiBoShortMessageParams"
+			class="com.jdon.jivejdon.spi.component.shortmessage.WeiBoShortMessageParams">
+			<constructor value="有贴提到你：" />
+            <constructor
+                    value="在 &lt;a href=/forum/messageNavList.shtml?message=messageId target=_blank   &gt; subject &lt;/a&gt; 帖子中提到了你，去看看吧。"/>
+		</component>
+		
+		<component name="sinaOAuthParamVO"
+			class="com.jdon.jivejdon.spi.component.account.SinaOAuthParamVO">
+			<constructor value="2879276008" /><!-- CONSUMER_KEY -->
+    	    <constructor value="8af8248a4cd6bf389685e6d3907349f0" /> <!--  CONSUMER_SECRET -->
+    	    <constructor value="https://api.weibo.com/2/" /> <!--  BASEURL -->
+    	    <constructor value="https://api.weibo.com/oauth2/authorize" /> <!--  authorizeURL -->
+       	    <constructor value="https://api.weibo.c
