@@ -232,4 +232,69 @@
     	    <constructor value="8af8248a4cd6bf389685e6d3907349f0" /> <!--  CONSUMER_SECRET -->
     	    <constructor value="https://api.weibo.com/2/" /> <!--  BASEURL -->
     	    <constructor value="https://api.weibo.com/oauth2/authorize" /> <!--  authorizeURL -->
-       	    <constructor value="https://api.weibo.c
+       	    <constructor value="https://api.weibo.com/oauth2/access_token" /> <!--  accessTokenURL -->
+		</component>
+
+		<component name="weiboTransferParamVO"
+			class="com.jdon.jivejdon.spi.component.weibo.WeiboTransferParamVO">
+			<!-- sina -->
+			<constructor value="sinaID" /> <!-- 新浪微博@username      jivejdon jaas not support chinese name -->
+    	    <constructor value="@sina.com" /> <!-- sample: banq@sina.com -->
+    	    <constructor value="新浪微博" />
+    	    <constructor value="http://weibo.com/" />
+    	    <constructor value="个人介绍" />
+		</component>
+
+
+		<component name="goolgeOAuthParamVO"
+			class="com.jdon.jivejdon.spi.component.account.GoolgeOAuthParamVO">
+			<constructor value="www.jdon.com" /><!-- CONSUMER_KEY -->
+    	    <constructor value="rJa_VwHYCMi8hkx99nUA3CDJ" /> <!--  CONSUMER_SECRET -->
+    	    <constructor value="https://www.google.com/accounts/OAuthGetRequestToken" /> <!--  requestTokenURL -->
+    	    <constructor value="https://www.google.com/accounts/OAuthAuthorizeToken" /> <!--  userAuthorizationURL -->
+    	    <constructor value="https://www.google.com/accounts/OAuthGetAccessToken" /> <!--  accessTokenURL -->
+    	    <constructor value="https://www.googleapis.com/auth/userinfo.profile" /> <!--  userinfo google scope -->
+    	    <constructor value="https://www.googleapis.com/oauth2/v1/userinfo" /> <!--  get user info -->
+    	    
+		</component>
+
+	<component name="queueListerner"
+			class="com.jdon.jivejdon.spi.component.subscription.action.QueueListerner">
+			<constructor value="100" /><!-- seconds -->
+		    <constructor value="20" /><!--  -->
+	</component>
+
+    <component name="threadTimer"
+			class="com.jdon.jivejdon.util.ThreadTimer">
+        <constructor value="1"/><!-- seconds -->
+        <constructor value="500"/><!--  -->
+	</component>    
+    
+		<component name="blogPingTempParams"
+			class="com.jdon.jivejdon.spi.component.pingrpc.BlogPingTempParams">
+			<constructor value="Jdon" /><!-- blog title -->
+			<constructor value="https://www.jdon.com/" /> <!-- blog url -->
+    	    <constructor value="https://www.jdon.com/#threadId#" /> <!--
+    	     UrlChanges -->
+    	    <constructor value="https://www.jdon.com/rss" /> <!-- BLOG RSS -->
+		</component>
+
+		<component name="blogPingServerUrl"
+			class="com.jdon.jivejdon.spi.component.pingrpc.BlogPingServerUrl">
+			<constructor value="http://ping.baidu.com/ping/RPC2" />
+<!--     	    <constructor value="http://blogsearch.google.com/ping/RPC2" /> --> 
+		</component>
+
+        <component name="cdnRefreshUrls"
+                   class="com.jdon.jivejdon.spi.pubsub.subscriber.postThread.CDNRefreshUrls">
+            <constructor value="query/approved"/>
+            <constructor value="rss"/>
+            <constructor value="query/threadDigList"/>
+            <constructor value="query/threadNewList"/>
+            <constructor value="query/popularList"/>
+            <constructor value="query/urlListAction"/>
+            <constructor value=""/>
+        </component>
+			
+		</services>
+</app>
